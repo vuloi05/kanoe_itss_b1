@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f9f9f7;
+  --foreground: #1a1c1b;
+
+  --primary: #09294f;
+  --on-primary: #ffffff;
+  --primary-container: #243f67;
+  --on-primary-container: #91abd9;
+  --primary-fixed: #d6e3ff;
+  --primary-fixed-dim: #adc7f7;
+  --on-primary-fixed: #001b3c;
+  --on-primary-fixed-variant: #2d476f;
+
+  --secondary: #715a3e;
+  --on-secondary: #ffffff;
+  --secondary-container: #fdddb9;
+  --on-secondary-container: #786044;
+  --secondary-fixed: #fdddb9;
+  --secondary-fixed-dim: #e0c29f;
+  --on-secondary-fixed: #281803;
+  --on-secondary-fixed-variant: #584329;
+
+  --tertiary: #3f2122;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #583637;
+  --on-tertiary-container: #ce9f9f;
+  --tertiary-fixed: #ffdad9;
+  --tertiary-fixed-dim: #ecbbba;
+  --on-tertiary-fixed: #2f1314;
+  --on-tertiary-fixed-variant: #603d3e;
+
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+
+  --surface: #f9f9f7;
+  --on-surface: #1a1c1b;
+  --surface-variant: #e2e3e1;
+  --on-surface-variant: #44474d;
+  --surface-dim: #dadad8;
+  --surface-bright: #f9f9f7;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f4f4f2;
+  --surface-container: #eeeeec;
+  --surface-container-high: #e8e8e6;
+  --surface-container-highest: #e2e3e1;
+  --surface-tint: #455f88;
+
+  --outline: #74777d;
+  --outline-variant: #c4c6cd;
+  --inverse-surface: #2f3130;
+  --inverse-on-surface: #f1f1ef;
+  --inverse-primary: #adc7f7;
+  --on-background: #1a1c1b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim);
+  --color-on-secondary-fixed: var(--on-secondary-fixed);
+  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-tertiary-fixed: var(--tertiary-fixed);
+  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--on-tertiary-fixed-variant);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-tint: var(--surface-tint);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-inverse-primary: var(--inverse-primary);
+  --color-on-background: var(--on-background);
+
+  --font-headline: "Be Vietnam Pro", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+/* Waveform animation for lesson screen */
+@keyframes wave {
+  from { height: 10%; }
+  to { height: 80%; }
+}
+.waveform-bar {
+  animation: wave 1.2s ease-in-out infinite alternate;
+}
+
+/* Lotus shape clip-path */
+.lotus-shape {
+  clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);
+}
+
+/* Lotus mask */
+.lotus-mask {
+  mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0C60 25 90 40 100 50C90 60 60 75 50 100C40 75 10 60 0 50C10 40 40 25 50 0Z" fill="black"/></svg>');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+/* Dot pattern background */
+.bg-pattern {
+  background-image: radial-gradient(circle at 2px 2px, #e2e3e1 1px, transparent 0);
+  background-size: 32px 32px;
+}
+
+/* Lotus gradient */
+.lotus-gradient {
+  background: linear-gradient(135deg, #09294f 0%, #243f67 100%);
+}
+
+/* Glass panel */
+.glass-panel {
+  background: rgba(244, 244, 242, 0.6);
+  backdrop-filter: blur(20px);
+}
