@@ -1,0 +1,351 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#ce9f9f",
+                    "surface-tint": "#455f88",
+                    "on-error": "#ffffff",
+                    "tertiary": "#3f2122",
+                    "secondary-container": "#fdddb9",
+                    "tertiary-fixed": "#ffdad9",
+                    "on-surface-variant": "#44474d",
+                    "surface-bright": "#f9f9f7",
+                    "surface": "#f9f9f7",
+                    "on-secondary-fixed": "#281803",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#adc7f7",
+                    "surface-container-high": "#e8e8e6",
+                    "secondary-fixed-dim": "#e0c29f",
+                    "on-background": "#1a1c1b",
+                    "secondary-fixed": "#fdddb9",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f4f4f2",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#2f3130",
+                    "on-secondary-container": "#786044",
+                    "secondary": "#715a3e",
+                    "on-primary-fixed": "#001b3c",
+                    "primary-fixed": "#d6e3ff",
+                    "surface-dim": "#dadad8",
+                    "surface-container": "#eeeeec",
+                    "on-surface": "#1a1c1b",
+                    "inverse-on-surface": "#f1f1ef",
+                    "on-tertiary-fixed": "#2f1314",
+                    "background": "#f9f9f7",
+                    "tertiary-container": "#583637",
+                    "tertiary-fixed-dim": "#ecbbba",
+                    "primary-container": "#243f67",
+                    "on-secondary-fixed-variant": "#584329",
+                    "on-primary-fixed-variant": "#2d476f",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#09294f",
+                    "outline-variant": "#c4c6cd",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#603d3e",
+                    "surface-variant": "#e2e3e1",
+                    "primary-fixed-dim": "#adc7f7",
+                    "on-primary-container": "#91abd9",
+                    "outline": "#74777d",
+                    "surface-container-highest": "#e2e3e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Be Vietnam Pro"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .lotus-gradient {
+            background: linear-gradient(135deg, #09294f 0%, #243f67 100%);
+        }
+        .engawa-shadow {
+            box-shadow: 0 12px 32px -4px rgba(9, 41, 79, 0.06);
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #f9f9f7;
+            color: #1a1c1b;
+        }
+        h1, h2, h3 {
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.2) sepia(0.5) saturate(2) hue-rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f9f9f7] dark:bg-slate-950 flex justify-between items-center px-8 py-4 max-w-full font-['Be_Vietnam_Pro'] tracking-wide">
+<div class="text-xl font-bold text-[#09294f] dark:text-blue-200" style="">VietImmerse</div>
+<nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+<a class="text-[#715a3e] hover:text-[#09294f] transition-colors" href="#" style="">Trang chủ / ホーム</a>
+<a class="text-[#09294f] border-b-2 border-[#715a3e] pb-1 font-bold" href="#" style="">Ghép cặp/ マッチング</a>
+<a class="text-[#715a3e] hover:text-[#09294f] transition-colors" href="#" style=""><a class="text-[#715a3e] dark:text-slate-400 font-medium hover:text-[#09294f] transition-colors cursor-text" href="https://app-companion-430619.appspot.com/projects/1405884094341497787?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.en.PJsh2cctCQI.O%2Fd%3D1%2Frs%3DAHpOoo_QlMhY2cycn60Rs8eI1WInRwuahw%2Fm%3D__features__#" spellcheck="false" data-stitch-added-classes="cursor-text" style="--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: rgb(9, 41, 79); --tw-text-opacity: 1; letter-spacing: 0.35px; outline: none !important;">Lịch trình/スケジュール</a></a>
+<a class="text-[#715a3e] hover:text-[#09294f] transition-colors" href="#" style="">Cài đặt / 設定</a>
+<button class="ml-4 px-6 py-2 lotus-gradient text-white rounded-full font-bold text-sm transition-transform hover:scale-105 active:scale-95" style=""><br></button>
+</nav>
+<button class="md:hidden text-primary" style="">
+<span class="material-symbols-outlined" style="">menu</span>
+</button>
+</header>
+<main class="pt-20 flex h-screen overflow-hidden">
+<!-- SideNavBar / Conversations List -->
+<aside class="hidden md:flex flex-col h-full w-80 bg-[#f4f4f2] dark:bg-slate-900 p-4 border-r border-outline-variant/10 font-['Manrope'] text-sm">
+<div class="mb-6 px-2">
+<div class="flex items-center gap-3 mb-1">
+<img alt="User profile photo" class="w-10 h-10 rounded-full object-cover border-2 border-surface-container-lowest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSLQUpHRR8LPrNHa282y8n_J2klIOBhI7AB36l2SOmGiW_SN-VEMktYot2WrFQ93SzTDaUX2a6DxsGvIpztySZj4yfw9obmPF76t5r2z2a5uT-QlX0-Gkyo0E_atEjaByvgk8-yCthzrs7-eQsG8sJJUXMEdKSfl30PCoBQvcvRfjf9QZVdnWf_W_VF2WcFAzZtO_yytxdrTEu-aV8kqWtU6kfSmBCI3oJX6MyQa2p7GSMJ7iv_ytF61M7X7Gtm2VRqh7MStabd9Y" style="">
+<div>
+<h2 class="font-bold text-primary text-base leading-tight" style="">Tin nhắn / メッセージ</h2>
+<p class="text-secondary text-xs" style="">Hanoi x Tokyo</p>
+</div>
+</div>
+</div>
+<div class="space-y-1 flex-1 overflow-y-auto">
+<div class="p-3 bg-surface-container-lowest rounded-xl flex items-center gap-3 cursor-pointer engawa-shadow">
+<img alt="Sakura-san profile" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaUdXqZeM0gxCfmnYD2hIc_9ZHFpD8y-H73-C4Lujru4RvhoXNyZeqoi3McBvJqU_Rq1p-xpoagTPYuz4weU962XdhJugCE-7zMFUQMTABB_eeD6fM6FKB0Gtt2p9m5QJEYoseY5aSDH8_zzIKmMOjJCzB-S46FaedwJHJj-34dUfBeF4YZzGCjFGIzosS5poIanXSM4XLy-6GhJUwXxXMObf5Rin-zBCss5GbUlZhA0bthLb1DdjByqTDTSE22D3ror8J1y_ZbQU" style="">
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<span class="font-bold text-primary truncate" style="">Sakura-san / サクラさん</span>
+<span class="text-[10px] text-secondary" style="">2m</span>
+</div>
+<p class="text-xs text-on-surface-variant truncate" style="">Chào buổi sáng! / おはよう!</p>
+</div>
+</div>
+<div class="p-3 hover:bg-surface-variant/30 rounded-xl flex items-center gap-3 cursor-pointer transition-colors">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold" style="">K</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<span class="font-semibold text-secondary truncate" style="">Kenji / 健二</span>
+<span class="text-[10px] text-outline" style="">1h</span>
+</div>
+<p class="text-xs text-outline truncate" style="">Cảm ơn bạn. / ありがとう。</p>
+</div>
+</div>
+<div class="p-3 hover:bg-surface-variant/30 rounded-xl flex items-center gap-3 cursor-pointer transition-colors">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold" style="">M</div>
+<div class="flex-1 min-w-0">
+<span class="font-semibold text-secondary truncate" style="">Minh Anh / ミン・アン</span>
+<p class="text-xs text-outline truncate" style="">Hẹn gặp lại! / またね！</p>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-outline-variant/20">
+<button class="w-full py-3 bg-surface-container-low border-2 border-primary/10 text-primary font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-white transition-all" style="">
+<span class="material-symbols-outlined text-lg" style="">event</span>
+                    Lịch trình / スケジュール
+                </button>
+</div>
+</aside>
+<!-- Chat Canvas -->
+<section class="flex-1 flex flex-col bg-surface-container-lowest relative overflow-hidden">
+<!-- Chat Header -->
+<div class="px-8 py-4 bg-surface-container-low/50 flex items-center justify-between border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Partner" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4CRpk70lEPcvRhTfRefM0Mlls6xgxDEqI91vTsiPmki64GQzM8S9Fxj8Bs6bJooZVBqPFF-4nvPbAZ2wJFkmOmkeuIAVqYHloIPROD-JiaNgbTM7dskLvJGRt1wI8SNe0rS8FmUPB-30yJwuoC16kzF0HFq0_CiwWxbMexfDdUaQFWoJoTpepqXJpQqVhrDnq4JM5B6IG_MnN0Rl1ENYO38b_oVlODhyW1LOo9jA8RbNvvno_gCtHIYZFW8b9NvGS8O42bQ1t_q4" style="">
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+</div>
+<div>
+<h3 class="font-bold text-primary" style="">Sakura-san / サクラさん</h3>
+<p class="text-[10px] text-secondary-fixed-variant tracking-wider uppercase font-bold" style="">Học viên tích cực / アクティブラーナー • Level N3</p>
+</div>
+</div>
+<div class="flex items-center gap-4 text-secondary">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary" style="">more_vert</span>
+</div>
+</div>
+<!-- Messages Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 flex flex-col">
+<!-- Received Message -->
+<div class="flex gap-4 max-w-[80%]">
+<img alt="" class="w-8 h-8 rounded-full object-cover mt-1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCAIKKSTItQX-fCN8RH1dVJLN1wl_X8MYjQvucUOcqMHv32iJZZVzjX1N3XL21QYlWQBr-TC6G5pmZJsi3S1f_zy0ePUrYG3MRkbmiuXnPpXKpwnZHFuVaoAxcN0ujh1ThvjFE4S0zVpg19d9jVVlYhHptx8FR0yRXWFRcxEh_nkT8txQo0fqj8hT5b25sbdov9mIUdkCJaZnY4DSO_x-7mVNeUMj0SDeUpncFHzetBOLvqyGleiBM8qn78TPq4HaCkLW2_kvKFPg" style="">
+<div class="space-y-2">
+<div class="bg-surface-container-low p-4 rounded-2xl rounded-tl-none">
+<p class="text-sm font-body leading-relaxed" style="">Chào buổi sáng! Bạn có rảnh để hướng dẫn mình về cách phát âm dấu ngã không? <br><span class="text-xs text-secondary mt-1 block" style="">おはよう！私の「dấu ngã（波声）」の発音を教えてもらう時間はありますか？</span></p>
+</div>
+<span class="text-[10px] text-outline px-1" style="">09:15 AM</span>
+</div>
+</div>
+<!-- Sent Message -->
+<div class="flex flex-col items-end gap-2 self-end max-w-[80%]">
+<div class="lotus-gradient p-4 rounded-2xl rounded-tr-none text-white engawa-shadow">
+<p class="text-sm font-body leading-relaxed" style="">Chào Sakura-san! Tất nhiên rồi. Chúng ta có thể luyện tập qua video call nhé. <br><span class="text-xs text-on-primary-container mt-1 block" style="">サクラさん、こんにちは！もちろんです。ビデオ通話で練習しましょう。</span></p>
+</div>
+<span class="text-[10px] text-outline px-1" style="">09:18 AM</span>
+</div>
+<!-- Lesson Request Sent Card -->
+<div class="self-center w-full max-w-md">
+<div class="bg-surface-container border border-outline-variant/30 rounded-2xl overflow-hidden engawa-shadow">
+<div class="p-1 bg-secondary text-white text-[10px] text-center font-bold tracking-widest uppercase" style="">
+                            Đề xuất buổi học mới / 新しいレッスンの提案
+                        </div>
+<div class="p-6 flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" style="">auto_stories</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-primary text-base" style="">Yêu cầu đã gửi / リクエスト送信済み</h4>
+<p class="text-xs text-secondary mb-3" style="">Chờ đối tác xác nhận / パートナーの承認待ち</p>
+<div class="space-y-1.5 mb-4">
+<div class="flex items-center gap-2 text-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" style="">calendar_today</span>
+<span class="" style="">Thứ Sáu, 27/10/2023 / 2023年10月27日(金)</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" style="">schedule</span>
+<span class="" style="">15:00 - 15:45 (GMT+7)</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 text-xs font-bold text-error border border-error/20 rounded-lg hover:bg-error/5 transition-colors" style="">
+                                        Hủy / キャンセル
+                                    </button>
+<button class="flex-1 py-2 text-xs font-bold text-primary bg-surface-container-highest rounded-lg hover:bg-white transition-colors" style="">
+                                        Chi tiết / 詳細
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Input Area -->
+<div class="p-6 bg-surface-container-low border-t border-outline-variant/10">
+<div class="max-w-4xl mx-auto bg-surface-container-lowest rounded-full flex items-center px-6 py-2 engawa-shadow border border-outline-variant/10">
+<button class="p-2 text-secondary hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined" style="">add_circle</span>
+</button>
+<input class="flex-1 border-none focus:ring-0 bg-transparent text-sm placeholder-outline px-4" placeholder="Nhập tin nhắn... / メッセージを入力..." type="text">
+<div class="flex items-center gap-2 border-l border-outline-variant/20 pl-4 ml-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary rounded-full text-xs font-bold hover:bg-secondary hover:text-white transition-all group" style="">
+<span class="material-symbols-outlined text-sm" style="">calendar_month</span>
+<span class="" style="">Đặt buổi học / 予約</span>
+</button>
+<button class="p-2 lotus-gradient text-white rounded-full hover:scale-105 transition-transform" style="">
+<span class="material-symbols-outlined" style="">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Decorative Lotus -->
+<div class="absolute bottom-32 -right-16 opacity-5 pointer-events-none select-none">
+<svg fill="none" height="400" viewBox="0 0 200 200" width="400" xmlns="http://www.w3.org/2000/svg">
+<path d="M100 20C100 20 80 70 30 70C80 70 100 120 100 120C100 120 120 70 170 70C120 70 100 20 100 20Z" fill="#09294f"></path>
+<path d="M100 180C100 180 85 140 50 140C85 140 100 100 100 100C100 100 115 140 150 140C115 140 100 180 100 180Z" fill="#715a3e"></path>
+</svg>
+</div>
+</section>
+<!-- Right Scheduling Panel -->
+<aside class="hidden xl:flex flex-col w-80 bg-surface p-6 overflow-y-auto border-l border-outline-variant/10">
+<h4 class="font-bold text-primary mb-2 flex items-center gap-2" style="">
+<span class="material-symbols-outlined text-xl" style="">event_available</span>
+                Đặt thời gian học / 授業時間をセットする
+            </h4>
+<p class="text-[10px] text-secondary mb-6 font-medium leading-tight" style="">Chọn thời gian rảnh của bạn để học cùng Sakura-san. <br>空き時間を選択してサクラさんと学習しましょう。</p>
+<div class="space-y-6">
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="text-[10px] font-bold text-outline-variant uppercase tracking-wider" style="">Ngày học / 日付</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:ring-primary focus:border-primary" type="date">
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-bold text-outline-variant uppercase tracking-wider" style="">Bắt đầu / 開始時間</label>
+<div class="grid grid-cols-2 gap-2">
+<select class="bg-surface-container-low border-outline-variant/20 rounded-xl px-3 py-3 text-sm focus:ring-primary">
+<option>09:00</option><option>10:00</option><option selected="">15:00</option><option>19:00</option>
+</select>
+<select class="bg-surface-container-low border-outline-variant/20 rounded-xl px-3 py-3 text-sm focus:ring-primary">
+<option>00</option><option>15</option><option selected="">30</option><option>45</option>
+</select>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-bold text-outline-variant uppercase tracking-wider" style="">Thời lượng / 期間</label>
+<select class="w-full bg-surface-container-low border-outline-variant/20 rounded-xl px-4 py-3 text-sm focus:ring-primary">
+<option>30 phút / 30分</option>
+<option selected="">45 phút / 45分</option>
+<option>60 phút / 60分</option>
+<option>90 phút / 90分</option>
+</select>
+</div>
+<div class="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+<p class="text-[10px] text-primary font-bold mb-1" style="">TỔNG KẾT / まとめ</p>
+<p class="text-xs text-secondary leading-relaxed" style="">
+                            Thứ Sáu, 27/10/2023 <br>
+                            15:30 - 16:15 (45m)
+                        </p>
+</div>
+<button class="w-full py-3 lotus-gradient text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm" style="">
+                        Xác nhận / セットする
+                    </button>
+</div>
+<div class="pt-6 border-t border-outline-variant/20">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] font-bold text-outline-variant uppercase" style="">Lịch sử / 最近の履歴</span>
+<span class="material-symbols-outlined text-sm text-outline-variant" style="">history</span>
+</div>
+<div class="space-y-3">
+<div class="p-3 bg-white border border-outline-variant/10 rounded-xl flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
+<span class="material-symbols-outlined text-base" style="">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="text-[10px] font-bold text-primary" style="">Đã hoàn thành / 完了</p>
+<p class="text-[10px] text-secondary" style="">25 Oct • 30m</p>
+</div>
+</div>
+<div class="p-3 bg-white border border-outline-variant/10 rounded-xl flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+<span class="material-symbols-outlined text-base" style="">event_note</span>
+</div>
+<div class="flex-1">
+<p class="text-[10px] font-bold text-primary" style="">Sắp tới / 次回</p>
+<p class="text-[10px] text-secondary" style="">27 Oct • 45m</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Mobile BottomNavBar -->
+<footer class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest flex justify-around items-center py-3 px-4 border-t border-outline-variant/10 z-50">
+<button class="flex flex-col items-center gap-1 text-primary" style="">
+<span class="material-symbols-outlined" style="">chat</span>
+<span class="text-[10px] font-bold" style="">Tin nhắn / チャット</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary" style="">
+<span class="material-symbols-outlined" style="">explore</span>
+<span class="text-[10px] font-medium" style="">Match / マッチング</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-secondary" style="">
+<span class="material-symbols-outlined" style="">account_circle</span>
+<span class="text-[10px] font-medium" style="">Hồ sơ / プロフィール</span>
+</button>
+</footer>
+</body></html>

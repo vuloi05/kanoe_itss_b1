@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#603d3e",
+                        "secondary-fixed": "#fdddb9",
+                        "secondary-container": "#fdddb9",
+                        "primary-fixed-dim": "#adc7f7",
+                        "primary-fixed": "#d6e3ff",
+                        "outline": "#74777d",
+                        "on-background": "#1a1c1b",
+                        "surface-container-low": "#f4f4f2",
+                        "on-tertiary-container": "#ce9f9f",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#786044",
+                        "tertiary-container": "#583637",
+                        "surface-container-highest": "#e2e3e1",
+                        "surface-container-high": "#e8e8e6",
+                        "error": "#ba1a1a",
+                        "tertiary": "#3f2122",
+                        "background": "#f9f9f7",
+                        "secondary": "#715a3e",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#001b3c",
+                        "surface-variant": "#e2e3e1",
+                        "primary": "#09294f",
+                        "surface-dim": "#dadad8",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#e0c29f",
+                        "on-tertiary-fixed": "#2f1314",
+                        "surface-bright": "#f9f9f7",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#44474d",
+                        "inverse-primary": "#adc7f7",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "tertiary-fixed": "#ffdad9",
+                        "on-secondary-fixed-variant": "#584329",
+                        "tertiary-fixed-dim": "#ecbbba",
+                        "on-primary-container": "#91abd9",
+                        "primary-container": "#243f67",
+                        "on-secondary-fixed": "#281803",
+                        "surface-tint": "#455f88",
+                        "outline-variant": "#c4c6cd",
+                        "on-surface": "#1a1c1b",
+                        "inverse-surface": "#2f3130",
+                        "surface-container": "#eeeeec",
+                        "surface": "#f9f9f7",
+                        "on-error-container": "#93000a"
+                    },
+                    fontFamily: {
+                        "headline": ["Be Vietnam Pro"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .waveform-bar {
+            animation: wave 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes wave {
+            from {
+                height: 10%;
+            }
+
+            to {
+                height: 80%;
+            }
+        }
+
+        .glass-panel {
+            background: rgba(244, 244, 242, 0.6);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-background font-body min-h-screen pb-24">
+    <!-- TopAppBar Component -->
+    <header class="bg-[#f9f9f7] dark:bg-slate-900 flex justify-between items-center w-full px-6 py-4 fixed top-0 z-50">
+        <div class="flex items-center gap-4">
+            <h1 class="text-xl font-bold text-[#09294f] dark:text-blue-200 font-['Be_Vietnam_Pro'] tracking-wide">
+                VietImmerse</h1>
+        </div>
+        <div class="flex items-center gap-6">
+            <nav class="hidden md:flex gap-6 items-center font-['Be_Vietnam_Pro'] tracking-wide">
+                <span
+                    class="text-[#715a3e] dark:text-stone-400 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 transition-colors duration-300 px-3 py-1 rounded-lg cursor-pointer">Trang
+                    chủ / ホーム</span>
+                <span
+                    class="text-[#715a3e] dark:text-stone-400 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 transition-colors duration-300 px-3 py-1 rounded-lg cursor-pointer">Tìm
+                    đối tác / マッチング</span>
+                <span class="text-[#09294f] dark:text-blue-400 font-bold px-3 py-1 rounded-lg cursor-pointer">Luyện tập
+                    / ラボ</span>
+                <span
+                    class="text-[#715a3e] dark:text-stone-400 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 transition-colors duration-300 px-3 py-1 rounded-lg cursor-pointer">Cài
+                    đặt / 設定</span>
+            </nav>
+            <span
+                class="material-symbols-outlined text-[#09294f] dark:text-blue-400 cursor-pointer hover:bg-[#f4f4f2] dark:hover:bg-slate-800 p-2 rounded-full transition-colors duration-300"
+                data-icon="account_circle">account_circle</span>
+        </div>
+    </header>
+    <main class="pt-24 px-4 md:px-8 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Left Column: Context & Script (Bento Style) -->
+        <div class="lg:col-span-7 space-y-6">
+            <!-- Lesson Header Card -->
+            <div class="bg-surface-container-lowest rounded-full p-8 relative overflow-hidden">
+                <div class="relative z-10">
+                    <span class="text-secondary font-label tracking-widest uppercase text-xs">Scene 04 • Level A2</span>
+                    <h2 class="text-3xl font-headline font-extrabold text-primary mt-2 mb-1">At a Bun Cha Stall</h2>
+                    <p class="text-on-surface-variant font-body italic">Bún Chả屋で / Bun Cha-ya de</p>
+                </div>
+                <div class="absolute right-[-20px] top-[-20px] opacity-10">
+                    <img alt="close-up of steaming bowl of traditional vietnamese bun cha with grilled pork and fresh herbs in a bustling market"
+                        class="w-48 h-48 object-cover rounded-full"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp5hccXxm2Y_57zX-zazfGoUq3FqRWSd0WCmD92dn3vCxXyZ0S9gJOA_NxuTdJRXtqfu_L3GY49VJp-4jSY20MoE6sJxheBsrSSuKN632Q6lBJxb6pq9qlgRIWMz7mApcWpjAd6A3LEqfvL8pY9sX4xr8QmB917XNw6rsu5uNKALmwqfkRIXTd_r3Uqr7jGA0jXYq_J29MnXzvt5ch70NtRomInnsNSlgnEJ7lvTAbWCZmYNJvUKdOd4Z8dRv4OIEUmUcND7uVLBty" />
+                </div>
+            </div>
+            <!-- Dialogue Script Area -->
+            <div class="space-y-4">
+                <div class="flex justify-end mb-4 gap-3">
+                    <button
+                        class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-full hover:opacity-90 transition-all shadow-sm active:scale-95">
+                        <span class="material-symbols-outlined text-sm">visibility_off</span>
+                        <span class="font-label text-[10px] font-bold uppercase tracking-wider">Bật/Tắt phụ đề /
+                            字幕の表示/非表示</span>
+                    </button>
+                    <div class="relative group">
+                        <button
+                            class="px-4 py-2 bg-primary text-on-primary rounded-full hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm">slow_motion_video</span>
+                        </button>
+                        <!-- Speed Dropdown Menu (Opened) -->
+                        <div
+                            class="absolute top-full right-0 mt-2 w-32 bg-surface-container-lowest rounded-2xl shadow-2xl py-2 overflow-hidden z-20 border border-outline-variant/20 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 ease-out">
+                            <div class="flex flex-col">
+                                <button
+                                    class="px-4 py-2 text-left text-sm font-label text-on-surface-variant hover:bg-surface-container-low transition-colors flex justify-between items-center">
+                                    <span>0.5x</span>
+                                </button>
+                                <button
+                                    class="px-4 py-2 text-left text-sm font-label text-on-surface-variant hover:bg-surface-container-low transition-colors flex justify-between items-center">
+                                    <span>0.75x</span>
+                                </button>
+                                <button
+                                    class="px-4 py-2 text-left text-sm font-label text-primary font-bold bg-surface-container-high flex justify-between items-center">
+                                    <span>1.0x</span>
+                                    <span class="material-symbols-outlined text-sm">check</span>
+                                </button>
+                                <button
+                                    class="px-4 py-2 text-left text-sm font-label text-on-surface-variant hover:bg-surface-container-low transition-colors flex justify-between items-center">
+                                    <span>1.25x</span>
+                                </button>
+                                <button
+                                    class="px-4 py-2 text-left text-sm font-label text-on-surface-variant hover:bg-surface-container-low transition-colors flex justify-between items-center">
+                                    <span>1.5x</span>
+                                </button>
+                            </div>
+                            <!-- Pointer/Tail for the dropdown -->
+                            <div
+                                class="absolute -top-1 right-4 w-2 h-2 bg-surface-container-lowest rotate-45 border-l border-t border-outline-variant/20">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Dialogue Item 1: Inactive -->
+                <div
+                    class="bg-surface-container-low rounded-xl p-6 transition-all duration-300 hover:bg-surface-container">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-label font-bold text-primary text-xs tracking-tighter">BÁN HÀNG / 店員</span>
+                        <span class="material-symbols-outlined text-outline-variant text-sm">volume_up</span>
+                    </div>
+                    <p class="text-lg text-primary font-medium leading-loose">Em ơi, em dùng bún chả hay bún nem?</p>
+                    <p class="text-sm text-secondary mt-1 font-body">お姉さん、ブンチャーにしますか、それともブンネムにしますか？</p>
+                </div>
+                <!-- Dialogue Item 2: ACTIVE SHADOWING FOCUS -->
+                <div
+                    class="bg-surface-container-lowest rounded-xl p-6 ring-2 ring-primary ring-offset-4 ring-offset-background shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-label font-bold text-primary text-xs tracking-tighter">BẠN / あなた
+                            (Active)</span>
+                        <span class="material-symbols-outlined text-primary text-sm"
+                            style="font-variation-settings: 'FILL' 1;">volume_up</span>
+                    </div>
+                    <div class="flex flex-wrap gap-x-2 items-end">
+                        <div class="group relative">
+                            <span class="text-xs text-on-surface-variant block text-center opacity-60">Cho</span>
+                            <span class="text-2xl font-headline font-bold text-primary">Cho</span>
+                        </div>
+                        <div class="group relative">
+                            <span class="text-xs text-on-surface-variant block text-center opacity-60">em</span>
+                            <span class="text-2xl font-headline font-bold text-primary">em</span>
+                        </div>
+                        <div class="group relative">
+                            <span class="text-xs text-on-surface-variant block text-center opacity-60">một</span>
+                            <span class="text-2xl font-headline font-bold text-primary">một</span>
+                        </div>
+                        <div class="group relative">
+                            <span class="text-xs text-on-surface-variant block text-center opacity-60">suất</span>
+                            <span
+                                class="text-2xl font-headline font-bold text-primary underline decoration-secondary decoration-2 underline-offset-8">suất</span>
+                        </div>
+                        <div class="group relative">
+                            <span class="text-xs text-on-surface-variant block text-center opacity-60">bún</span>
+                            <span class="text-2xl font-headline font-bold text-primary">bún</span>
+                        </div>
+                        <div class="group relative">
+                            <span class="text-xs text-on-surface-variant block text-center opacity-60">chả</span>
+                            <span
+                                class="text-2xl font-headline font-bold text-primary underline decoration-error decoration-2 underline-offset-8">chả</span>
+                        </div>
+                        <div class="group relative">
+                            <span class="text-xs text-on-surface-variant block text-center opacity-60">nhé</span>
+                            <span class="text-2xl font-headline font-bold text-primary">nhé.</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-secondary mt-4 font-body">ブンチャーを一つください。</p>
+                    <div class="mt-4 pt-4 border-t border-outline-variant/20 flex gap-4">
+                        <div
+                            class="flex items-center gap-1 text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">
+                            <span class="w-2 h-2 rounded-full bg-secondary"></span> Mid-Tone Error
+                        </div>
+                        <div
+                            class="flex items-center gap-1 text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">
+                            <span class="w-2 h-2 rounded-full bg-error"></span> Falling-Tone Error
+                        </div>
+                    </div>
+                </div>
+                <!-- Dialogue Item 3: Inactive -->
+                <div class="bg-surface-container-low rounded-xl p-6 transition-all duration-300 opacity-60">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-label font-bold text-primary text-xs tracking-tighter">BÁN HÀNG / 店員</span>
+                    </div>
+                    <p class="text-lg text-primary font-medium leading-loose">Có ngay! Đợi chị một chút.</p>
+                    <p class="text-sm text-secondary mt-1 font-body">すぐ行きます！ちょっと待ってね。</p>
+                </div>
+            </div>
+        </div>
+        <!-- Right Column: AI Lab & Analysis -->
+        <div class="lg:col-span-5 space-y-6">
+            <!-- AI Lab Interface -->
+            <div
+                class="bg-primary-container text-on-primary rounded-full p-8 shadow-xl relative overflow-hidden min-h-[400px] flex flex-col justify-between">
+                <!-- Animated Background Motif -->
+                <div class="absolute inset-0 opacity-10 pointer-events-none">
+                    <svg class="w-full h-full scale-150 rotate-12" viewbox="0 0 200 200"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M44.7,-76.4C58.1,-69.2,70.3,-59.4,79.5,-47.1C88.7,-34.8,94.9,-20,95.5,-5.1C96.2,9.8,91.3,24.8,83,38C74.6,51.3,62.8,62.7,49.1,70.5C35.4,78.3,19.8,82.5,4,81.9C-11.8,81.2,-27.5,75.7,-41.2,67.2C-54.8,58.7,-66.4,47.2,-74.6,33.7C-82.8,20.2,-87.6,4.6,-85.8,-10.3C-84,-25.2,-75.6,-39.4,-64.1,-50.2C-52.5,-61,-37.8,-68.4,-23.7,-75.1C-9.6,-81.8,4,-87.7,16.5,-85.6C29,-83.5,40.4,-73.4,44.7,-76.4Z"
+                            fill="currentColor" transform="translate(100 100)"></path>
+                    </svg>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="font-headline font-bold text-xl text-on-primary-container">Voice Lab</h3>
+                            <p class="text-xs font-label text-on-primary-container/80 tracking-widest uppercase">
+                                Shadowing Active</p>
+                        </div>
+                        <div
+                            class="bg-surface-container-lowest/10 px-3 py-1 rounded-full text-xs font-bold border border-on-primary-container/20">
+                            AI v2.4
+                        </div>
+                    </div>
+                    <!-- Waveform Visualizer -->
+                    <div class="flex items-center justify-center gap-1.5 h-32 px-4">
+                        <div class="waveform-bar w-1.5 bg-on-primary-container rounded-full"
+                            style="animation-delay: 0.1s; height: 30%;"></div>
+                        <div class="waveform-bar w-1.5 bg-secondary-fixed rounded-full"
+                            style="animation-delay: 0.3s; height: 60%;"></div>
+                        <div class="waveform-bar w-1.5 bg-on-primary-container rounded-full"
+                            style="animation-delay: 0.5s; height: 45%;"></div>
+                        <div class="waveform-bar w-1.5 bg-secondary-fixed rounded-full"
+                            style="animation-delay: 0.2s; height: 80%;"></div>
+                        <div class="waveform-bar w-1.5 bg-on-primary-container rounded-full"
+                            style="animation-delay: 0.4s; height: 20%;"></div>
+                        <div class="waveform-bar w-1.5 bg-secondary-fixed rounded-full"
+                            style="animation-delay: 0.6s; height: 55%;"></div>
+                        <div class="waveform-bar w-1.5 bg-on-primary-container rounded-full"
+                            style="animation-delay: 0.1s; height: 75%;"></div>
+                        <div class="waveform-bar w-1.5 bg-secondary-fixed rounded-full"
+                            style="animation-delay: 0.8s; height: 40%;"></div>
+                        <div class="waveform-bar w-1.5 bg-on-primary-container rounded-full"
+                            style="animation-delay: 0.3s; height: 65%;"></div>
+                        <div class="waveform-bar w-1.5 bg-secondary-fixed rounded-full"
+                            style="animation-delay: 0.5s; height: 30%;"></div>
+                        <div class="waveform-bar w-1.5 bg-on-primary-container rounded-full"
+                            style="animation-delay: 0.7s; height: 90%;"></div>
+                        <div class="waveform-bar w-1.5 bg-secondary-fixed rounded-full"
+                            style="animation-delay: 0.2s; height: 50%;"></div>
+                        <div class="waveform-bar w-1.5 bg-on-primary-container rounded-full"
+                            style="animation-delay: 0.4s; height: 35%;"></div>
+                    </div>
+                    <div class="mt-8 text-center">
+                        <p class="text-sm font-label text-on-primary-container/90">Analyzing Pitch &amp; Nasality...</p>
+                    </div>
+                </div>
+                <!-- Controls -->
+                <div class="relative z-10 flex items-center justify-center mt-4 gap-4">
+                    <button
+                        class="w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors">
+                        <span class="material-symbols-outlined text-on-primary-container">replay</span>
+                    </button>
+                    <button
+                        class="w-20 h-20 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-lg hover:scale-105 transition-transform active:scale-95">
+                        <span class="material-symbols-outlined text-4xl"
+                            style="font-variation-settings: 'FILL' 1;">mic</span>
+                    </button>
+                    <button
+                        class="w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors">
+                        <span class="material-symbols-outlined text-on-primary-container">play_arrow</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Assessment Criteria Bento -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm">
+                    <span class="block text-2xl font-headline font-extrabold text-primary">82%</span>
+                    <div class="mt-1">
+                        <span
+                            class="block text-[10px] font-label text-primary font-bold uppercase tracking-wider">Accuracy</span>
+                        <span class="block text-[10px] font-label text-secondary font-medium">精度 (せいど)</span>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm">
+                    <span class="block text-2xl font-headline font-extrabold text-primary">7.5</span>
+                    <div class="mt-1">
+                        <span
+                            class="block text-[10px] font-label text-primary font-bold uppercase tracking-wider">Fluency</span>
+                        <span class="block text-[10px] font-label text-secondary font-medium">流暢さ (りゅう)</span>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm">
+                    <span class="block text-2xl font-headline font-extrabold text-primary">90%</span>
+                    <div class="mt-1">
+                        <span
+                            class="block text-[10px] font-label text-primary font-bold uppercase tracking-wider">Completeness</span>
+                        <span class="block text-[10px] font-label text-secondary font-medium">完成度 (かんせい)</span>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm">
+                    <span class="block text-2xl font-headline font-extrabold text-primary">68%</span>
+                    <div class="mt-1">
+                        <span
+                            class="block text-[10px] font-label text-primary font-bold uppercase tracking-wider">Prosody</span>
+                        <span class="block text-[10px] font-label text-secondary font-medium">韻律 (いんりつ)</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Lotus Progress Tracker -->
+            <div class="bg-surface-container-low p-8 rounded-full flex flex-col items-center">
+                <h4 class="font-label text-xs font-bold text-primary mb-6 tracking-widest uppercase">Mastery Progress /
+                    習得状況</h4>
+                <div class="relative w-24 h-24 flex items-center justify-center">
+                    <!-- Geometric Lotus Petals -->
+                    <div class="absolute inset-0 flex items-center justify-center opacity-20">
+                        <span
+                            class="material-symbols-outlined text-[100px] text-primary rotate-45">filter_vintage</span>
+                    </div>
+                    <div class="z-10 text-center">
+                        <span class="text-xl font-headline font-extrabold text-primary">3/12</span>
+                        <span class="block text-[8px] font-bold text-secondary uppercase">Phrases / フレーズ</span>
+                    </div>
+                    <!-- Active Fill Overlay -->
+                    <svg class="absolute inset-0 w-full h-full -rotate-90">
+                        <circle class="text-primary-container/10" cx="48" cy="48" fill="transparent" r="44"
+                            stroke="currentColor" stroke-width="4"></circle>
+                        <circle class="text-primary" cx="48" cy="48" fill="transparent" r="44" stroke="currentColor"
+                            stroke-dasharray="276" stroke-dashoffset="200" stroke-width="4"></circle>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- BottomNavBar Component -->
+    <nav
+        class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#f9f9f7] shadow-[0_-12px_32px_-4px_rgba(9,41,79,0.06)] md:hidden">
+        <div
+            class="flex flex-col items-center justify-center text-[#715a3e] px-3 py-1 scale-95 active:scale-90 transition-transform duration-300">
+            <span class="material-symbols-outlined" data-icon="home">home</span>
+            <span class="font-['Manrope'] text-[10px] leading-tight">Home/ホーム</span>
+        </div>
+        <div
+            class="flex flex-col items-center justify-center text-[#715a3e] px-3 py-1 scale-95 active:scale-90 transition-transform duration-300">
+            <span class="material-symbols-outlined" data-icon="group">group</span>
+            <span class="font-['Manrope'] text-[10px] leading-tight">Match/マッチング</span>
+        </div>
+        <div
+            class="flex flex-col items-center justify-center bg-[#ffffff] text-[#09294f] rounded-xl px-3 py-1 scale-95 active:scale-90 transition-transform duration-300">
+            <span class="material-symbols-outlined" data-icon="mic"
+                style="font-variation-settings: 'FILL' 1;">mic</span>
+            <span class="font-['Manrope'] text-[10px] leading-tight font-bold">Lab/ラボ</span>
+        </div>
+        <div
+            class="flex flex-col items-center justify-center text-[#715a3e] px-3 py-1 scale-95 active:scale-90 transition-transform duration-300">
+            <span class="material-symbols-outlined" data-icon="settings">settings</span>
+            <span class="font-['Manrope'] text-[10px] leading-tight">Settings/設定</span>
+        </div>
+    </nav>
+    <!-- Map context hint -->
+    <div class="hidden" data-location="Hanoi" style=""></div>
+    <button
+        class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-xl flex items-center justify-center z-[100] hover:scale-110 transition-transform active:scale-95 group">
+        <span class="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">forum</span>
+        <!-- <div class="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full border-2 border-background"></div> -->
+    </button>
+</body>
+
+</html>

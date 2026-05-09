@@ -1,0 +1,272 @@
+<!DOCTYPE html><html lang="vi-VN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>VietImmerse - Tin nhắn / メッセージ</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-background": "#1a1c1b",
+                        "tertiary-container": "#583637",
+                        "primary-fixed-dim": "#adc7f7",
+                        "surface-container-highest": "#e2e3e1",
+                        "secondary-fixed": "#fdddb9",
+                        "secondary": "#715a3e",
+                        "on-secondary-fixed-variant": "#584329",
+                        "surface-dim": "#dadad8",
+                        "tertiary-fixed": "#ffdad9",
+                        "outline-variant": "#c4c6cd",
+                        "primary-container": "#243f67",
+                        "inverse-primary": "#adc7f7",
+                        "surface-container-low": "#f4f4f2",
+                        "secondary-fixed-dim": "#e0c29f",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#ce9f9f",
+                        "surface-bright": "#f9f9f7",
+                        "secondary-container": "#fdddb9",
+                        "outline": "#74777d",
+                        "on-surface-variant": "#44474d",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ecbbba",
+                        "background": "#f9f9f7",
+                        "on-tertiary-fixed-variant": "#603d3e",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e2e3e1",
+                        "inverse-on-surface": "#f1f1ef",
+                        "primary": "#09294f",
+                        "primary-fixed": "#d6e3ff",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2f3130",
+                        "surface-tint": "#455f88",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "error": "#ba1a1a",
+                        "tertiary": "#3f2122",
+                        "on-tertiary-fixed": "#2f1314",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#001b3c",
+                        "error-container": "#ffdad6",
+                        "surface": "#f9f9f7",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#91abd9",
+                        "on-secondary-fixed": "#281803",
+                        "surface-container-high": "#e8e8e6",
+                        "on-secondary-container": "#786044",
+                        "surface-container": "#eeeeec",
+                        "on-surface": "#1a1c1b"
+                    },
+                    fontFamily: {
+                        "headline": ["Be Vietnam Pro"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Be Vietnam Pro', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#f9f9f7] flex justify-between items-center px-8 py-4 w-full max-w-full z-50">
+<div class="text-2xl font-bold text-[#09294f] tracking-wide" style="">
+            VietImmerse
+        </div>
+<nav class="flex items-center space-x-8 font-['Be_Vietnam_Pro'] tracking-wide text-sm">
+<a class="text-[#715a3e] font-medium hover:text-[#09294f] transition-colors duration-300" href="#" style="">Trang chủ/ホーム</a>
+<a class="text-[#09294f] font-bold border-b-2 border-[#09294f] pb-1 hover:text-[#09294f] transition-colors duration-300" href="#" style="">Ghép cặp /マッチング</a>
+<a class="text-[#715a3e] font-medium hover:text-[#09294f] transition-colors duration-300" href="#" style="">Luyện tập/ラボ</a>
+<a class="text-[#715a3e] font-medium hover:text-[#09294f] transition-colors duration-300" href="#" style="">Cài đặt/設定</a>
+</nav>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex overflow-hidden">
+<!-- Left Column: Chat List (30%) -->
+<aside class="w-[30%] bg-surface-container-low flex flex-col border-r border-outline-variant/10">
+<div class="p-6">
+<h2 class="text-xl font-bold text-primary mb-6" style="">Tin nhắn / メッセージ</h2>
+<div class="space-y-2">
+<!-- Active Chat Card -->
+<div class="p-4 bg-surface-container-lowest rounded-xl shadow-sm border-l-4 border-primary cursor-pointer transition-all">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover" data-alt="portrait of a young Vietnamese woman with long dark hair and a friendly expression in a brightly lit modern cafe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcRIndFOlW7wXeV-CLVZUfuscuqi3-G9TREAi9VISX3n6qHGpzcnc5Gwhu383eionE7kFgbQlYcRCY7NVLtvyU8iCs4_g1MR476HWmSMb_7bXrMTrwIGDyaJ1duOtv6FFr3MiiJtlqKcTtbIgBURHDFpXBFzUvcMT9SI17taj5bkY9J2TjXC94p0t2Pwd_l9DXiMaXDrSwF-Oz670i0tvP7GvGkVCyazhBuG47rgDGDLRujjm_vPugqtA6GhnMUOpkhfXQf405NQo" style="">
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<p class="font-bold text-primary leading-tight" style="">Linh Chi / リン・チー</p>
+<span class="text-[10px] text-outline" style="">19:02</span>
+</div>
+<p class="text-xs text-secondary mt-1 truncate" style="">Chào bạn! Rất vui được gặp... / 初めまして！お会い...</p>
+</div>
+</div>
+</div>
+<!-- Inactive Chat Card -->
+<div class="p-4 hover:bg-surface-container-high rounded-xl transition-all cursor-pointer">
+<div class="flex items-center space-x-4 opacity-70">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="professional portrait of a middle-aged Japanese man wearing glasses and a business casual shirt with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOkg5MBETD5FafPOcFCZuGY1cXeY-f6vGPFIi_rDRSdBhsUjhbSU3NJkUGp-TwMZI5Vs3OMC4-G5ujFKqFHRodSz7RnD_5KErmDH8R1PZ0c6HcYDQm60YXSsSLx5_KM59xYdyB1lxdLxCSOQa017ZblreIAacLD7oYsPPrnnKN58_H58e2QuXRB5PTNol8r1kUBoOWCAFg3Af7tcN3U7eCOyY90ynokMsTrn1HUoQscO62Fu0i14AfvfkAFmBcHOjMCQPk07Ir0mU" style="">
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<p class="font-semibold text-on-surface leading-tight" style="">Takeshi / タケシ</p>
+<span class="text-[10px] text-outline" style="">Hôm qua</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1 truncate" style="">Cảm ơn vì buổi học hôm... / 昨日のレッスンありがと...</p>
+</div>
+</div>
+</div>
+<!-- Inactive Chat Card -->
+<div class="p-4 hover:bg-surface-container-high rounded-xl transition-all cursor-pointer">
+<div class="flex items-center space-x-4 opacity-70">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="happy young woman with short hair smiling brightly in an outdoor setting with dappled sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDu0YYj69WT8kuLRHsEdE3AcOmM4DHDfJsK-XltmTQr4ujAtIbPUQ608MXYG1xQBh4MWmoi2NDU0QKMs17TVR3w-T_wYwHtEvU-8y09LcO19qzjrI2Cqs0VmpX6uZWsmtpAkxttxEuyRn01Yzd5nMCPyXZ6Z_m0rmECkwKRSZ6ava_tlgo-bvSVanGhtbkC6O3UtHjkstKQXyZ7fqrwQsHbyWM76raPw9oMUjM_IKFCrB8AC818NaP8W1a0b_Try3AAwxXGDflvao0" style="">
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<p class="font-semibold text-on-surface leading-tight" style="">Hương Giang / フォン・ジャン</p>
+<span class="text-[10px] text-outline" style="">24/02</span>
+</div>
+<p class="text-xs text-on-surface-variant mt-1 truncate" style="">Bạn có rảnh vào tối... / 今週の土曜日の夜は...</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Right Column: Conversation View (70%) -->
+<section class="w-[70%] flex flex-col bg-surface overflow-hidden relative">
+<!-- Conversation Header -->
+<div class="px-8 py-4 bg-surface flex justify-between items-center z-10">
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="portrait of a young Vietnamese woman with long dark hair and a friendly expression in a brightly lit modern cafe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1HeLaCLFo9r3E3hz5gv50HoBMowMyaJSf6EnV8DYYhTQorMlWJn-LTm0tYpLMV8kbrhdtzy48ouW9bKF0SB7dzhrFQNEbwiRnRZwX3Deqax-8Y9QVWShMwJicSeKXA5NBUOqzO7xggGo-kFHDdTcaqP9cFsjNlavb2e6PNWE2EnIUnlrlyafV6dzVJkxtyvbF7hhU5-7YCm7LbZE40lFrRkyqFpD52SBYaiSoWKHAVbaLs4yLQuC4iS1u0bsxwNLQ33nonOHBwFo" style="">
+</div>
+<div>
+<h3 class="font-bold text-primary" style="">Linh Chi / リン・チー</h3>
+<p class="text-xs text-secondary flex items-center" style="">
+<span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            Online / オンライン
+                        </p>
+</div>
+</div>
+</div>
+<!-- Chat Messages Area -->
+<div class="flex-grow overflow-y-auto p-8 space-y-8 bg-[#f9f9f7]">
+<!-- Partner Message -->
+<div class="flex flex-col items-start max-w-[80%]">
+<div class="bg-surface-container-high text-on-surface px-5 py-3 rounded-tr-xl rounded-br-xl rounded-bl-xl leading-relaxed">
+<p class="text-sm" style="">Chào bạn! Rất vui được gặp bạn trên VietImmerse.</p>
+<p class="text-xs text-secondary mt-1" style="">初めまして！VietImmerseでお会いできて嬉しいです。</p>
+</div>
+<span class="text-[10px] text-outline mt-1 ml-1" style="">18:45</span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col items-end max-w-[80%] ml-auto">
+<div class="bg-primary text-on-primary px-5 py-3 rounded-tl-xl rounded-bl-xl rounded-br-xl leading-relaxed">
+<p class="text-sm" style="">Chào Linh Chi! Mình cũng rất vui. Mình muốn học thêm về cách phát âm tiếng Việt miền Bắc.</p>
+<p class="text-[11px] text-on-primary-container mt-1 italic" style="">リン・チーさん、こんにちは！私も嬉しいです。北部ベトナム語の発音についてもっと学びたいと思っています。</p>
+</div>
+<span class="text-[10px] text-outline mt-1 mr-1" style="">18:48</span>
+</div>
+<!-- Partner Message -->
+<div class="flex flex-col items-start max-w-[80%]">
+<div class="bg-surface-container-high text-on-surface px-5 py-3 rounded-tr-xl rounded-br-xl rounded-bl-xl leading-relaxed">
+<p class="text-sm" style="">Rất sẵn lòng! Mình có thể giúp bạn. Bạn có muốn đặt một buổi học thử không?</p>
+<p class="text-xs text-secondary mt-1" style="">もちろんです！お手伝いできますよ。体験レッスンを予約しませんか？</p>
+</div>
+<span class="text-[10px] text-outline mt-1 ml-1" style="">18:52</span>
+</div>
+<!-- Lesson Request Card (Bento Style) -->
+<div class="max-w-[420px] w-full mx-auto">
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm">
+<div class="bg-primary-container/10 px-6 py-3 flex justify-between items-center border-b border-outline-variant/10">
+<h4 class="text-sm font-bold text-primary tracking-tight" style="">Lesson Request / レッスンリクエスト</h4>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-wider" style="">Pending / 保留中</span>
+</div>
+<div class="p-6 space-y-4">
+<div class="flex items-start space-x-3">
+<span class="material-symbols-outlined text-primary text-xl" style="">calendar_today</span>
+<div>
+<p class="text-sm font-bold text-on-surface" style="">Thứ Ba, 24/02 / 2月24日 (火)</p>
+<p class="text-xs text-secondary" style="">Hà Nội, Việt Nam</p>
+</div>
+</div>
+<div class="flex items-start space-x-3">
+<span class="material-symbols-outlined text-primary text-xl" style="">schedule</span>
+<div>
+<p class="text-sm font-bold text-on-surface" style="">19:00 - 20:00</p>
+<p class="text-xs text-secondary" style="">(Hanoi Time)</p>
+</div>
+</div>
+<div class="pt-4 grid grid-cols-2 gap-3">
+<button class="bg-primary text-on-primary py-2.5 px-4 rounded-lg text-xs font-bold transition-all hover:bg-primary-container active:scale-95" style="">
+                                    Accept Request / 承認
+                                </button>
+<button class="bg-surface-container text-secondary py-2.5 px-4 rounded-lg text-xs font-bold border border-outline-variant/20 transition-all hover:bg-surface-variant active:scale-95" style="">
+                                    Decline / 辞退
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Classroom Link (Example of Accepted State) -->
+<div class="max-w-[420px] w-full mx-auto opacity-60">
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-4 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+<span class="material-symbols-outlined" style="">video_chat</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-on-surface" style="">Join Classroom (Google Meet)</p>
+<p class="text-[10px] text-secondary" style="">クラスに入る</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-sm" style="">open_in_new</span>
+</div>
+</div>
+</div>
+<!-- Message Input Area -->
+<div class="px-8 py-6 bg-surface border-t border-outline-variant/10">
+<div class="relative flex items-center">
+<input class="w-full bg-surface-container-low border-none rounded-full px-6 py-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/60" placeholder="Viết tin nhắn... / メッセージを入力..." type="text">
+<button class="absolute right-3 w-10 h-10 bg-primary text-on-primary rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20" style="">
+<span class="material-symbols-outlined text-lg" style="">send</span>
+</button>
+</div>
+<div class="flex space-x-6 mt-4 ml-4">
+<button class="flex items-center space-x-1 text-outline hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined text-xl" style="">image</span>
+<span class="text-[10px] font-medium uppercase tracking-widest" style="">Photo</span>
+</button>
+<button class="flex items-center space-x-1 text-outline hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined text-xl" style="">mic</span>
+<span class="text-[10px] font-medium uppercase tracking-widest" style="">Voice</span>
+</button>
+<button class="flex items-center space-x-1 text-outline hover:text-primary transition-colors" style="">
+<span class="material-symbols-outlined text-xl" style="">attachment</span>
+<span class="text-[10px] font-medium uppercase tracking-widest" style="">File</span>
+</button>
+</div>
+</div>
+<!-- Subtle Decorative Lotus Motif (Glassmorphism) -->
+<div class="absolute -bottom-20 -right-20 w-64 h-64 opacity-[0.03] pointer-events-none select-none rotate-12">
+<svg class="text-primary" fill="currentColor" viewBox="0 0 100 100">
+<path d="M50 0 C60 30 90 40 100 50 C90 60 60 70 50 100 C40 70 10 60 0 50 C10 40 40 30 50 0"></path>
+</svg>
+</div>
+</section>
+</main>
+</body></html>

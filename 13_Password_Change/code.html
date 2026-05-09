@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VietImmerse - Reset Password</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&amp;family=Manrope:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-on-surface": "#f1f1ef",
+              "inverse-primary": "#adc7f7",
+              "surface-variant": "#e2e3e1",
+              "secondary": "#715a3e",
+              "on-secondary": "#ffffff",
+              "tertiary-fixed": "#ffdad9",
+              "on-secondary-container": "#786044",
+              "on-primary-fixed-variant": "#2d476f",
+              "on-secondary-fixed": "#281803",
+              "on-tertiary-fixed-variant": "#603d3e",
+              "surface-container-highest": "#e2e3e1",
+              "secondary-fixed": "#fdddb9",
+              "surface-container-low": "#f4f4f2",
+              "surface-container": "#eeeeec",
+              "on-secondary-fixed-variant": "#584329",
+              "outline-variant": "#c4c6cd",
+              "surface-container-lowest": "#ffffff",
+              "inverse-surface": "#2f3130",
+              "error": "#ba1a1a",
+              "surface-dim": "#dadad8",
+              "error-container": "#ffdad6",
+              "on-tertiary-container": "#ce9f9f",
+              "tertiary-fixed-dim": "#ecbbba",
+              "outline": "#74777d",
+              "primary-fixed-dim": "#adc7f7",
+              "primary-fixed": "#d6e3ff",
+              "on-surface": "#1a1c1b",
+              "on-error": "#ffffff",
+              "tertiary-container": "#583637",
+              "on-background": "#1a1c1b",
+              "tertiary": "#3f2122",
+              "on-tertiary": "#ffffff",
+              "surface-bright": "#f9f9f7",
+              "surface-container-high": "#e8e8e6",
+              "on-primary-fixed": "#001b3c",
+              "on-primary-container": "#91abd9",
+              "background": "#f9f9f7",
+              "surface-tint": "#455f88",
+              "on-tertiary-fixed": "#2f1314",
+              "primary": "#09294f",
+              "on-error-container": "#93000a",
+              "primary-container": "#243f67",
+              "on-primary": "#ffffff",
+              "surface": "#f9f9f7",
+              "secondary-fixed-dim": "#e0c29f",
+              "secondary-container": "#fdddb9",
+              "on-surface-variant": "#44474d"
+            },
+            fontFamily: {
+              "headline": ["Be Vietnam Pro"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .lotus-bg {
+        background: linear-gradient(135deg, rgba(9, 41, 79, 0.03) 0%, rgba(113, 90, 62, 0.03) 100%);
+      }
+      input:focus + label, input:not(:placeholder-shown) + label {
+        transform: translateY(-1.5rem) scale(0.85);
+        color: #09294f;
+      }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface min-h-screen flex items-center justify-center p-0 md:p-6 overflow-x-hidden">
+<!-- Auth Container -->
+<main class="w-full max-w-6xl min-h-[921px] md:min-h-[700px] bg-surface-container-lowest flex flex-col md:flex-row overflow-hidden md:rounded-full shadow-[0_12px_32px_-4px_rgba(9,41,79,0.06)] relative">
+<!-- Left Side: Branded Artistic Image -->
+<section class="hidden md:flex md:w-5/12 bg-primary relative overflow-hidden">
+<img alt="Hanoi Old Quarter at dusk" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-luminosity" data-alt="Cinematic wide shot of Hanoi's Old Quarter at dusk with traditional architectural shutters, warm street lighting, and deep indigo sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBA3X9tc0W9muriyslIGeDXbDGAyqGpA3jAfBB5MBQ1e-t3dtZGaQZ0y-bBClmtoxbgCP3wd1brb7GRpgp-f38iSAwIok_Idd4aL6Zbp6XAuvOtilb7ud48Ffekwl9AS8aYPWPsvUa9RyPUsc8REo6XD8bb9CJ1woQ1_oob6MdLo33sIARWUTtAXZU39CoNW0HvEOvWk6C61BE-8P435qJVmNPI_bIBzLN4_fh7KKmCmA8Lc5eAQfqz_8jYoQZCpB-qcIXifbcNlhs"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent"></div>
+<div class="relative z-10 p-12 flex flex-col justify-between h-full text-white">
+<div>
+<h1 class="font-headline font-extrabold text-3xl tracking-tight text-white mb-2">VietImmerse</h1>
+<div class="h-1 w-12 bg-secondary rounded-full"></div>
+</div>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary text-4xl" data-icon="auto_awesome">auto_awesome</span>
+<p class="font-headline font-medium text-lg leading-snug">Hành trình ngôn ngữ<br/><span class="font-light opacity-80">言語の旅</span></p>
+</div>
+<p class="text-on-primary/70 max-w-xs leading-relaxed text-sm">
+                        Khám phá vẻ đẹp của phương ngữ miền Bắc thông qua trải nghiệm học tập tinh tế.
+                    </p>
+</div>
+</div>
+<!-- Lotus Decorative Motif -->
+<div class="absolute bottom-[-10%] right-[-10%] opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[300px]" style="font-variation-settings: 'FILL' 1;">filter_vintage</span>
+</div>
+</section>
+<!-- Right Side: Reset Password Form -->
+<section class="w-full md:w-7/12 flex flex-col justify-center items-center p-8 md:p-16 lotus-bg">
+<div class="w-full max-w-md">
+<!-- Header Branding Mobile -->
+<div class="md:hidden mb-12 text-center">
+<h1 class="font-headline font-extrabold text-2xl tracking-tight text-primary">VietImmerse</h1>
+</div>
+<!-- Form Header -->
+<header class="mb-10 text-left">
+<h2 class="font-headline font-bold text-2xl text-primary tracking-tight mb-2">
+                        Thiết lập lại mật khẩu
+                    </h2>
+<p class="text-secondary font-medium text-sm">
+                        新しいパスワードを設定する
+                    </p>
+</header>
+<form class="space-y-8">
+<!-- Password Field 1 -->
+<div class="relative group">
+<div class="flex items-center border-b border-outline-variant group-focus-within:border-primary transition-all duration-300 py-2">
+<span class="material-symbols-outlined text-outline group-focus-within:text-primary mr-3 transition-colors">lock</span>
+<input class="block w-full appearance-none bg-transparent border-none focus:ring-0 text-on-surface text-base py-1 px-0 font-body placeholder-transparent" id="new_password" placeholder=" " type="password"/>
+<label class="absolute left-9 top-3 text-outline transition-all duration-300 pointer-events-none text-sm group-focus-within:text-xs" for="new_password">
+                                Mật khẩu mới / 新しいパスワード
+                            </label>
+<button class="text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Password Field 2 -->
+<div class="relative group">
+<div class="flex items-center border-b border-outline-variant group-focus-within:border-primary transition-all duration-300 py-2">
+<span class="material-symbols-outlined text-outline group-focus-within:text-primary mr-3 transition-colors">verified_user</span>
+<input class="block w-full appearance-none bg-transparent border-none focus:ring-0 text-on-surface text-base py-1 px-0 font-body placeholder-transparent" id="confirm_password" placeholder=" " type="password"/>
+<label class="absolute left-9 top-3 text-outline transition-all duration-300 pointer-events-none text-sm group-focus-within:text-xs" for="confirm_password">
+                                Xác nhận mật khẩu mới / 新しいパスワードの確認
+                            </label>
+<button class="text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-6">
+<button class="w-full bg-primary text-white py-4 px-6 rounded-xl font-headline font-bold text-base hover:bg-primary-container transition-all duration-300 shadow-[0_12px_32px_-4px_rgba(9,41,79,0.1)] active:scale-[0.98] flex items-center justify-center gap-3" type="submit">
+<span>Cập nhật mật khẩu / パスワードを更新する</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+<!-- Back to Login Link -->
+<div class="pt-4 text-center">
+<a class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors duration-300 font-body text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="border-b border-transparent hover:border-primary pb-0.5">Quay lại Đăng nhập / ログインに戻る</span>
+</a>
+</div>
+</form>
+<!-- Footer Aesthetic -->
+<footer class="mt-16 pt-8 border-t border-surface-container flex flex-col items-start gap-1">
+<p class="text-[10px] text-outline uppercase tracking-widest font-bold">Hanoi • Tokyo</p>
+<div class="flex gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<div class="w-2 h-2 rounded-full bg-primary/20"></div>
+<div class="w-2 h-2 rounded-full bg-primary/10"></div>
+</div>
+</footer>
+</div>
+</section>
+</main>
+<!-- Suppressed Nav Shells for Task-Focused Page (Reset Password) -->
+<!-- This page acts as a temporary departure from global nav flows -->
+</body></html>

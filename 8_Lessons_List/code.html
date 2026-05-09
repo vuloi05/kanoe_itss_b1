@@ -1,0 +1,277 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>VietImmerse - Lộ trình học / カリキュラム</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error-container": "#ffdad6",
+              "primary-fixed": "#d6e3ff",
+              "inverse-surface": "#2f3130",
+              "on-tertiary-fixed-variant": "#603d3e",
+              "tertiary-container": "#583637",
+              "surface-container-lowest": "#ffffff",
+              "secondary-container": "#fdddb9",
+              "tertiary-fixed-dim": "#ecbbba",
+              "surface-bright": "#f9f9f7",
+              "primary": "#09294f",
+              "on-secondary-container": "#786044",
+              "on-secondary-fixed": "#281803",
+              "tertiary": "#3f2122",
+              "primary-container": "#243f67",
+              "outline": "#74777d",
+              "on-primary-container": "#91abd9",
+              "on-surface": "#1a1c1b",
+              "on-error-container": "#93000a",
+              "secondary": "#715a3e",
+              "on-primary-fixed-variant": "#2d476f",
+              "on-primary-fixed": "#001b3c",
+              "background": "#f9f9f7",
+              "secondary-fixed": "#fdddb9",
+              "surface-container-high": "#e8e8e6",
+              "secondary-fixed-dim": "#e0c29f",
+              "inverse-primary": "#adc7f7",
+              "surface-variant": "#e2e3e1",
+              "on-tertiary-container": "#ce9f9f",
+              "surface-container-low": "#f4f4f2",
+              "surface-container-highest": "#e2e3e1",
+              "error": "#ba1a1a",
+              "surface-container": "#eeeeec",
+              "on-secondary-fixed-variant": "#584329",
+              "on-surface-variant": "#44474d",
+              "on-primary": "#ffffff",
+              "inverse-on-surface": "#f1f1ef",
+              "surface-tint": "#455f88",
+              "primary-fixed-dim": "#adc7f7",
+              "tertiary-fixed": "#ffdad9",
+              "outline-variant": "#c4c6cd",
+              "surface": "#f9f9f7",
+              "on-tertiary-fixed": "#2f1314",
+              "on-error": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "on-background": "#1a1c1b",
+              "surface-dim": "#dadad8",
+              "on-secondary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Be Vietnam Pro"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .lotus-bg {
+            background: radial-gradient(circle at 10% 20%, rgba(9, 41, 79, 0.03) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(113, 90, 62, 0.03) 0%, transparent 40%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<nav class="bg-[#f9f9f7] dark:bg-slate-950 docked full-width top-0 z-50">
+<div class="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
+<div class="text-xl font-bold text-[#09294f] dark:text-blue-300 font-headline tracking-tight" style="">
+            VietImmerse
+        </div>
+<div class="hidden md:flex items-center gap-8">
+<div class="flex items-center gap-6 font-['Be_Vietnam_Pro'] tracking-wide text-[11px] uppercase">
+<a class="text-[#09294f] dark:text-blue-300 border-b-2 border-[#715a3e] pb-1 font-bold hover:text-[#715a3e] transition-colors duration-300" href="#" style="">Trang chủ / ホーム</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#715a3e] transition-colors duration-300" href="#" style="">Ghép cặp / マッチング</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#715a3e] transition-colors duration-300" href="#" style="">Luyện tập / ラボ</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#715a3e] transition-colors duration-300" href="#" style="">Cài đặt / 設定</a>
+</div>
+<div class="flex items-center ml-4">
+<span class="material-symbols-outlined text-[#09294f] cursor-pointer" data-icon="account_circle" style="">account_circle</span>
+</div>
+</div>
+<!-- Mobile Menu Placeholder -->
+<div class="md:hidden">
+<span class="material-symbols-outlined text-primary" data-icon="menu" style="">menu</span>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-12 lotus-bg min-h-screen">
+<!-- Hero / Context Section -->
+<header class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div class="max-w-2xl">
+<h1 class="text-4xl md:text-5xl font-headline font-extrabold text-primary tracking-tight mb-4" style="">
+                Lộ trình <span class="text-secondary italic" style="">Tiếng Việt miền Bắc</span>
+</h1>
+<p class="text-on-surface-variant text-lg leading-relaxed" style="">
+                Chinh phục sự tinh tế của tiếng Hà Nội qua các học phần dành riêng cho người Nhật sống tại Việt Nam.<br>
+<span class="text-sm" style="">ハノイ在住の日本人向けに構成されたモジュールで、北部ベトナム語の優雅さをマスターしましょう。</span>
+</p>
+</div>
+<!-- Filter / Tab Bar -->
+<div class="flex bg-surface-container-low p-1.5 rounded-full overflow-hidden">
+<button class="px-6 py-2 bg-primary text-on-primary rounded-full text-sm font-bold shadow-sm" style="">Trình độ / レベル V1</button>
+<button class="px-6 py-2 text-on-surface-variant hover:text-primary text-sm font-medium transition-colors" style="">V2</button>
+<button class="px-6 py-2 text-on-surface-variant hover:text-primary text-sm font-medium transition-colors" style="">V3</button>
+</div>
+</header>
+<!-- Bento Grid Layout for Chapters -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+<!-- Left Column: Chapter 1 -->
+<section class="lg:col-span-6 space-y-8">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="graphic_eq" style="">graphic_eq</span>
+</div>
+<div>
+<h2 class="font-headline font-bold text-xl text-primary" style="">Chương 1: Thanh điệu miền Bắc</h2>
+<p class="text-sm text-secondary font-medium uppercase tracking-widest" style="">第1章：北部の声調</p>
+</div>
+</div>
+<!-- Lesson Card 1: Completed -->
+<div class="group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1">
+<div class="flex justify-between items-start mb-6">
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase rounded-md group-hover:bg-primary group-hover:text-white" style="">Sơ cấp / 初級</span>
+<span class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded-md group-hover:bg-white group-hover:text-primary" style="">Đã xong / 完了</span>
+</div>
+<span class="material-symbols-outlined text-secondary group-hover:text-on-primary-container" data-icon="check_circle" style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span>
+</div>
+<h3 class="font-headline font-bold text-xl text-primary group-hover:text-white mb-1" style="">Thanh sắc &amp; Thanh huyền</h3>
+<p class="font-body text-on-surface-variant group-hover:text-primary-fixed mb-6" style="">昇り声調と降り声調</p>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-full"></div>
+</div>
+</div>
+<!-- Lesson Card 2: In Progress -->
+<div class="group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1">
+<div class="flex justify-between items-start mb-6">
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase rounded-md group-hover:bg-primary group-hover:text-white" style="">Trung cấp / 中級</span>
+<span class="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-bold uppercase rounded-md group-hover:bg-white group-hover:text-secondary" style="">Đang học / 進行中</span>
+</div>
+<div class="flex items-center gap-1 text-secondary font-bold text-xs uppercase group-hover:text-on-primary-container" style="">
+<span class="material-symbols-outlined text-sm" data-icon="play_circle" style="">play_circle</span>
+                        75%
+                    </div>
+</div>
+<h3 class="font-headline font-bold text-xl text-primary group-hover:text-white mb-1" style="">Thanh hỏi &amp; Thanh ngã</h3>
+<p class="font-body text-on-surface-variant group-hover:text-primary-fixed mb-6" style="">疑問声調と転がり声調</p>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-3/4"></div>
+</div>
+</div>
+<!-- Decorative Illustration Card -->
+<div class="relative overflow-hidden h-64 rounded-xl bg-primary">
+<img alt="Phonetic visualization" class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-500" data-alt="Abstract visualization of sound waves and linguistic patterns over a soft traditional Vietnamese fabric texture in deep indigo and warm gold." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFMz1glCLwjQr6Pi8qFq7R3DEZS5O_Hu83nxAY7FCaoZcPIOaslFZL0KYqvagK-BGdV5rG3MywedyYbzjHEBkOPnsefLkN4eqwxYz7YqsVSDRFqShCKoUuu3g8cb9rsYOq5y2UbxGPt-csUqzVkfzdhheAOeqcYlDwtZtoSk8klU-r0FAFIv_pCb7lnP6CgoncR8qAg1cduo85Wk8akDhVHC2cCVJsLysV0Z5bAIwZru7OHL88TTFmLFcrusMeL8fx0U_KD2UTylOE" style="">
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<p class="text-white/80 font-medium text-sm mb-1" style="">Làm chủ sự chuyển điệu / 声調の変化をマスターする</p>
+<h4 class="text-white text-2xl font-headline font-bold" style="">Giai điệu Hà Nội / ハノイの旋律</h4>
+</div>
+</div>
+</section>
+<!-- Right Column: Chapter 2 + Stats -->
+<section class="lg:col-span-6 space-y-8">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="restaurant_menu" style="">restaurant_menu</span>
+</div>
+<div>
+<h2 class="font-headline font-bold text-xl text-primary" style="">Chương 2: Giao tiếp tại quán ăn</h2>
+<p class="text-sm text-secondary font-medium uppercase tracking-widest" style="">第2章：飲食店での会話</p>
+</div>
+</div>
+<!-- Lesson Card 3: In Progress -->
+<div class="group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1">
+<div class="flex justify-between items-start mb-6">
+<span class="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase rounded-md group-hover:bg-primary group-hover:text-white" style="">Thực tế / 実践</span>
+<div class="flex items-center gap-1 text-secondary font-bold text-xs uppercase group-hover:text-on-primary-container" style="">
+<span class="material-symbols-outlined text-sm" data-icon="schedule" style="">schedule</span>
+                        12 phút / 分
+                    </div>
+</div>
+<h3 class="font-headline font-bold text-xl text-primary group-hover:text-white mb-1" style="">Gọi món tại quán Bún Chả</h3>
+<p class="font-body text-on-surface-variant group-hover:text-primary-fixed mb-6" style="">ブンチャ屋での注文</p>
+<div class="flex gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+</div>
+</div>
+<!-- Lesson Card 4: Locked -->
+<div class="group bg-surface-container-low/50 p-6 rounded-xl border border-dashed border-outline-variant flex items-center justify-between opacity-80">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 mb-1">
+<h3 class="font-headline font-bold text-lg text-on-surface-variant/70" style="">Yêu cầu thanh toán</h3>
+<span class="material-symbols-outlined text-sm text-on-surface-variant/50" data-icon="lock" style="">lock</span>
+</div>
+<p class="font-body text-sm text-on-surface-variant/60" style="">お会計をお願いする</p>
+</div>
+<div class="text-[10px] font-bold uppercase text-on-surface-variant/40 tracking-widest" style="">Khóa / ロック</div>
+</div>
+<!-- Progress Lotus (Custom Component) -->
+<div class="bg-surface-container-high p-8 rounded-2xl relative overflow-hidden flex flex-col items-center text-center">
+<div class="mb-6 relative">
+<!-- Geometric Lotus Petal tracker simulation -->
+<div class="w-24 h-24 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-6xl" data-icon="potted_plant" style="font-variation-settings: &quot;FILL&quot; 1;">potted_plant</span>
+</div>
+<div class="absolute -top-2 -right-2 bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-full" style="">CẤP ĐỘ / レベル 4</div>
+</div>
+<h4 class="font-headline font-bold text-primary mb-2" style="">Tiến độ học tập / 学習進捗</h4>
+<p class="text-sm text-on-surface-variant mb-6" style="">Đã hoàn thành 12/45 bài học trình độ V1<br><span class="text-xs" style="">V1レベルの45レッスン中12レッスンを完了</span></p>
+<button class="w-full py-3 bg-white text-primary font-bold rounded-xl shadow-sm hover:shadow-md transition-shadow" style="">Tiếp tục học / 学習を続ける</button>
+<!-- Decorative background element -->
+<div class="absolute -bottom-8 -right-8 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
+</div>
+<!-- Image Card: Hanoi Vibes -->
+<div class="grid grid-cols-2 gap-4">
+<div class="rounded-xl overflow-hidden h-40">
+<img alt="Hanoi Old Quarter" class="w-full h-full object-cover" data-alt="Street view of a small traditional Hanoi bun cha restaurant with low plastic stools and warm sunlight filtering through old shutters." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwI9Xc14FI44F6EMCDm3-pBNdlvPF8cE7gIf7ebcv7U3xoIwSVchrDHbvxYvNNrKQJynlWGSp38-SxpfDPmUwy1BbpNy2lzAXr8rvREpo6zYohtpQ0qsKNAlWGxIBKA7kDM6uQ52pc6MFoGPS1Ty-9gy-z8uM-KDXbEBovid3CV3yLMnFe1CgSEp41y8__pxFxlAW5onDP9mJfcQCAagU20wuCPUg-AhjyRLxYNSp_b6lQ3vTY-WnTvB0b7xmZSSqVyUFA7KVMIFze" style="">
+</div>
+<div class="rounded-xl overflow-hidden h-40">
+<img alt="Vietnamese Lotus" class="w-full h-full object-cover" data-alt="Elegant close up of a single pink lotus flower in a dark water pond, symbolic of Vietnamese culture and beauty." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA60U4Nyh3q3RNPY--mVQmRGHx82UasWmFzcsTZjxh_NZVpPHJ3i9s3oNdD3cG98W7-uZEMiq8Qr5Wo2VbaLfxh2wNU-5J3R7gO3wdTmt8JTjQp5lwSb6vjQbrDlU6PScWUlwrTfdhPLvVtMsuyjFAeWYT5GdLxhT9ieaFoYDdiY55oapkYret0SRGoH8rvBhR0EuMSOThabzgzqwAkUwpwQIjJoGRfIvSg-q0Nbrj2uxQQsXEcEKeCXywQoboDnk2dGT_CJtvoWfOy" style="">
+</div>
+</div>
+</section>
+</div>
+<!-- Call to Action / Support -->
+<footer class="mt-20 py-12 border-t border-outline-variant/20 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+<div>
+<h5 class="font-headline font-bold text-primary" style="">Bạn cần gia sư riêng? / 個別指導が必要ですか？</h5>
+<p class="text-on-surface-variant text-sm" style="">Kết nối với giáo viên bản xứ miền Bắc để luyện tập 1-1.<br><span class="text-xs" style="">北部出身のネイティブ講師と1対1で練習しましょう。</span></p>
+</div>
+<a class="px-8 py-3 bg-primary-container text-white font-bold rounded-full hover:bg-primary transition-colors duration-300" href="#" style="">
+            Tìm gia sư / 講師を探す
+        </a>
+</footer>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<div class="md:hidden">
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#f9f9f7]/90 dark:bg-slate-950/90 backdrop-blur-md border-t border-[#f4f4f2] dark:border-slate-800 shadow-[0_-12px_32px_-4px_rgba(9,41,79,0.06)] rounded-t-3xl">
+<a class="flex flex-col items-center justify-center bg-[#243f67] text-white rounded-2xl px-6 py-2 scale-95 transition-transform duration-300" href="#" style="">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: &quot;FILL&quot; 1;">home</span>
+<span class="font-['Manrope'] text-[9px] font-medium mt-1" style="">Trang chủ</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#715a3e] dark:text-stone-400 px-6 py-2 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 rounded-2xl scale-95 transition-transform duration-300" href="#" style="">
+<span class="material-symbols-outlined" data-icon="extension" style="">extension</span>
+<span class="font-['Manrope'] text-[9px] font-medium mt-1" style="">Tìm đối tác</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#715a3e] dark:text-stone-400 px-6 py-2 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 rounded-2xl scale-95 transition-transform duration-300" href="#" style="">
+<span class="material-symbols-outlined" data-icon="mic_external_on" style="">mic_external_on</span>
+<span class="font-['Manrope'] text-[9px] font-medium mt-1" style="">Luyện tập</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#715a3e] dark:text-stone-400 px-6 py-2 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 rounded-2xl scale-95 transition-transform duration-300" href="#" style="">
+<span class="material-symbols-outlined" data-icon="settings" style="">settings</span>
+<span class="font-['Manrope'] text-[9px] font-medium mt-1" style="">Cài đặt</span>
+</a>
+</nav>
+</div>
+</body></html>

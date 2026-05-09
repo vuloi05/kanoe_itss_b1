@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head></head><body class="text-on-background bg-background min-h-screen pb-24 md:pb-0 overflow-hidden">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VietImmerse Partner Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-tint": "#455f88",
+                        "inverse-surface": "#2f3130",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#44474d",
+                        "background": "#f9f9f7",
+                        "on-tertiary-fixed-variant": "#603d3e",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f1f1ef",
+                        "surface-variant": "#e2e3e1",
+                        "outline": "#74777d",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "inverse-primary": "#adc7f7",
+                        "secondary-fixed-dim": "#e0c29f",
+                        "surface-bright": "#f9f9f7",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#e2e3e1",
+                        "on-secondary-fixed-variant": "#584329",
+                        "on-background": "#1a1c1b",
+                        "on-surface": "#1a1c1b",
+                        "surface-container": "#eeeeec",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#281803",
+                        "on-tertiary-container": "#ce9f9f",
+                        "tertiary-fixed-dim": "#ecbbba",
+                        "outline-variant": "#c4c6cd",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "primary": "#09294f",
+                        "surface-dim": "#dadad8",
+                        "surface-container-low": "#f4f4f2",
+                        "on-primary-container": "#91abd9",
+                        "tertiary-container": "#583637",
+                        "secondary-container": "#fdddb9",
+                        "on-tertiary-fixed": "#2f1314",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#786044",
+                        "surface": "#f9f9f7",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001b3c",
+                        "tertiary": "#3f2122",
+                        "primary-container": "#243f67",
+                        "surface-container-high": "#e8e8e8",
+                        "primary-fixed-dim": "#adc7f7",
+                        "secondary-fixed": "#fdddb9",
+                        "primary-fixed": "#d6e3ff",
+                        "tertiary-fixed": "#ffdad9",
+                        "secondary": "#715a3e"
+                    },
+                    fontFamily: {
+                        "headline": ["Be Vietnam Pro"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #f9f9f7;
+        }
+        .lotus-gradient {
+            background: linear-gradient(135deg, #09294f 0%, #243f67 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<!-- TopNavBar -->
+<nav class="bg-[#f9f9f7] dark:bg-slate-950 fixed top-0 w-full z-50">
+<div class="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-[#09294f] dark:text-blue-300 font-headline tracking-tight" style="">VietImmerse</span>
+</div>
+<div class="hidden md:flex items-center gap-8 font-['Be_Vietnam_Pro'] tracking-wide text-sm font-medium">
+<a class="text-[#09294f] dark:text-blue-300 border-b-2 border-[#715a3e] pb-1 font-bold" href="#" style=""></a><a class="text-[#715a3e] hover:text-[#09294f] transition-colors cursor-text" data-stitch-added-classes="cursor-text" href="https://app-companion-430619.appspot.com/projects/1405884094341497787?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.en.PJsh2cctCQI.O%2Fd%3D1%2Frs%3DAHpOoo_QlMhY2cycn60Rs8eI1WInRwuahw%2Fm%3D__features__#" spellcheck="false" style="--tw-scale-x: 1; --tw-scale-y: 1; --tw-pan-x: ; --tw-pan-y: ; --tw-pinch-zoom: ; --tw-scroll-snap-strictness: proximity; --tw-gradient-from-position: ; --tw-gradient-via-position: ; --tw-gradient-to-position: ; --tw-ordinal: ; --tw-slashed-zero: ; --tw-numeric-figure: ; --tw-numeric-spacing: ; --tw-numeric-fraction: ; --tw-ring-inset: ; --tw-ring-offset-width: 0px; --tw-ring-offset-color: #fff; --tw-ring-color: rgb(59 130 246 / 0.5); --tw-ring-offset-shadow: 0 0 #0000; --tw-ring-shadow: 0 0 #0000; --tw-shadow: 0 0 #0000; --tw-shadow-colored: 0 0 #0000; --tw-blur: ; --tw-brightness: ; --tw-contrast: ; --tw-grayscale: ; --tw-hue-rotate: ; --tw-invert: ; --tw-saturate: ; --tw-sepia: ; --tw-drop-shadow: ; --tw-backdrop-blur: ; --tw-backdrop-brightness: ; --tw-backdrop-contrast: ; --tw-backdrop-grayscale: ; --tw-backdrop-hue-rotate: ; --tw-backdrop-invert: ; --tw-backdrop-opacity: ; --tw-backdrop-saturate: ; --tw-backdrop-sepia: ; --tw-contain-size: ; --tw-contain-layout: ; --tw-contain-paint: ; --tw-contain-style: ; color: rgb(113, 90, 62); --tw-text-opacity: 1; font-weight: 500; letter-spacing: 0.4px; outline: none !important;">Trang chủ / ホーム</a>
+<a class="text-[#715a3e] dark:text-slate-400 font-medium hover:text-[#09294f] transition-colors" href="#" style=""><br/></a>
+<a class="text-[#715a3e] dark:text-slate-400 font-medium hover:text-[#09294f] transition-colors" href="#" style=""><p class="" data-pm-slice="1 1 []" style="">Ghép cặp/ マッチング</p></a>
+<a class="text-[#715a3e] dark:text-slate-400 font-medium hover:text-[#09294f] transition-colors" href="#" style="">Cài đặt/設定</a>
+<div class="ml-4 h-8 w-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-xs" style="">MA</div>
+</div>
+</div>
+</nav>
+<main class="pt-24 max-w-7xl mx-auto px-6 lg:px-8">
+<!-- Hero Section -->
+<header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-4">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary text-white rounded-full text-[10px] font-bold tracking-widest uppercase" style="">
+<span class="material-symbols-outlined text-xs" style='font-variation-settings: "FILL" 1;'>verified</span>
+                    XÁC MINH GIỌNG BẮC / 北部訛り認定済
+                </div>
+<h1 class="text-4xl md:text-5xl font-headline font-extrabold text-primary tracking-tight leading-tight" style="">
+                    Chào mừng trở lại, Minh Anh!<br/>
+<span class="text-secondary opacity-90" style="">お帰りなさい、ミン・アンさん！</span>
+</h1>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary" style="">emoji_events</span>
+</div>
+<div>
+<p class="text-[10px] font-label font-bold text-outline uppercase tracking-tighter" style="">Partner Status</p>
+<p class="text-sm font-bold text-primary" style="">Senior Instructor</p>
+</div>
+</div>
+</header>
+<!-- Primary CTA: Next Class -->
+<section class="mb-12">
+<div class="relative overflow-hidden lotus-gradient rounded-3xl p-8 md:p-12 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
+<!-- Background decoration -->
+<div class="absolute -right-20 -top-20 opacity-10">
+<span class="material-symbols-outlined text-[300px]" style="">spa</span>
+</div>
+<div class="relative z-10 flex-1">
+<div class="flex items-center gap-4 mb-6">
+<span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold uppercase tracking-widest" style="">BUỔI DẠY TIẾP THEO / 次のレッスン</span>
+<span class="flex items-center gap-1 text-sm font-medium text-primary-fixed" style="">
+<span class="material-symbols-outlined text-sm" style="">schedule</span> 14:00 - 15:00
+                        </span>
+</div>
+<div class="flex items-center gap-6">
+<img alt="Student Avatar" class="w-20 h-20 rounded-2xl object-cover border-2 border-white/30 shadow-lg" data-alt="Close-up portrait of a Japanese man in a professional suit smiling against a blurred office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0JoaeUqQ2H6KLevScWQJBGH4tyUvYcDKUTM7ZIG3KezsoCLH7-CPUDObUY2uH-z1gEqHDdckWcx2VKQiCN45jpoF5JIuUFyajgUSWPVVxM5zv1Hyhj1QKKRlHTAGtslcNw750y70FU_LgrfAK5VEp_TCM2VbRSbNkhYpOQMHhTeQH93fTq-mthaESD7WZd8hhjl-DmLr9dn2fK9C-ThEiv4a1LCNpfPlcD8qWmn-f1eHdHidCxTu5AnVZH64VMzR3fkaSmc3aTlY" style=""/>
+<div>
+<h2 class="text-3xl font-headline font-bold" style="">Kenji Sato</h2>
+<p class="text-primary-fixed/80 font-body text-lg" style="">Hanoi Dialect Mastery: Lesson 12</p>
+</div>
+</div>
+</div>
+<div class="relative z-10 w-full md:w-auto">
+<button class="w-full md:w-auto px-10 py-5 bg-white text-primary font-headline font-extrabold rounded-2xl hover:bg-surface-bright transition-all active:scale-95 shadow-lg flex items-center justify-center gap-3 group" style="">
+                        VÀO LỚP / 入室
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" style="">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<div class="bg-surface-container-lowest p-6 rounded-2xl border-b-4 border-primary/10 hover:border-primary transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-primary-container/20 rounded-xl text-primary">
+<span class="material-symbols-outlined" style="">person_check</span>
+</div>
+<span class="text-primary font-bold text-2xl" style="">85%</span>
+</div>
+<h3 class="text-sm font-label font-bold text-outline mb-1 uppercase tracking-wider" style="">Hoàn thiện hồ sơ</h3>
+<p class="text-xs text-secondary mb-4" style="">プロフィール完成度</p>
+<div class="w-full bg-surface-container rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl border-b-4 border-secondary/10 hover:border-secondary transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-secondary-container/20 rounded-xl text-secondary">
+<span class="material-symbols-outlined" style="">star</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-primary font-bold text-2xl" style="">4.9</span>
+<span class="material-symbols-outlined text-secondary text-sm" style='font-variation-settings: "FILL" 1;'>star</span>
+</div>
+</div>
+<h3 class="text-sm font-label font-bold text-outline mb-1 uppercase tracking-wider" style="">Đánh giá trung bình</h3>
+<p class="text-xs text-secondary" style="">平均評価</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl border-b-4 border-tertiary/10 hover:border-tertiary transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-tertiary-container/20 rounded-xl text-tertiary">
+<span class="material-symbols-outlined" style="">history_edu</span>
+</div>
+<span class="text-primary font-bold text-2xl" style="">156</span>
+</div>
+<h3 class="text-sm font-label font-bold text-outline mb-1 uppercase tracking-wider" style="">Số buổi hoàn thành</h3>
+<p class="text-xs text-secondary" style="">完了セッション数</p>
+</div>
+</section>
+<!-- Bento Grid for Activity/Community -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20">
+<!-- Target Monthly -->
+<div class="lg:col-span-4 bg-surface-container-low p-8 rounded-3xl relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="text-xl font-headline font-bold text-primary mb-2" style="">Mục tiêu tháng</h3>
+<p class="text-secondary font-medium mb-8" style="">今月の目標</p>
+<div class="relative w-48 h-48 mx-auto mb-8">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="110.58" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center rotate-90">
+<span class="text-3xl font-headline font-extrabold text-primary" style="">45/50</span>
+<span class="text-[10px] font-label font-bold text-outline uppercase tracking-widest" style="">Sessions</span>
+</div>
+</div>
+<button class="w-full py-3 bg-white border border-outline-variant text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all text-sm uppercase tracking-wider" style="">
+                        Chi tiết / 詳細
+                    </button>
+</div>
+</div>
+<!-- New Requests Section -->
+<div class="lg:col-span-8 bg-white p-8 rounded-3xl">
+<div class="flex justify-between items-center mb-2">
+<h3 class="text-xl font-headline font-bold text-primary" style="">Yêu cầu mới / 新規リクエスト</h3>
+<button class="text-primary font-bold text-sm flex items-center gap-2 hover:opacity-70 transition-opacity" style="">
+                    Xem tất cả / すべて見る <span class="material-symbols-outlined text-sm" style="">arrow_forward</span>
+</button>
+</div>
+<p class="text-secondary font-medium mb-8" style="">Lesson requests from students needing your guidance</p>
+<div class="space-y-4">
+<!-- Request Item 1 -->
+<div class="flex flex-col sm:flex-row items-center gap-4 p-5 bg-surface-container-low rounded-2xl border border-transparent hover:border-outline-variant transition-all">
+</div></div></div></section></main>
+<!-- Monthly Goal Modal Overlay -->
+<div class="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+<div class="bg-surface-container-lowest rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative">
+<button class="absolute top-6 right-6 text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h2 class="text-2xl font-headline font-bold text-primary mb-2">Chi tiết mục tiêu tháng / 今月の目標詳細</h2>
+<p class="text-secondary font-medium mb-6 text-sm leading-relaxed">
+            Xem lại lịch sử giảng dạy và cập nhật mục tiêu của bạn trong tháng này. / 指導履歴を確認し、今月の目標を更新してください。
+        </p>
+<div class="mb-8">
+<h3 class="text-sm font-label font-bold text-primary mb-4 uppercase tracking-wider">Lịch sử giảng dạy tháng trước / 過去1ヶ月の指導履歴</h3>
+<div class="grid grid-cols-3 gap-4">
+<div class="bg-surface-container-low p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+<span class="text-3xl font-headline font-bold text-primary mb-1">42</span>
+<span class="text-[10px] font-label font-bold text-outline uppercase tracking-wider">Tổng số buổi<br/>総セッション</span>
+</div>
+<div class="bg-primary/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+<span class="text-3xl font-headline font-bold text-primary mb-1">38</span>
+<span class="text-[10px] font-label font-bold text-outline uppercase tracking-wider">Hoàn thành<br/>完了</span>
+</div>
+<div class="bg-error-container/40 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+<span class="text-3xl font-headline font-bold text-error mb-1">4</span>
+<span class="text-[10px] font-label font-bold text-outline uppercase tracking-wider">Đã hủy<br/>キャンセル</span>
+</div>
+</div>
+</div>
+<div class="mb-8">
+<label class="block text-sm font-label font-bold text-primary mb-2 uppercase tracking-wider">Mục tiêu mới / 新しい目標</label>
+<input class="w-full bg-surface-container-low border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl px-4 py-3 text-primary font-bold text-lg transition-colors placeholder:text-outline/50 placeholder:font-normal" placeholder="e.g., 50" type="number" value="50"/>
+</div>
+<div class="flex gap-4 justify-end">
+<button class="px-6 py-3 border-2 border-outline-variant text-primary font-bold rounded-xl hover:bg-surface-container-low transition-all text-sm uppercase tracking-wider flex-1 md:flex-none">
+                Hủy / キャンセル
+            </button>
+<button class="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition-all text-sm uppercase tracking-wider shadow-md hover:shadow-lg flex-1 md:flex-none">
+                Lưu thay đổi / 変更を保存
+            </button>
+</div>
+</div>
+</div>
+</body></html>
