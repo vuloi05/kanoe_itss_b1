@@ -1,0 +1,28 @@
+# Binaries
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+
+# Visual Studio
+.vs/
+
+# .NET Core
+*.log
+*.tmp
+
+# NuGet packages
+packages/
+
+# Rider
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment files
+appsettings.Development.json
+appsettings.Local.json
