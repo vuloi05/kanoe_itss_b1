@@ -38,20 +38,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!storedToken) return;
 
     let cancelled = false;
+
+    // Timeout prevents infinite loading when backend is unreachable
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        localStorage.removeItem("auth_token");
+        setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
+        cancelled = true;
+      }
+    }, 5000);
+
     authApi.getProfile()
       .then((profile) => {
         if (!cancelled) {
+          clearTimeout(timeoutId);
           setState({ user: profile, token: storedToken, isLoading: false, isAuthenticated: true });
         }
       })
       .catch(() => {
         if (!cancelled) {
+          clearTimeout(timeoutId);
           localStorage.removeItem("auth_token");
           setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const handleAuthSuccess = (response: AuthResponse) => {

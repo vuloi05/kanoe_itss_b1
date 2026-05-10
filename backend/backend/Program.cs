@@ -90,6 +90,36 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("🎉 KẾT NỐI DATABASE POSTGRESQL THÀNH CÔNG! 🎉");
         Console.WriteLine("📦 Migrations applied successfully.");
         Console.WriteLine("==================================================");
+
+        // Seed sample learner account (idempotent – skips if already exists)
+        const string sampleLearnerEmail = "abc@gmail.com";
+        if (!context.Users.Any(u => u.Email == sampleLearnerEmail))
+        {
+            var user = new backend.Models.User
+            {
+                Email = sampleLearnerEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
+                DisplayName = "Học viên Demo",
+                Role = "learner",
+                AccountStatus = "active",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            context.Users.Add(user);
+            context.SaveChanges();
+
+            var learnerProfile = new backend.Models.LearnerProfile
+            {
+                UserId = user.UserId,
+                NativeLanguage = "ja",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            context.LearnerProfiles.Add(learnerProfile);
+            context.SaveChanges();
+
+            Console.WriteLine($"🌱 Seeded learner account: {sampleLearnerEmail}");
+        }
     }
     catch (Exception ex)
     {

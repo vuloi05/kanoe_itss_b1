@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 
 interface ProtectedRouteProps {
@@ -11,22 +10,21 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
 
     if (!isAuthenticated) {
-      router.replace("/login");
+      // Hard navigation to break out of the current layout tree cleanly
+      window.location.replace("/login");
       return;
     }
 
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-      // Redirect to the correct dashboard based on actual role
       const redirectPath = user.role === "partner" ? "/partner/home" : "/learner/home";
-      router.replace(redirectPath);
+      window.location.replace(redirectPath);
     }
-  }, [isAuthenticated, isLoading, user, allowedRoles, router]);
+  }, [isAuthenticated, isLoading, user, allowedRoles]);
 
   if (isLoading) {
     return (
