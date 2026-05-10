@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -33,7 +34,7 @@ export default function PartnerSignupPage() {
       <header className="bg-[#f9f9f7] sticky top-0 z-50"><div className="flex justify-between items-center w-full px-6 py-4"><Link href="/" className="font-headline text-xl font-bold text-primary tracking-[0.1em]">VietImmerse</Link></div></header>
       <main className="relative flex flex-col md:flex-row min-h-[calc(100vh-64px)] bg-pattern">
         <section className="hidden md:flex md:w-5/12 relative overflow-hidden bg-primary-container p-12 flex-col justify-end">
-          <div className="absolute top-0 left-0 w-full h-full opacity-20"><img alt="Vietnamese Landscape" className="w-full h-full object-cover grayscale brightness-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpebGwCDGVJDgoZq6fWhioBr9O9aEhN78wstH7sadhzOOWWuoFmFxL1LRp6PlIInYhFbiEeZA2bm4DaLfrQvbO_J22NFitadECEBpCCOfEuBLcoEGgr3jHJp9JwJH6ld6UkNvPTM6tXJiurZNsNWk0AAUQpg50nn89NfnW7pebsPwYNq9LyO6uEsGvADhk_wTlHuv9R1-1_JsMKBc-VFduYbtjGpsj14Ns11sGLSiBoM2cmgp18TsXJr-oQvx8ctPk6re3L-cl7ux7"/></div>
+          <div className="absolute top-0 left-0 w-full h-full opacity-20"><Image alt="Vietnamese Landscape" className="w-full h-full object-cover grayscale brightness-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpebGwCDGVJDgoZq6fWhioBr9O9aEhN78wstH7sadhzOOWWuoFmFxL1LRp6PlIInYhFbiEeZA2bm4DaLfrQvbO_J22NFitadECEBpCCOfEuBLcoEGgr3jHJp9JwJH6ld6UkNvPTM6tXJiurZNsNWk0AAUQpg50nn89NfnW7pebsPwYNq9LyO6uEsGvADhk_wTlHuv9R1-1_JsMKBc-VFduYbtjGpsj14Ns11sGLSiBoM2cmgp18TsXJr-oQvx8ctPk6re3L-cl7ux7" fill sizes="(max-width: 768px) 100vw, 42vw"/></div>
           <div className="relative z-10 space-y-6">
             <div className="w-16 h-16 bg-secondary flex items-center justify-center rounded-full mb-8"><span className="material-symbols-outlined text-surface-bright text-3xl" style={{fontVariationSettings:"'FILL' 1"}}>spa</span></div>
             <h1 className="font-headline text-4xl font-extrabold text-surface-bright leading-tight">Trở thành đối tác<br/><span className="text-on-primary-container font-medium">(パートナーになる)</span></h1>

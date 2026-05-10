@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { authApi, ApiException } from "@/lib/api";
@@ -27,7 +28,7 @@ export default function ForgotPasswordPage() {
     <main className="min-h-screen flex flex-col md:flex-row bg-surface font-body text-on-surface">
       <section className="relative w-full md:w-1/2 lg:w-3/5 h-64 md:h-auto overflow-hidden">
         <div className="absolute inset-0 bg-primary/40 z-10"></div>
-        <img className="absolute inset-0 w-full h-full object-cover" alt="Hoan Kiem Lake" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4NAYyN5r12cV5HVXXRY5Y6pY0GHQk0fRHo0L2dbMtl4sQ3M6wCCcEWGj9EynQ7n5dMSLFN5DCntjFf2HejStjdajAdis5CNKeZAfF2f8DIflaHE86FHTiVuyE2lMz4vTGZYljk8UOPvN7P_kC24FV6xtoB8Pwdm3y4PdwYJRPjoh8LF3MPo8YS4k62wk5fyglmnWExda5HQf7OEq30y67umGP6N1hPxRx1iIXyuvlcsv7hQ0TWHxRGCyPfon8TTbM2xfq8dyqTIU"/>
+        <Image className="absolute inset-0 w-full h-full object-cover" alt="Hoan Kiem Lake" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4NAYyN5r12cV5HVXXRY5Y6pY0GHQk0fRHo0L2dbMtl4sQ3M6wCCcEWGj9EynQ7n5dMSLFN5DCntjFf2HejStjdajAdis5CNKeZAfF2f8DIflaHE86FHTiVuyE2lMz4vTGZYljk8UOPvN7P_kC24FV6xtoB8Pwdm3y4PdwYJRPjoh8LF3MPo8YS4k62wk5fyglmnWExda5HQf7OEq30y67umGP6N1hPxRx1iIXyuvlcsv7hQ0TWHxRGCyPfon8TTbM2xfq8dyqTIU" fill sizes="(max-width: 768px) 100vw, 60vw" priority/>
         <div className="relative z-20 h-full flex flex-col justify-between p-8 md:p-16">
           <div className="flex items-center gap-3"><div className="w-10 h-10 lotus-gradient rounded-full flex items-center justify-center"><span className="material-symbols-outlined text-white text-xl" style={{fontVariationSettings:'"FILL" 1'}}>spa</span></div><span className="font-headline font-bold text-xl tracking-wide text-white">VietImmerse</span></div>
           <div className="max-w-xl"><h1 className="font-headline font-extrabold text-4xl md:text-5xl text-white leading-tight">Gắn kết sâu sắc hơn với miền Bắc<br/><span className="text-white/80 font-normal block mt-4">北部の心と繋がる。</span></h1></div>

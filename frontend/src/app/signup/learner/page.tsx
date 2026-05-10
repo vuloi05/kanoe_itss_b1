@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -41,7 +42,7 @@ export default function LearnerSignupPage() {
           <div className="absolute bottom-[20%] left-[-5%] w-64 h-64 bg-secondary/5 lotus-shape -rotate-12"></div>
           <div className="relative z-10 space-y-8">
             <div className="w-full aspect-[4/5] rounded-full overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl">
-              <img alt="Hanoi Old Quarter" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIPwqtDyifZu9k19htBPwMAITl1vynNcRqvZU0HmPAsjGTe9zs__ni6cfk-lFghF6ZhgwwvW7iUMd-apfPRht0fsv13ZPtz1H3kSTF68mX-M2rJb_1kDTdEDF52FVMuqc3Gw93XGtcxbvmAets07pwdjEinB5FM7yoxCTRJA-7JJvfB7R7swpvSqaAOjgo-yZGquC5wAjjNVolcOkeQOQQ-ZgiYshCm1MhZbCiYyfHWti7zNEsomaQJp8gxV34TmFfplgYeB7FJY-v" />
+              <Image alt="Hanoi Old Quarter" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIPwqtDyifZu9k19htBPwMAITl1vynNcRqvZU0HmPAsjGTe9zs__ni6cfk-lFghF6ZhgwwvW7iUMd-apfPRht0fsv13ZPtz1H3kSTF68mX-M2rJb_1kDTdEDF52FVMuqc3Gw93XGtcxbvmAets07pwdjEinB5FM7yoxCTRJA-7JJvfB7R7swpvSqaAOjgo-yZGquC5wAjjNVolcOkeQOQQ-ZgiYshCm1MhZbCiYyfHWti7zNEsomaQJp8gxV34TmFfplgYeB7FJY-v" fill sizes="(max-width: 768px) 100vw, 42vw" />
             </div>
             <div>
               <h2 className="font-headline text-4xl font-extrabold text-primary leading-tight">Cảm hứng từ<br/>Hà Nội.</h2>
