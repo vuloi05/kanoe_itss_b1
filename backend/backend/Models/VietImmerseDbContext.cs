@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -54,8 +54,17 @@ public partial class VietImmerseDbContext : DbContext
     public virtual DbSet<ViewingHistory> ViewingHistories { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=VietImmerse_db;Username=postgres;Password=admin");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            // Fallback: read from environment variable when DI is not available (e.g. EF migrations CLI)
+            var connStr = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING");
+            if (!string.IsNullOrEmpty(connStr))
+            {
+                optionsBuilder.UseNpgsql(connStr);
+            }
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

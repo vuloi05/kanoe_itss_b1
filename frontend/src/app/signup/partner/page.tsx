@@ -1,10 +1,32 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useAuth, ApiException } from "@/lib/auth";
 
 export default function PartnerSignupPage() {
   const router = useRouter();
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); router.push("/partner/home"); };
+  const { registerPartner } = useAuth();
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+    try {
+      await registerPartner({ email, password, displayName, phone: phone || undefined });
+      router.push("/partner/home");
+    } catch (err) {
+      setError(err instanceof ApiException ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen selection:bg-primary-fixed-dim">
@@ -21,16 +43,25 @@ export default function PartnerSignupPage() {
         <section className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 lg:p-24 bg-surface">
           <div className="w-full max-w-lg">
             <form className="space-y-10" onSubmit={handleSubmit}>
-              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Họ và tên / 氏名</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="Nguyen Van A" type="text"/></div>
-              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Email / メールアドレス</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="partner@example.com" type="email"/></div>
-              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Số điện thoại / 電話番号</label><div className="flex gap-4"><span className="py-3 text-lg border-b border-outline-variant text-outline">+84</span><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="0123 456 789" type="tel"/></div></div>
+              {error && (
+                <div className="p-4 bg-error-container text-on-error-container rounded-xl text-sm font-medium flex items-center gap-3">
+                  <span className="material-symbols-outlined text-error text-xl">error</span>
+                  {error}
+                </div>
+              )}
+              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Họ và tên / 氏名</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="Nguyen Van A" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading}/></div>
+              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Email / メールアドレス</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="partner@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading}/></div>
+              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Số điện thoại / 電話番号</label><div className="flex gap-4"><span className="py-3 text-lg border-b border-outline-variant text-outline">+84</span><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="0123 456 789" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isLoading}/></div></div>
               <div className="bg-surface-container-low p-6 rounded-xl space-y-4">
                 <div className="flex items-center justify-between"><div><label className="block text-xs font-semibold tracking-wider mb-1 uppercase text-on-surface-variant">Giọng bản địa</label><p className="font-headline text-xl font-bold text-primary">Northern / Miền Bắc (北部)</p></div><span className="material-symbols-outlined text-secondary text-3xl" style={{fontVariationSettings:"'FILL' 1"}}>verified</span></div>
               </div>
-              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Mật khẩu / パスワード</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="••••••••" type="password"/></div>
-              <button className="w-full bg-primary text-on-primary py-5 rounded-xl font-headline font-bold text-lg shadow-lg hover:bg-primary-container hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center group" type="submit">
-                <span className="flex items-center gap-3">Đăng ký làm đối tác<span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span></span>
-                <span className="text-xs font-normal opacity-80 mt-1">パートナーとして登録する</span>
+              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">Mật khẩu / パスワード</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="••••••••" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={isLoading}/></div>
+              <button className="w-full bg-primary text-on-primary py-5 rounded-xl font-headline font-bold text-lg shadow-lg hover:bg-primary-container hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center group disabled:opacity-60 disabled:cursor-not-allowed" type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <span className="flex items-center gap-3"><div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />Đang đăng ký...</span>
+                ) : (
+                  <><span className="flex items-center gap-3">Đăng ký làm đối tác<span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span></span><span className="text-xs font-normal opacity-80 mt-1">パートナーとして登録する</span></>
+                )}
               </button>
               <p className="text-center text-on-surface-variant text-sm mt-8">Đã là đối tác? <Link className="text-secondary font-bold hover:underline" href="/login">Đăng nhập tại đây</Link></p>
             </form>

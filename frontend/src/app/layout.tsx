@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Manrope } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-be-vietnam-pro",
@@ -38,7 +39,9 @@ export default function RootLayout({
       <body
         className={`${beVietnamPro.variable} ${manrope.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

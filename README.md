@@ -8,8 +8,10 @@
 - **Node.js**: v20 LTS trở lên (khuyến nghị v24)
 - **npm**: v10 trở lên
 - **Git**: v2.x
+- **.NET SDK**: v10.0 trở lên
+- **PostgreSQL**: v16 trở lên
 
-### Cài đặt
+### Cài đặt Frontend
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -23,6 +25,36 @@ npm run dev
 ```
 
 Truy cập [http://localhost:3000](http://localhost:3000) để xem ứng dụng.
+
+### Cài đặt Backend
+
+#### 1. Cấu hình biến môi trường
+
+Tạo file `.env` tại `backend/backend/.env` với nội dung:
+
+```env
+DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=VietImmerse_db;Username=postgres;Password=<your_password>
+```
+
+> ⚠️ **Lưu ý**: Thay `<your_password>` bằng mật khẩu PostgreSQL thực tế trên máy bạn. File `.env` đã được thêm vào `.gitignore`, **không commit** file này lên repository.
+
+#### 2. Tạo database
+
+```bash
+# Mở psql và tạo database (nếu chưa có)
+psql -U postgres -h localhost -p 5432
+CREATE DATABASE "VietImmerse_db";
+\q
+```
+
+#### 3. Chạy backend
+
+```bash
+cd backend/backend
+dotnet run
+```
+
+Backend sẽ chạy tại [http://localhost:5224](http://localhost:5224).
 
 ---
 

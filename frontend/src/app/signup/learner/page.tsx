@@ -2,11 +2,31 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth, ApiException } from "@/lib/auth";
 
 export default function LearnerSignupPage() {
   const router = useRouter();
-  const [level, setLevel] = useState("n3");
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); router.push("/learner/home"); };
+  const { registerLearner } = useAuth();
+  const [level, setLevel] = useState("v3");
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+    try {
+      await registerLearner({ email, password, displayName, level });
+      router.push("/learner/home");
+    } catch (err) {
+      setError(err instanceof ApiException ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-primary">
@@ -36,19 +56,30 @@ export default function LearnerSignupPage() {
               <p className="text-on-surface-variant">Tham gia cộng đồng học tiếng Nhật tại Hà Nội.<br/><span className="text-sm opacity-70">ハノイの日本語学習者コミュニティに参加しましょう。</span></p>
             </div>
             <form className="space-y-10" onSubmit={handleSubmit}>
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Họ và tên (氏名)" type="text" /></div>
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Email (メールアドレス)" type="email" /></div>
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Mật khẩu (パスワード)" type="password" /></div>
+              {error && (
+                <div className="p-4 bg-error-container text-on-error-container rounded-xl text-sm font-medium flex items-center gap-3">
+                  <span className="material-symbols-outlined text-error text-xl">error</span>
+                  {error}
+                </div>
+              )}
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Họ và tên (氏名)" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Email (メールアドレス)" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Mật khẩu (パスワード)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={isLoading} /></div>
               <div className="space-y-4">
                 <span className="text-xs font-bold uppercase tracking-widest text-secondary block">Trình độ hiện tại (現在のレベル)</span>
                 <div className="flex flex-wrap gap-3">
-                  {["V1","V2","V3","V4","V5"].map((l,i)=>(
-                    <label key={l} className="cursor-pointer"><input className="hidden peer" name="level" type="radio" value={`n${5-i}`} checked={level===`n${5-i}`} onChange={()=>setLevel(`n${5-i}`)}/><div className={`px-6 py-2 rounded-full border transition-all font-headline font-bold ${level===`n${5-i}`?'bg-primary text-on-primary border-primary':'border-outline-variant text-on-surface-variant'}`}>{l}</div></label>
+                  {["V1","V2","V3","V4","V5"].map((l) => (
+                    <label key={l} className="cursor-pointer">
+                      <input className="hidden peer" name="level" type="radio" value={l.toLowerCase()} checked={level === l.toLowerCase()} onChange={() => setLevel(l.toLowerCase())} />
+                      <div className={`px-6 py-2 rounded-full border transition-all font-headline font-bold ${level === l.toLowerCase() ? 'bg-primary text-on-primary border-primary' : 'border-outline-variant text-on-surface-variant'}`}>{l}</div>
+                    </label>
                   ))}
                 </div>
               </div>
-              <button className="group w-full bg-primary text-on-primary py-4 rounded-xl font-headline font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98]" type="submit">
-                <span className="flex items-center justify-center gap-2">Đăng ký tài khoản (登録する)<span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span></span>
+              <button className="group w-full bg-primary text-on-primary py-4 rounded-xl font-headline font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed" type="submit" disabled={isLoading}>
+                <span className="flex items-center justify-center gap-2">
+                  {isLoading ? (<><div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />Đang đăng ký...</>) : (<>Đăng ký tài khoản (登録する)<span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span></>)}
+                </span>
               </button>
             </form>
             <div className="mt-12 text-center">

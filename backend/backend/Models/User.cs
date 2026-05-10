@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -53,6 +53,14 @@ public partial class User
 
     [Column("deleted_at")]
     public DateTime? DeletedAt { get; set; }
+
+    [Column("role")]
+    [StringLength(20)]
+    public string Role { get; set; } = "guest";
+
+    [Column("account_status")]
+    [StringLength(30)]
+    public string AccountStatus { get; set; } = "active";
 
     [InverseProperty("CancelledByNavigation")]
     public virtual ICollection<Booking> BookingCancelledByNavigations { get; set; } = new List<Booking>();

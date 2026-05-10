@@ -1,14 +1,39 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuth, ApiException } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { loginAction } = useAuth();
   const [isPartner, setIsPartner] = useState(false);
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(isPartner ? "/partner/home" : "/learner/home");
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const selectedRole = isPartner ? "partner" : "learner";
+      const result = await loginAction(email, password, selectedRole);
+      // Redirect based on actual role from server, not UI toggle
+      const redirectPath = result.role === "partner" ? "/partner/home" : "/learner/home";
+      router.push(redirectPath);
+    } catch (err) {
+      if (err instanceof ApiException) {
+        setError(err.message);
+      } else {
+        setError("Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -20,7 +45,7 @@ export default function LoginPage() {
         <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 overflow-hidden rounded-xl shadow-lg bg-surface-container-lowest">
           <div className="md:col-span-5 relative hidden md:flex flex-col justify-between p-12 bg-primary overflow-hidden">
             <div className="absolute inset-0 opacity-20">
-              <img className="w-full h-full object-cover" alt="Hoan Kiem Lake" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9-hKMIh-5-BaACIyxsnclamhpD30ik8zs343pDs8d-wuijW9DO6RtVWMRIVEDmydElYCQBdzC50u-3nHEYcUAi_N0gEXbCVSIrFBVSUdPm6lUiDO4c3UMhg7xGMxsQtPbzFDVE7yhDzrFY9deLf_rMkQjYMYjD27oPVcp2dP--IIVNToLZAT5g9MNXhcR-gDhKO74QHQE_L8_82XT2FOIXDeo6LcID2ybWfNApiTJghAycTxs6DONUqcfOOg1LvF-BSggAukPBMNF" />
+              <Image className="w-full h-full object-cover" alt="Hoan Kiem Lake" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9-hKMIh-5-BaACIyxsnclamhpD30ik8zs343pDs8d-wuijW9DO6RtVWMRIVEDmydElYCQBdzC50u-3nHEYcUAi_N0gEXbCVSIrFBVSUdPm6lUiDO4c3UMhg7xGMxsQtPbzFDVE7yhDzrFY9deLf_rMkQjYMYjD27oPVcp2dP--IIVNToLZAT5g9MNXhcR-gDhKO74QHQE_L8_82XT2FOIXDeo6LcID2ybWfNApiTJghAycTxs6DONUqcfOOg1LvF-BSggAukPBMNF" fill unoptimized />
             </div>
             <div className="relative z-10">
               <div className="w-16 h-16 bg-surface-container-lowest/10 backdrop-blur-md lotus-shape flex items-center justify-center mb-8">
@@ -36,22 +61,58 @@ export default function LoginPage() {
               <p className="text-secondary text-sm">Đăng nhập để tiếp tục hành trình / ログインして続行</p>
             </div>
             <form className="space-y-8" onSubmit={handleSubmit}>
+              {error && (
+                <div className="p-4 bg-error-container text-on-error-container rounded-xl text-sm font-medium flex items-center gap-3">
+                  <span className="material-symbols-outlined text-error text-xl">error</span>
+                  {error}
+                </div>
+              )}
               <div className="relative group">
                 <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-2 ml-1">Email / メール</label>
-                <input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-3 px-1 placeholder:text-outline/30" placeholder="example@email.com" type="text" />
+                <input
+                  className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-3 px-1 placeholder:text-outline/30"
+                  placeholder="example@email.com"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
               </div>
               <div className="relative group">
                 <div className="flex justify-between items-end mb-2 ml-1">
                   <label className="block text-xs uppercase tracking-widest text-on-surface-variant">Password / パスワード</label>
                   <Link href="/forgot-password" className="text-[10px] text-secondary hover:text-primary transition-colors">Quên mật khẩu?</Link>
                 </div>
-                <input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-3 px-1 placeholder:text-outline/30" placeholder="••••••••" type="password" />
+                <input
+                  className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-3 px-1 placeholder:text-outline/30"
+                  placeholder="••••••••"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  disabled={isLoading}
+                />
               </div>
               <div className="flex items-center justify-center gap-4 py-2 bg-surface-container-low rounded-xl">
                 <button type="button" onClick={() => setIsPartner(false)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${!isPartner ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>Học viên</button>
                 <button type="button" onClick={() => setIsPartner(true)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${isPartner ? 'bg-secondary text-on-secondary' : 'text-on-surface-variant'}`}>Đối tác</button>
               </div>
-              <button className="w-full py-4 bg-primary text-on-primary rounded-xl font-headline font-semibold text-lg hover:bg-primary-container transition-all active:scale-[0.98]" type="submit">Đăng nhập / ログイン</button>
+              <button
+                className="w-full py-4 bg-primary text-on-primary rounded-xl font-headline font-semibold text-lg hover:bg-primary-container transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
+                    Đang đăng nhập...
+                  </>
+                ) : (
+                  "Đăng nhập / ログイン"
+                )}
+              </button>
             </form>
             <div className="mt-16 border-t border-surface-container-high pt-10">
               <p className="text-xs uppercase tracking-widest text-on-surface-variant mb-6 text-center">Mới sử dụng VietImmerse?</p>
