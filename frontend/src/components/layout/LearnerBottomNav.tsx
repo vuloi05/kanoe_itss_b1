@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LearnerBottomNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const navItems = [
-    { name: "Cá nhân", icon: "dashboard", href: "/learner/home" },
-    { name: "Bài học", icon: "menu_book", href: "/learner/lessons" },
-    { name: "Luyện tập", icon: "record_voice_over", href: "/learner/matching" },
-    { name: "Hồ sơ", icon: "person", href: "/learner/settings" },
+    { name: t("Cá nhân", "ホーム"), icon: "dashboard", href: "/learner/home" },
+    { name: t("Bài học", "レッスン"), icon: "menu_book", href: "/learner/lessons" },
+    { name: t("Luyện tập", "練習"), icon: "record_voice_over", href: "/learner/matching" },
+    { name: t("Hồ sơ", "プロフィール"), icon: "person", href: "/learner/settings" },
   ];
 
   return (

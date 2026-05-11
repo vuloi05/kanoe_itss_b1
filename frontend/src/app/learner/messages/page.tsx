@@ -2,6 +2,7 @@
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const conversations = [
   {name:"Nguyễn Thị Lan",lastMsg:"Hôm nay mình luyện đoạn hội thoại mới nhé!",time:"10:30",unread:2},
@@ -18,13 +19,14 @@ const messages = [
 
 export default function LearnerMessagesPage() {
   const [activeConv, setActiveConv] = useState(0);
+  const { t } = useLanguage();
   return (
     <div className="bg-background text-on-background font-body min-h-screen pb-20 md:pb-0">
       <LearnerNavbar />
       <main className="max-w-6xl mx-auto flex h-[calc(100vh-64px)]">
         {/* Sidebar */}
         <div className="w-80 border-r border-surface-container-high bg-surface-container-lowest hidden md:flex flex-col">
-          <div className="p-4 border-b border-surface-container-high"><h2 className="font-headline font-bold text-primary">Tin nhắn / メッセージ</h2></div>
+          <div className="p-4 border-b border-surface-container-high"><h2 className="font-headline font-bold text-primary">{t("Tin nhắn", "メッセージ")}</h2></div>
           <div className="flex-1 overflow-y-auto">
             {conversations.map((c,i)=>(
               <button key={i} onClick={()=>setActiveConv(i)} className={`w-full p-4 flex items-center gap-3 hover:bg-surface-container-low transition-colors text-left ${activeConv===i?'bg-surface-container-low border-l-2 border-primary':''}`}>
@@ -51,7 +53,7 @@ export default function LearnerMessagesPage() {
             ))}
           </div>
           <div className="p-4 border-t border-surface-container-high">
-            <div className="flex gap-2"><input className="flex-1 bg-surface-container-low border-none rounded-full py-3 pl-4 pr-10 text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-outline" placeholder="Nhập tin nhắn..." type="text"/><button className="w-10 h-10 bg-primary text-on-primary rounded-full flex items-center justify-center hover:opacity-90 transition-all"><span className="material-symbols-outlined text-sm">send</span></button></div>
+            <div className="flex gap-2"><input className="flex-1 bg-surface-container-low border-none rounded-full py-3 pl-4 pr-10 text-sm focus:ring-2 focus:ring-primary/50 placeholder:text-outline" placeholder={t("Nhập tin nhắn...", "メッセージを入力...")} type="text"/><button className="w-10 h-10 bg-primary text-on-primary rounded-full flex items-center justify-center hover:opacity-90 transition-all"><span className="material-symbols-outlined text-sm">send</span></button></div>
           </div>
         </div>
       </main>

@@ -2,6 +2,7 @@
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const lessons = [
   {id:1,title:"Tại quán phở",jp:"フォー屋で",level:"A1",progress:100,icon:"ramen_dining"},
@@ -12,12 +13,13 @@ const lessons = [
 ];
 
 export default function LessonsPage() {
+  const { t } = useLanguage();
   return (
     <div className="bg-background text-on-background font-body min-h-screen pb-20 md:pb-0">
       <LearnerNavbar />
       <main className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="font-headline text-3xl font-extrabold text-primary mb-2">Danh sách bài học</h1>
-        <p className="text-on-surface-variant mb-8">レッスン一覧 / Chọn bài học để bắt đầu luyện tập</p>
+        <h1 className="font-headline text-3xl font-extrabold text-primary mb-2">{t("Danh sách bài học", "レッスン一覧")}</h1>
+        <p className="text-on-surface-variant mb-8">{t("Chọn bài học để bắt đầu luyện tập", "レッスンを選択して練習を始めましょう")}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {lessons.map(l=>(
             <div key={l.id} className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all group border border-surface-container-high/50">
@@ -25,13 +27,12 @@ export default function LessonsPage() {
                 <div className="w-14 h-14 bg-primary-container rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><span className="material-symbols-outlined text-on-primary-container text-2xl">{l.icon}</span></div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1"><span className="text-[10px] font-bold uppercase tracking-widest text-secondary bg-secondary-container px-2 py-0.5 rounded-full">{l.level}</span></div>
-                  <h3 className="font-headline font-bold text-primary text-lg">{l.title}</h3>
-                  <p className="text-sm text-secondary">{l.jp}</p>
+                  <h3 className="font-headline font-bold text-primary text-lg">{t(l.title, l.jp)}</h3>
                 </div>
               </div>
-              <div className="mt-4"><div className="h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full transition-all" style={{width:`${l.progress}%`}}></div></div><p className="text-[10px] text-on-surface-variant mt-1 text-right">{l.progress}% hoàn thành</p></div>
+              <div className="mt-4"><div className="h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full transition-all" style={{width:`${l.progress}%`}}></div></div><p className="text-[10px] text-on-surface-variant mt-1 text-right">{l.progress}% {t("hoàn thành", "完了")}</p></div>
               <Link href={`/learner/lessons/${l.id}`} className="mt-4 w-full py-3 bg-primary text-white rounded-xl font-headline font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                {l.progress>0?"Tiếp tục / 続ける":"Bắt đầu / 始める"}<span className="material-symbols-outlined text-sm">arrow_forward</span>
+                {l.progress>0?t("Tiếp tục", "続ける"):t("Bắt đầu", "始める")}<span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
             </div>
           ))}

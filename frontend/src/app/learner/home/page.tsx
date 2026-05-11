@@ -4,8 +4,10 @@ import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LearnerHomePage() {
+  const { t } = useLanguage();
   return (
     <div className="bg-surface font-body text-on-surface leading-relaxed min-h-screen">
       <LearnerNavbar />
@@ -15,14 +17,10 @@ export default function LearnerHomePage() {
         <section className="mb-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7">
             <h1 className="font-headline text-4xl md:text-5xl font-extrabold text-primary mb-2 tracking-tight">
-              Chào mừng trở lại, Kenji!
+              {t("Chào mừng trở lại, Kenji!", "お帰りなさい、健二さん！")}
             </h1>
-            <p className="font-headline text-xl text-secondary mb-6">
-              お帰りなさい、健二さん！
-            </p>
-            <div className="bg-surface-container-low p-6 rounded-xl border-l-4 border-secondary italic mb-8">
-              &quot;Ngôn ngữ là bản đồ văn hóa của một dân tộc. Nó cho bạn biết
-              họ đến từ đâu và họ đang đi tới đâu.&quot;
+            <div className="bg-surface-container-low p-6 rounded-xl border-l-4 border-secondary italic mb-8 mt-6">
+              {t("\"Ngôn ngữ là bản đồ văn hóa của một dân tộc. Nó cho bạn biết họ đến từ đâu và họ đang đi tới đâu.\"", "「言語は人々の文化の地図です。彼らがどこから来て、どこへ行くのかを教えてくれます。」")}
             </div>
             <Link
               href="/learner/lessons"
@@ -30,10 +28,10 @@ export default function LearnerHomePage() {
             >
               <div className="text-left">
                 <span className="block text-xs uppercase tracking-widest opacity-80">
-                  Tiếp tục học / 学習を続ける
+                  {t("Tiếp tục học", "学習を続ける")}
                 </span>
                 <span className="text-lg font-bold">
-                  Bài 05: Tại quán Bún Chả / レッスン05：ブンチャ屋にて
+                  {t("Bài 05: Tại quán Bún Chả", "レッスン05：ブンチャ屋にて")}
                 </span>
               </div>
               <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
@@ -54,13 +52,10 @@ export default function LearnerHomePage() {
             </div>
             <div className="absolute -bottom-4 -left-4 bg-surface-container-lowest p-4 rounded-xl shadow-lg -rotate-3 border border-outline-variant/10">
               <p className="text-xs font-bold text-secondary">
-                CÂU TRONG NGÀY / 今日のフレーズ
+                {t("CÂU TRONG NGÀY", "今日のフレーズ")}
               </p>
               <p className="text-primary font-headline font-bold">
-                Cho tôi một suất bún chả!
-              </p>
-              <p className="text-xs text-on-surface-variant italic">
-                ブンチャを一人前ください！
+                {t("Cho tôi một suất bún chả!", "ブンチャを一人前ください！")}
               </p>
             </div>
           </div>
@@ -80,7 +75,7 @@ export default function LearnerHomePage() {
             </div>
             <p className="text-3xl font-black text-primary">12</p>
             <p className="text-sm font-medium text-on-surface-variant">
-              Chuỗi ngày học / 継続日数
+              {t("Chuỗi ngày học", "継続日数")}
             </p>
           </div>
 
@@ -91,13 +86,13 @@ export default function LearnerHomePage() {
                 <span className="material-symbols-outlined text-secondary">
                   event_upcoming
                 </span>
-                Lịch hẹn sắp tới / 次の予定
+                {t("Lịch hẹn sắp tới", "次の予定")}
               </h3>
               <Link
                 href="/learner/matching"
                 className="text-sm font-bold text-secondary hover:underline"
               >
-                Xem tất cả / 全て表示
+                {t("Xem tất cả", "全て表示")}
               </Link>
             </div>
             <div className="space-y-4">
@@ -133,7 +128,7 @@ export default function LearnerHomePage() {
                   </div>
                 </div>
                 <button className="w-full sm:w-auto bg-primary text-on-primary px-6 py-2 rounded-lg font-bold text-sm hover:bg-primary-container hover:text-on-primary-container transition-all cursor-pointer">
-                  Join / 入室
+                  {t("Tham gia", "入室")}
                 </button>
               </div>
             </div>
@@ -154,17 +149,17 @@ export default function LearnerHomePage() {
               </div>
               <div className="grow text-center md:text-left">
                 <span className="text-xs font-bold text-on-surface-variant group-hover:text-on-primary-container uppercase tracking-widest block mb-2">
-                  Sẵn sàng / オンライン
+                  {t("Sẵn sàng", "オンライン")}
                 </span>
                 <h4 className="font-headline font-bold text-primary group-hover:text-white text-2xl mb-2">
-                  Kết nối đối tác / マッチング
+                  {t("Kết nối đối tác", "マッチング")}
                 </h4>
                 <p className="text-on-surface-variant group-hover:text-on-primary-container">
-                  Tìm người luyện nói trực tuyến ngay / 今すぐ練習相手を探す
+                  {t("Tìm người luyện nói trực tuyến ngay", "今すぐ練習相手を探す")}
                 </p>
               </div>
               <span className="bg-primary text-on-primary group-hover:bg-white group-hover:text-primary px-6 py-3 rounded-lg font-bold transition-colors">
-                Bắt đầu / 開始
+                {t("Bắt đầu", "開始")}
               </span>
             </Link>
           </div>

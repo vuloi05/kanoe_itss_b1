@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function PartnerBottomNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const navItems = [
-    { name: "Trang chủ", icon: "dashboard", href: "/partner/home" },
-    { name: "Tin nhắn", icon: "chat", href: "/partner/messages" },
-    { name: "Cài đặt", icon: "settings", href: "/partner/settings" },
+    { name: t("Trang chủ", "ホーム"), icon: "dashboard", href: "/partner/home" },
+    { name: t("Tin nhắn", "メッセージ"), icon: "chat", href: "/partner/messages" },
+    { name: t("Cài đặt", "設定"), icon: "settings", href: "/partner/settings" },
   ];
 
   return (

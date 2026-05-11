@@ -2,16 +2,20 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 export default function LearnerNavbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const { t } = useLanguage();
+
   const navLinks = [
-    { name: "Trang chủ / ホーム", href: "/learner/home" },
-    { name: "Tìm đối tác / マッチング", href: "/learner/matching" },
-    { name: "Luyện tập / ラボ", href: "/learner/lessons" },
-    { name: "Cài đặt / 設定", href: "/learner/settings" },
+    { name: t("Trang chủ", "ホーム"), href: "/learner/home" },
+    { name: t("Tìm đối tác", "マッチング"), href: "/learner/matching" },
+    { name: t("Luyện tập", "ラボ"), href: "/learner/lessons" },
+    { name: t("Cài đặt", "設定"), href: "/learner/settings" },
   ];
 
   return (
@@ -40,6 +44,7 @@ export default function LearnerNavbar() {
             </Link>
           ))}
         </nav>
+        <LanguageSwitcher />
         <button
           onClick={() => router.push("/learner/settings")}
           className="p-2 rounded-full text-secondary dark:text-stone-400 hover:bg-surface-container-low dark:hover:bg-slate-800 transition-colors duration-300 cursor-pointer"

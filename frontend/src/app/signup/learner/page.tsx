@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, ApiException } from "@/lib/auth";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 export default function LearnerSignupPage() {
   const router = useRouter();
   const { registerLearner } = useAuth();
+  const { t } = useLanguage();
   const [level, setLevel] = useState("v3");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,6 +37,7 @@ export default function LearnerSignupPage() {
       <header className="bg-surface-container-low sticky top-0 z-50">
         <div className="flex justify-between items-center w-full px-6 py-4">
           <Link href="/" className="text-xl font-bold text-primary tracking-[0.1em] font-headline">VietImmerse</Link>
+          <LanguageSwitcher />
         </div>
       </header>
       <main className="min-h-screen flex flex-col md:flex-row">
@@ -45,16 +49,16 @@ export default function LearnerSignupPage() {
               <Image alt="Hanoi Old Quarter" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIPwqtDyifZu9k19htBPwMAITl1vynNcRqvZU0HmPAsjGTe9zs__ni6cfk-lFghF6ZhgwwvW7iUMd-apfPRht0fsv13ZPtz1H3kSTF68mX-M2rJb_1kDTdEDF52FVMuqc3Gw93XGtcxbvmAets07pwdjEinB5FM7yoxCTRJA-7JJvfB7R7swpvSqaAOjgo-yZGquC5wAjjNVolcOkeQOQQ-ZgiYshCm1MhZbCiYyfHWti7zNEsomaQJp8gxV34TmFfplgYeB7FJY-v" fill sizes="(max-width: 768px) 100vw, 42vw" />
             </div>
             <div>
-              <h2 className="font-headline text-4xl font-extrabold text-primary leading-tight">Cảm hứng từ<br/>Hà Nội.</h2>
-              <p className="mt-4 text-secondary font-medium max-w-xs leading-relaxed">ハノイの街並みからインスピレーションを得た、新しい日本語学習体験。</p>
+              <h2 className="font-headline text-4xl font-extrabold text-primary leading-tight">{t("Cảm hứng từ", "ハノイの")} <br/>{t("Hà Nội.", "街並みから。")}</h2>
+              <p className="mt-4 text-secondary font-medium max-w-xs leading-relaxed">{t("ハノイの街並みからインスピレーションを得た、新しい日本語学習体験。", "ハノイの街並みからインスピレーションを得た、新しい日本語学習体験。")}</p>
             </div>
           </div>
         </section>
         <section className="flex-1 flex items-center justify-center p-8 md:p-24 bg-surface">
           <div className="w-full max-w-md">
             <div className="mb-12">
-              <h1 className="font-headline text-3xl font-extrabold text-primary tracking-tight mb-2">Bắt đầu học ngay <span className="text-secondary font-medium text-xl">(学習を始める)</span></h1>
-              <p className="text-on-surface-variant">Tham gia cộng đồng học tiếng Nhật tại Hà Nội.<br/><span className="text-sm opacity-70">ハノイの日本語学習者コミュニティに参加しましょう。</span></p>
+              <h1 className="font-headline text-3xl font-extrabold text-primary tracking-tight mb-2">{t("Bắt đầu học ngay", "学習を始める")}</h1>
+              <p className="text-on-surface-variant">{t("Tham gia cộng đồng học tiếng Nhật tại Hà Nội.", "ハノイの日本語学習者コミュニティに参加しましょう。")}</p>
             </div>
             <form className="space-y-10" onSubmit={handleSubmit}>
               {error && (
@@ -63,11 +67,11 @@ export default function LearnerSignupPage() {
                   {error}
                 </div>
               )}
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Họ và tên (氏名)" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading} /></div>
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Email (メールアドレス)" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} /></div>
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder="Mật khẩu (パスワード)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Họ và tên", "氏名")} type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Email", "メールアドレス")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Mật khẩu", "パスワード")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={isLoading} /></div>
               <div className="space-y-4">
-                <span className="text-xs font-bold uppercase tracking-widest text-secondary block">Trình độ hiện tại (現在のレベル)</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-secondary block">{t("Trình độ hiện tại", "現在のレベル")}</span>
                 <div className="flex flex-wrap gap-3">
                   {["V1","V2","V3","V4","V5"].map((l) => (
                     <label key={l} className="cursor-pointer">
@@ -79,12 +83,12 @@ export default function LearnerSignupPage() {
               </div>
               <button className="group w-full bg-primary text-on-primary py-4 rounded-xl font-headline font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed" type="submit" disabled={isLoading}>
                 <span className="flex items-center justify-center gap-2">
-                  {isLoading ? (<><div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />Đang đăng ký...</>) : (<>Đăng ký tài khoản (登録する)<span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span></>)}
+                  {isLoading ? (<><div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />{t("Đang đăng ký...", "登録中...")}</>) : (<>{t("Đăng ký tài khoản", "登録する")}<span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span></>)}
                 </span>
               </button>
             </form>
             <div className="mt-12 text-center">
-              <p className="text-on-surface-variant text-sm">Đã có tài khoản? <Link className="text-primary font-bold hover:underline ml-1" href="/login">Đăng nhập (ログイン)</Link></p>
+              <p className="text-on-surface-variant text-sm">{t("Đã có tài khoản?", "すでにアカウントをお持ちですか？")} <Link className="text-primary font-bold hover:underline ml-1" href="/login">{t("Đăng nhập", "ログイン")}</Link></p>
             </div>
           </div>
         </section>

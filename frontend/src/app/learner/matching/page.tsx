@@ -2,6 +2,7 @@
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const partners = [
   {name:"Nguyễn Thị Lan",age:28,loc:"Ba Đình, Hà Nội",bio:"Giáo viên tiểu học, yêu văn hóa Nhật",match:95,tags:["Giọng Hà Nội","Nhẫn nại","Beginner-friendly"]},
@@ -10,12 +11,13 @@ const partners = [
 ];
 
 export default function MatchingPage() {
+  const { t } = useLanguage();
   return (
     <div className="bg-background text-on-background font-body min-h-screen pb-20 md:pb-0">
       <LearnerNavbar />
       <main className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="font-headline text-3xl font-extrabold text-primary mb-2">Ghép cặp đối tác</h1>
-        <p className="text-on-surface-variant mb-8">マッチング / AI đề xuất đối tác phù hợp nhất cho bạn</p>
+        <h1 className="font-headline text-3xl font-extrabold text-primary mb-2">{t("Ghép cặp đối tác", "パートナーマッチング")}</h1>
+        <p className="text-on-surface-variant mb-8">{t("AI đề xuất đối tác phù hợp nhất cho bạn", "AIがあなたに最適なパートナーを提案します")}</p>
         <div className="space-y-6">
           {partners.map((p,i)=>(
             <div key={i} className="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-surface-container-high/50 hover:shadow-lg transition-all">
@@ -32,8 +34,8 @@ export default function MatchingPage() {
                     {p.tags.map(t=>(<span key={t} className="text-[10px] font-bold text-primary bg-primary-fixed px-3 py-1 rounded-full">{t}</span>))}
                   </div>
                   <div className="flex gap-3 mt-4">
-                    <Link href="/learner/messages" className="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm hover:opacity-90 transition-all flex items-center gap-2"><span className="material-symbols-outlined text-sm">chat</span>Nhắn tin</Link>
-                    <button className="px-6 py-2 border border-outline-variant text-on-surface-variant rounded-xl font-bold text-sm hover:bg-surface-container-low transition-all">Xem hồ sơ</button>
+                    <Link href="/learner/messages" className="px-6 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm hover:opacity-90 transition-all flex items-center gap-2"><span className="material-symbols-outlined text-sm">chat</span>{t("Nhắn tin", "メッセージ")}</Link>
+                    <button className="px-6 py-2 border border-outline-variant text-on-surface-variant rounded-xl font-bold text-sm hover:bg-surface-container-low transition-all">{t("Xem hồ sơ", "プロフィールを見る")}</button>
                   </div>
                 </div>
               </div>

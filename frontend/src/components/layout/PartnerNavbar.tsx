@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 export default function PartnerNavbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const { t } = useLanguage();
+
   const navLinks = [
-    { name: "Trang chủ / ホーム", href: "/partner/home" },
-    { name: "Tin nhắn / メッセージ", href: "/partner/messages" },
-    { name: "Cài đặt / 設定", href: "/partner/settings" },
+    { name: t("Trang chủ", "ホーム"), href: "/partner/home" },
+    { name: t("Tin nhắn", "メッセージ"), href: "/partner/messages" },
+    { name: t("Cài đặt", "設定"), href: "/partner/settings" },
   ];
 
   return (
@@ -39,6 +43,7 @@ export default function PartnerNavbar() {
         </nav>
       </div>
       <div className="flex items-center gap-4">
+        <LanguageSwitcher />
         <button
           onClick={() => router.push("/partner/settings")}
           className="material-symbols-outlined text-primary dark:text-blue-400 cursor-pointer hover:bg-surface-container-low p-2 rounded-full transition-colors"
@@ -50,7 +55,7 @@ export default function PartnerNavbar() {
           className="hidden md:flex items-center gap-2 px-4 py-2 text-sm text-error hover:bg-error-container rounded-lg transition-colors font-medium"
         >
           <span className="material-symbols-outlined text-sm">logout</span>
-          Đăng xuất
+          {t("Đăng xuất", "ログアウト")}
         </button>
       </div>
     </header>
