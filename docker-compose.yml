@@ -1,10 +1,7 @@
 services:
   db:
     image: postgres:15
-    environment:
-      POSTGRES_DB: VietImmerse_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
+    env_file: .env
     ports:
       - "5432:5432"
     volumes:
@@ -22,25 +19,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    env_file: .env
     environment:
-      # ASP.NET Core
-      - ASPNETCORE_URLS=http://+:8080
-      - ASPNETCORE_ENVIRONMENT=Development
-      # Database
-      - DATABASE_CONNECTION_STRING=Host=db;Port=5432;Database=VietImmerse_db;Username=postgres;Password=admin
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=VietImmerse_db;Username=postgres;Password=admin
-      # JWT Authentication
-      - JWT_SECRET=V13t1mm3rs3_S3cur3_K3y_2026!@#$$%^&*_256b1t_Str0ng
-      - JWT_ISSUER=VietImmerse
-      - JWT_AUDIENCE=VietImmerseApp
-      - JWT_EXPIRY_HOURS=24
+      # Override for ASP.NET Core connection string format
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # Next.js bakes NEXT_PUBLIC_* at build time, must pass as build arg
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=production
+    env_file: .env
 
 volumes:
   postgres_data:

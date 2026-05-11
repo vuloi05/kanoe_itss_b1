@@ -1,0 +1,4 @@
+# Root .env contains secrets - never commit
+.env
+.env.*
+!.env.example
