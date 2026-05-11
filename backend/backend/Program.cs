@@ -5,8 +5,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-// Load .env before building configuration
-DotNetEnv.Env.Load();
+// Load .env from project root (shared config for all services)
+var rootEnvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
+if (File.Exists(rootEnvPath))
+    DotNetEnv.Env.Load(rootEnvPath);
+
+// Fallback: load local .env if exists (for dev-specific overrides)
+if (File.Exists(".env"))
+    DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

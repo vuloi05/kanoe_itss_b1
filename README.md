@@ -5,6 +5,7 @@
 ## 🚀 Bắt đầu nhanh (Quick Start)
 
 ### Yêu cầu hệ thống
+
 - **Node.js**: v20 LTS trở lên (khuyến nghị v24)
 - **npm**: v10 trở lên
 - **Git**: v2.x
@@ -12,6 +13,7 @@
 - **PostgreSQL**: v16 trở lên
 
 ### Cài đặt Frontend
+
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -30,13 +32,24 @@ Truy cập [http://localhost:3000](http://localhost:3000) để xem ứng dụng
 
 #### 1. Cấu hình biến môi trường
 
-Tạo file `.env` tại `backend/backend/.env` với nội dung:
+Tạo file `.env` tại **root project** (cùng cấp `docker-compose.yml`) với nội dung:
 
 ```env
+POSTGRES_DB=VietImmerse_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<your_password>
 DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=VietImmerse_db;Username=postgres;Password=<your_password>
+JWT_SECRET=<your_jwt_secret>
+JWT_ISSUER=VietImmerse
+JWT_AUDIENCE=VietImmerseApp
+JWT_EXPIRY_HOURS=24
+ASPNETCORE_ENVIRONMENT=Development
+ASPNETCORE_URLS=http://+:8080
+NEXT_PUBLIC_API_URL=http://localhost:8080
+NODE_ENV=production
 ```
 
-> ⚠️ **Lưu ý**: Thay `<your_password>` bằng mật khẩu PostgreSQL thực tế trên máy bạn. File `.env` đã được thêm vào `.gitignore`, **không commit** file này lên repository.
+> ⚠️ **Lưu ý**: Thay `<your_password>` và `<your_jwt_secret>` bằng giá trị thực tế. File `.env` đã được thêm vào `.gitignore`, **không commit** file này lên repository.
 
 #### 2. Tạo database
 
@@ -54,13 +67,13 @@ cd backend/backend
 dotnet run
 ```
 
-Backend sẽ chạy tại [http://localhost:5224](http://localhost:5224).
+Backend sẽ chạy tại [http://localhost:8080](http://localhost:8080).
 
 ---
 
 ## 📁 Cấu trúc dự án
 
-```
+```text
 kanoe_itss_b1/
 ├── src/
 │   ├── app/                        # App Router (Next.js 15)
@@ -104,7 +117,7 @@ kanoe_itss_b1/
 ## 🎨 Design System
 
 | Token | Giá trị | Mô tả |
-|-------|---------|-------|
+| ------- | --------- | ------- |
 | `--primary` | `#09294f` | Màu chủ đạo (Navy) |
 | `--secondary` | `#715a3e` | Màu phụ (Warm Brown) |
 | `--tertiary` | `#3f2122` | Màu thứ 3 (Deep Red) |
@@ -118,7 +131,7 @@ kanoe_itss_b1/
 ## 🛣️ Routes
 
 | Route | Mô tả |
-|-------|-------|
+| ------- | ------- |
 | `/` | Landing page |
 | `/login` | Đăng nhập |
 | `/signup` | Chọn loại đăng ký |
