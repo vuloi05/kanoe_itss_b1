@@ -98,7 +98,7 @@ export const authApi = {
   registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) =>
     api.post<AuthResponse>("/api/auth/register/partner", data),
 
-  login: (data: { email: string; password: string; role: string }) =>
+  login: (data: { email: string; password: string }) =>
     api.post<AuthResponse>("/api/auth/login", data),
 
   forgotPassword: (data: { email: string }) =>

@@ -30,26 +30,106 @@ Truy cập [http://localhost:3000](http://localhost:3000) để xem ứng dụng
 
 ### Cài đặt Backend
 
-#### 1. Cấu hình biến môi trường
+#### 1. Environment Setup — Cấu hình biến môi trường
 
-Tạo file `.env` tại **root project** (cùng cấp `docker-compose.yml`) với nội dung:
+Tạo file `.env` tại **root project** (cùng cấp với `docker-compose.yml`).
+
+Dưới đây là template đầy đủ — copy và thay thế các giá trị trong `< >` bằng thông tin thực tế của bạn:
 
 ```env
+# ===================================
+# DATABASE (Docker)
+# ===================================
 POSTGRES_DB=VietImmerse_db
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=<your_password>
-DATABASE_CONNECTION_STRING=Host=localhost;Port=5432;Database=VietImmerse_db;Username=postgres;Password=<your_password>
-JWT_SECRET=<your_jwt_secret>
+POSTGRES_PASSWORD=<your_db_password>
+
+# ===================================
+# BACKEND CONNECTION STRING
+# ===================================
+DATABASE_CONNECTION_STRING=Host=db;Port=5432;Database=VietImmerse_db;Username=postgres;Password=<your_db_password>
+
+# ===================================
+# JWT AUTHENTICATION
+# ===================================
+JWT_SECRET=<your_jwt_secret_at_least_32_chars>
 JWT_ISSUER=VietImmerse
 JWT_AUDIENCE=VietImmerseApp
 JWT_EXPIRY_HOURS=24
+
+# ===================================
+# ASP.NET CORE
+# ===================================
 ASPNETCORE_ENVIRONMENT=Development
 ASPNETCORE_URLS=http://+:8080
+
+# ===================================
+# FRONTEND
+# ===================================
 NEXT_PUBLIC_API_URL=http://localhost:8080
 NODE_ENV=production
+
+# ===================================
+# SMTP EMAIL (Gmail)
+# ===================================
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=<your_gmail_address>
+SMTP_PASSWORD=<your_16_char_app_password>
+SMTP_FROM=VietImmerse <your_gmail_address>
 ```
 
-> ⚠️ **Lưu ý**: Thay `<your_password>` và `<your_jwt_secret>` bằng giá trị thực tế. File `.env` đã được thêm vào `.gitignore`, **không commit** file này lên repository.
+#### 📧 Cấu hình SMTP — Hướng dẫn chi tiết
+
+Dự án sử dụng **Gmail SMTP** để gửi email (quên mật khẩu, xác thực, v.v.). Cấu hình mặc định:
+
+| Variable | Default Value | Mô tả |
+| --- | --- | --- |
+| `SMTP_HOST` | `smtp.gmail.com` | SMTP server của Gmail |
+| `SMTP_PORT` | `587` | Port sử dụng STARTTLS |
+| `SMTP_USER` | — | Địa chỉ Gmail dùng để gửi email |
+| `SMTP_PASSWORD` | — | **App Password** 16 ký tự (⚠️ **KHÔNG PHẢI** mật khẩu Gmail) |
+| `SMTP_FROM` | — | Tên hiển thị + email gửi, ví dụ: `VietImmerse <abc@gmail.com>` |
+
+> [!CAUTION]
+> **`SMTP_PASSWORD` KHÔNG phải là mật khẩu đăng nhập Gmail của bạn!**
+>
+> Google không cho phép đăng nhập SMTP bằng mật khẩu tài khoản thông thường. Bạn cần tạo một **App Password** (Mật khẩu ứng dụng) — chuỗi 16 ký tự do Google cấp riêng.
+
+**Các bước lấy App Password từ Google:**
+
+1. Truy cập [Google Account Security](https://myaccount.google.com/security).
+2. Bật **2-Step Verification** (Xác minh 2 bước) nếu chưa bật — **bắt buộc**.
+3. Sau khi bật 2FA, truy cập [App Passwords](https://myaccount.google.com/apppasswords).
+4. Chọn tên ứng dụng (ví dụ: `VietImmerse`) → Nhấn **Create**.
+5. Google sẽ hiển thị mật khẩu 16 ký tự (dạng `abcd efgh ijkl mnop`).
+6. Copy chuỗi này (**bỏ khoảng trắng**) và paste vào `SMTP_PASSWORD` trong file `.env`.
+
+```env
+# Example (remove spaces from the generated password)
+SMTP_PASSWORD=abcdefghijklmnop
+```
+
+> [!WARNING]
+> **Bảo mật file `.env`**
+>
+> - File `.env` chứa credentials nhạy cảm (database password, JWT secret, SMTP password).
+> - **Tuyệt đối KHÔNG commit** file này lên GitHub hoặc bất kỳ remote repository nào.
+> - Đảm bảo `.env` đã có trong `.gitignore` (dự án đã cấu hình sẵn tại dòng `.env` trong `.gitignore`).
+> - Nếu bạn vô tình commit `.env`, hãy **revoke ngay** App Password cũ và tạo mới.
+
+#### 🐳 Docker Context
+
+File `docker-compose.yml` đã được cấu hình với `env_file: .env` cho tất cả các service (`db`, `backend`, `frontend`). Khi chạy:
+
+```bash
+docker-compose up --build
+```
+
+Docker Compose sẽ **tự động đọc toàn bộ biến** từ file `.env` tại root project và inject vào các container tương ứng — bạn không cần truyền biến thủ công.
+
+> [!NOTE]
+> Trong `DATABASE_CONNECTION_STRING`, giá trị `Host=db` trỏ đến tên service `db` trong Docker network (không phải `localhost`). Khi chạy backend **ngoài Docker** (bare-metal), đổi thành `Host=localhost`.
 
 #### 2. Tạo database
 

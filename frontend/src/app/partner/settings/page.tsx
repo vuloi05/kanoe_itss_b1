@@ -4,10 +4,12 @@ import PartnerBottomNav from "@/components/layout/PartnerBottomNav";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/lib/auth";
 
 export default function PartnerSettingsPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { logout } = useAuth();
   return (
     <div className="bg-background text-on-background font-body min-h-screen pb-20 md:pb-0">
       <PartnerNavbar />
@@ -33,7 +35,7 @@ export default function PartnerSettingsPage() {
             </Link>
           ))}
         </div>
-        <button onClick={()=>router.push("/login")} className="w-full flex items-center justify-center gap-2 p-4 text-error font-bold hover:bg-error-container rounded-xl transition-all">
+        <button onClick={()=>{ logout(); router.push("/login"); }} className="w-full flex items-center justify-center gap-2 p-4 text-error font-bold hover:bg-error-container rounded-xl transition-all">
           <span className="material-symbols-outlined">logout</span>{t("Đăng xuất", "ログアウト")}
         </button>
       </main>

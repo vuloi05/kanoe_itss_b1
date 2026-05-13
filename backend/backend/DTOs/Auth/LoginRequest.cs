@@ -7,8 +7,5 @@ public record LoginRequest(
     string Email,
 
     [Required]
-    string Password,
-
-    [Required]
-    string Role
+    string Password
 );

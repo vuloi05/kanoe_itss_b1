@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/lib/auth";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 export default function PartnerNavbar() {
@@ -10,6 +11,7 @@ export default function PartnerNavbar() {
   const router = useRouter();
 
   const { t } = useLanguage();
+  const { logout } = useAuth();
 
   const navLinks = [
     { name: t("Trang chủ", "ホーム"), href: "/partner/home" },
@@ -51,7 +53,7 @@ export default function PartnerNavbar() {
           account_circle
         </button>
         <button
-          onClick={() => router.push("/login")}
+          onClick={() => { logout(); router.push("/login"); }}
           className="hidden md:flex items-center gap-2 px-4 py-2 text-sm text-error hover:bg-error-container rounded-lg transition-colors font-medium"
         >
           <span className="material-symbols-outlined text-sm">logout</span>

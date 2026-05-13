@@ -1,31 +1,13 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { authApi, ApiException } from "@/lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useForgotPassword } from "@/hooks/useForgotPassword";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const { register, handleSubmit, errors, isLoading, isSuccess, serverError, onSubmit } = useForgotPassword();
   const { t } = useLanguage();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-    try {
-      await authApi.forgotPassword({ email });
-      setSuccess(true);
-    } catch (err) {
-      setError(err instanceof ApiException ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <main className="min-h-screen flex flex-col md:flex-row bg-surface font-body text-on-surface">
@@ -48,23 +30,35 @@ export default function ForgotPasswordPage() {
             <h2 className="font-headline text-3xl font-bold text-primary mb-4">{t("Quên mật khẩu?", "パスワードをお忘れですか？")}</h2>
             <p className="text-on-surface-variant leading-relaxed">{t("Nhập email của bạn để nhận hướng dẫn đặt lại mật khẩu.", "パスワード再設定用のメールをお送りします。")}</p>
           </div>
-          {success ? (
+          {isSuccess ? (
             <div className="p-6 bg-primary-container rounded-xl text-on-primary-container">
               <div className="flex items-center gap-3 mb-3">
                 <span className="material-symbols-outlined text-2xl">check_circle</span>
                 <h3 className="font-headline font-bold text-lg">{t("Đã gửi thành công!", "送信完了")}</h3>
               </div>
-              <p className="text-sm leading-relaxed">{t("Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.", "アカウントが存在する場合、再設定用のリンクが記載されたメールが送信されます。")}</p>
+              <p className="text-sm leading-relaxed">{t("Đã gửi email kèm mật khẩu tạm thời.", "仮パスワードを記載したメールを送信しました。")}</p>
             </div>
           ) : (
-            <form className="space-y-8" onSubmit={handleSubmit}>
-              {error && (
+            <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
+              {serverError && (
                 <div className="p-4 bg-error-container text-on-error-container rounded-xl text-sm font-medium flex items-center gap-3">
                   <span className="material-symbols-outlined text-error text-xl">error</span>
-                  {error}
+                  {serverError}
                 </div>
               )}
-              <div className="relative group"><label className="block text-xs font-bold tracking-widest text-primary uppercase mb-2">{t("EMAIL", "メール")}</label><input className="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 focus:ring-0 focus:border-primary placeholder:text-outline-variant/60" placeholder="example@email.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading}/></div>
+              <div className="relative group">
+                <label className="block text-xs font-bold tracking-widest text-primary uppercase mb-2">{t("EMAIL", "メール")}</label>
+                <input
+                  className={`w-full bg-transparent border-0 border-b py-3 px-0 focus:ring-0 placeholder:text-outline-variant/60 ${errors.email ? "border-error focus:border-error" : "border-outline-variant focus:border-primary"}`}
+                  placeholder="example@email.com"
+                  type="text"
+                  disabled={isLoading}
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="mt-2 text-xs text-error font-medium">{errors.email.message}</p>
+                )}
+              </div>
               <button className="w-full bg-primary text-on-primary py-4 rounded-xl font-headline font-bold hover:bg-primary-container transition-all shadow-lg flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed" type="submit" disabled={isLoading}>
                 {isLoading ? (<><div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />{t("Đang gửi...", "送信中...")}</>) : (<><span>{t("Gửi yêu cầu", "送信する")}</span><span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">send</span></>)}
               </button>

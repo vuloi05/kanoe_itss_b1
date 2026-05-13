@@ -1,11 +1,38 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const { t } = useLanguage();
+
+  // Redirect authenticated users to their role-based home
+  useEffect(() => {
+    if (isLoading) return;
+    if (isAuthenticated && user) {
+      const redirectPath = user.role === "partner" ? "/partner/home" : "/learner/home";
+      router.replace(redirectPath);
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  if (isLoading || (isAuthenticated && user)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-on-surface-variant text-sm font-medium">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background selection:bg-primary-container selection:text-on-primary-container min-h-screen">
       {/* TopAppBar */}
@@ -59,7 +86,7 @@ export default function Home() {
           </div>
           <div className="lg:col-span-5 relative">
             <div className="aspect-[4/5] bg-surface-container-low rounded-[3rem] overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
-              <img alt="Vibrant street scene in Hanoi" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzXCTXyevyo1Lyg7ehDPHVHapjaXrKFhS5OqBJ0HcV__d9aGHagvq_VO-p-VlsDPOzfFseY4xwKm-QuEHrPdAfcGbZh7xJOwVnW2KEJUslxecroy8cEBKrspPIGIuTh-5EU8TAB5T5QAGCBDZ3KHZWfN30XNuDmLVOfnxmHlAp4lD9th9b9k3J5vtzdvNa0_Ilo-34q0iCT-jGO6eWFKxIjG1qAsB53SUHwh0FlbzMGXvkTlMHOWm_aEzOUrBezGcLbZ_RRdYbRU4-" />
+              <Image alt="Vibrant street scene in Hanoi" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzXCTXyevyo1Lyg7ehDPHVHapjaXrKFhS5OqBJ0HcV__d9aGHagvq_VO-p-VlsDPOzfFseY4xwKm-QuEHrPdAfcGbZh7xJOwVnW2KEJUslxecroy8cEBKrspPIGIuTh-5EU8TAB5T5QAGCBDZ3KHZWfN30XNuDmLVOfnxmHlAp4lD9th9b9k3J5vtzdvNa0_Ilo-34q0iCT-jGO6eWFKxIjG1qAsB53SUHwh0FlbzMGXvkTlMHOWm_aEzOUrBezGcLbZ_RRdYbRU4-" fill unoptimized />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
             </div>
             {/* Floating Card */}

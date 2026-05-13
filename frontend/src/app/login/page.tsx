@@ -2,20 +2,41 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth, ApiException } from "@/lib/auth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginAction } = useAuth();
+  const { loginAction, isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { t } = useLanguage();
-  const [isPartner, setIsPartner] = useState(false);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect authenticated users away from the login page
+  useEffect(() => {
+    if (authLoading) return;
+    if (isAuthenticated && user) {
+      const redirectPath = user.role === "partner" ? "/partner/home" : "/learner/home";
+      router.replace(redirectPath);
+    }
+  }, [authLoading, isAuthenticated, user, router]);
+
+  // Prevent form flash while checking auth state or during redirect
+  if (authLoading || (isAuthenticated && user)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-on-surface-variant text-sm font-medium">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +44,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const selectedRole = isPartner ? "partner" : "learner";
-      const result = await loginAction(email, password, selectedRole);
+      const result = await loginAction(email, password);
       // Redirect based on actual role from server, not UI toggle
       const redirectPath = result.role === "partner" ? "/partner/home" : "/learner/home";
       router.push(redirectPath);
@@ -99,10 +119,7 @@ export default function LoginPage() {
                   disabled={isLoading}
                 />
               </div>
-              <div className="flex items-center justify-center gap-4 py-2 bg-surface-container-low rounded-xl">
-                <button type="button" onClick={() => setIsPartner(false)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${!isPartner ? 'bg-primary text-on-primary' : 'text-on-surface-variant'}`}>{t("Học viên", "受講生")}</button>
-                <button type="button" onClick={() => setIsPartner(true)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${isPartner ? 'bg-secondary text-on-secondary' : 'text-on-surface-variant'}`}>{t("Đối tác", "パートナー")}</button>
-              </div>
+
               <button
                 className="w-full py-4 bg-primary text-on-primary rounded-xl font-headline font-semibold text-lg hover:bg-primary-container transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 type="submit"
@@ -134,6 +151,11 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+      <footer className="mt-auto py-8 text-center hidden md:block">
+        <p className="text-[10px] font-label text-outline tracking-widest uppercase">
+          {t("© 2024 VietImmerse. Nhịp cầu kết nối Hà Nội và Tokyo.", "© 2024 VietImmerse. ハノイと東京を繋ぐ架け橋")}
+        </p>
+      </footer>
     </div>
   );
 }
