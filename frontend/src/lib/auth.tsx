@@ -11,7 +11,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  loginAction: (email: string, password: string, role: string) => Promise<AuthResponse>;
+  loginAction: (email: string, password: string) => Promise<AuthResponse>;
   registerLearner: (data: { email: string; password: string; displayName: string; level?: string }) => Promise<AuthResponse>;
   registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) => Promise<AuthResponse>;
   logout: () => void;
@@ -89,8 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const loginAction = async (email: string, password: string, role: string) => {
-    const response = await authApi.login({ email, password, role });
+  const loginAction = async (email: string, password: string) => {
+    const response = await authApi.login({ email, password });
     handleAuthSuccess(response);
     return response;
   };

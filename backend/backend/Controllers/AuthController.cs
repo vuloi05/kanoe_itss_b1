@@ -62,9 +62,19 @@ public class AuthController : ControllerBase
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
-        await _authService.ForgotPasswordAsync(request);
-        // Always return success to prevent email enumeration attacks
-        return Ok(new { message = "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu." });
+        try
+        {
+            await _authService.ForgotPasswordAsync(request);
+            return Ok(new { message = "Đã gửi email kèm mật khẩu tạm thời." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     [HttpPost("reset-password")]

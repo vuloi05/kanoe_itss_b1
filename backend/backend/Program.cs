@@ -46,6 +46,7 @@ builder.Services.AddAuthorization();
 
 // DI: Application services
 builder.Services.AddSingleton<IJwtService, JwtService>();
+builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // CORS: allow frontend dev server
@@ -125,6 +126,36 @@ using (var scope = app.Services.CreateScope())
             context.SaveChanges();
 
             Console.WriteLine($"🌱 Seeded learner account: {sampleLearnerEmail}");
+        }
+
+        // Seed sample partner account (idempotent – skips if already exists)
+        const string samplePartnerEmail = "doitac@gmail.com";
+        if (!context.Users.Any(u => u.Email == samplePartnerEmail))
+        {
+            var partnerUser = new backend.Models.User
+            {
+                Email = samplePartnerEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
+                DisplayName = "Đối tác Demo",
+                Role = "partner",
+                AccountStatus = "active",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            context.Users.Add(partnerUser);
+            context.SaveChanges();
+
+            var partnerProfile = new backend.Models.PartnerProfile
+            {
+                UserId = partnerUser.UserId,
+                Bio = "Tài khoản đối tác demo",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            context.PartnerProfiles.Add(partnerProfile);
+            context.SaveChanges();
+
+            Console.WriteLine($"🌱 Seeded partner account: {samplePartnerEmail}");
         }
     }
     catch (Exception ex)

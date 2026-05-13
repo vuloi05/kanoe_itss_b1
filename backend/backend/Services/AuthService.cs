@@ -1,6 +1,8 @@
+using System.Security.Cryptography;
 using backend.DTOs.Auth;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace backend.Services;
 
@@ -8,11 +10,15 @@ public class AuthService : IAuthService
 {
     private readonly VietImmerseDbContext _db;
     private readonly IJwtService _jwt;
+    private readonly IEmailService _email;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(VietImmerseDbContext db, IJwtService jwt)
+    public AuthService(VietImmerseDbContext db, IJwtService jwt, IEmailService email, ILogger<AuthService> logger)
     {
         _db = db;
         _jwt = jwt;
+        _email = email;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> RegisterLearnerAsync(RegisterLearnerRequest request)
@@ -125,12 +131,6 @@ public class AuthService : IAuthService
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Email hoặc mật khẩu không chính xác.");
 
-        // Prevent cross-role login (e.g. partner account logging in as learner)
-        var requestedRole = request.Role.Trim().ToLowerInvariant();
-        if (!string.Equals(user.Role, requestedRole, StringComparison.OrdinalIgnoreCase))
-            throw new UnauthorizedAccessException(
-                $"Tài khoản này không phải là {(requestedRole == "learner" ? "học viên" : "đối tác")}. Vui lòng chọn đúng vai trò.");
-
         if (user.AccountStatus == "suspended")
             throw new UnauthorizedAccessException("Tài khoản đã bị tạm khóa.");
 
@@ -146,18 +146,78 @@ public class AuthService : IAuthService
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
 
-        // Always return success to prevent email enumeration
-        if (user is null) return;
+        if (user is null)
+            throw new KeyNotFoundException("Email không tồn tại trên hệ thống.");
 
-        // Generate a simple reset token (in production, use a dedicated PasswordResetToken table)
-        var resetToken = Guid.NewGuid().ToString("N");
+        var tempPassword = GenerateTemporaryPassword(8);
 
-        // Placeholder: log token to console instead of sending email
-        Console.WriteLine("==================================================");
-        Console.WriteLine($"🔑 PASSWORD RESET TOKEN for {email}:");
-        Console.WriteLine($"   Token: {resetToken}");
-        Console.WriteLine($"   URL: http://localhost:3000/reset-password?token={resetToken}");
-        Console.WriteLine("==================================================");
+        // Wrap in transaction so password is rolled back if email delivery fails
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            var htmlBody = BuildForgotPasswordEmail(user.DisplayName, tempPassword);
+            await _email.SendEmailAsync(email, "VietImmerse - Mật khẩu tạm thời", htmlBody);
+
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex) when (ex is not KeyNotFoundException)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Failed to send password reset email to {Email}.", email);
+            throw new InvalidOperationException("Lỗi hệ thống: Không thể gửi email vào lúc này.", ex);
+        }
+    }
+
+    /// <summary>
+    /// Cryptographically secure random password with uppercase, lowercase, and digits.
+    /// </summary>
+    private static string GenerateTemporaryPassword(int length)
+    {
+        const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const string lower = "abcdefghjkmnpqrstuvwxyz";
+        const string digits = "23456789";
+        var all = upper + lower + digits;
+
+        // Guarantee at least one char from each category
+        Span<char> password = stackalloc char[length];
+        password[0] = upper[RandomNumberGenerator.GetInt32(upper.Length)];
+        password[1] = lower[RandomNumberGenerator.GetInt32(lower.Length)];
+        password[2] = digits[RandomNumberGenerator.GetInt32(digits.Length)];
+
+        for (var i = 3; i < length; i++)
+            password[i] = all[RandomNumberGenerator.GetInt32(all.Length)];
+
+        // Shuffle to avoid predictable positions
+        for (var i = password.Length - 1; i > 0; i--)
+        {
+            var j = RandomNumberGenerator.GetInt32(i + 1);
+            (password[i], password[j]) = (password[j], password[i]);
+        }
+
+        return new string(password);
+    }
+
+    private static string BuildForgotPasswordEmail(string displayName, string tempPassword)
+    {
+        return $"""
+        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#faf9f6;border-radius:12px">
+          <div style="text-align:center;margin-bottom:24px">
+            <h1 style="color:#1a6b4a;font-size:22px;margin:0">VietImmerse</h1>
+          </div>
+          <p style="color:#333;font-size:15px">Xin chào <strong>{displayName}</strong>,</p>
+          <p style="color:#333;font-size:15px">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Dưới đây là mật khẩu tạm thời:</p>
+          <div style="background:#e8f5e9;border:1px dashed #1a6b4a;border-radius:8px;text-align:center;padding:16px;margin:24px 0">
+            <span style="font-size:28px;font-weight:bold;letter-spacing:4px;color:#1a6b4a">{tempPassword}</span>
+          </div>
+          <p style="color:#333;font-size:15px">Vui lòng đăng nhập bằng mật khẩu này và <strong>đổi mật khẩu ngay</strong> sau khi đăng nhập để bảo mật tài khoản.</p>
+          <hr style="border:none;border-top:1px solid #e0e0e0;margin:24px 0" />
+          <p style="color:#999;font-size:12px;text-align:center">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.<br/>© 2024 VietImmerse</p>
+        </div>
+        """;
     }
 
     public Task ResetPasswordAsync(ResetPasswordRequest request)

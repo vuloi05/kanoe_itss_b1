@@ -4,10 +4,12 @@ import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/lib/auth";
 
 export default function LearnerSettingsPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { logout } = useAuth();
   return (
     <div className="bg-[#FAFAFA] dark:bg-slate-950 text-on-background font-body min-h-screen pb-20 md:pb-0">
       <LearnerNavbar />
@@ -140,7 +142,7 @@ export default function LearnerSettingsPage() {
               <span className="material-symbols-outlined text-[#CBD5E1] group-hover:text-[#94A3B8] transition-colors">chevron_right</span>
             </Link>
 
-            <button onClick={()=>router.push("/login")} className="flex items-center p-6 bg-[#FFE4E6] dark:bg-rose-950/30 rounded-[24px] shadow-sm hover:shadow-md hover:bg-[#FECDD3] dark:hover:bg-rose-900/40 border border-rose-100 dark:border-rose-900/50 transition-all group text-left">
+            <button onClick={()=>{ logout(); router.push("/login"); }} className="flex items-center p-6 bg-[#FFE4E6] dark:bg-rose-950/30 rounded-[24px] shadow-sm hover:shadow-md hover:bg-[#FECDD3] dark:hover:bg-rose-900/40 border border-rose-100 dark:border-rose-900/50 transition-all group text-left">
               <div className="w-14 h-14 bg-[#FDA4AF] text-[#BE123C] rounded-2xl flex items-center justify-center mr-6 group-hover:scale-105 transition-transform">
                 <span className="material-symbols-outlined text-[28px]">logout</span>
               </div>
