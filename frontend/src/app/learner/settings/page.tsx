@@ -1,15 +1,70 @@
 "use client";
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
+import AvatarUploadModal from "@/components/common/AvatarUploadModal";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { useState, useEffect } from "react";
+import { authApi } from "@/lib/api";
+
+/**
+ * Compute a human-readable relative time string from a UTC ISO date.
+ * Returns separate Vietnamese / Japanese strings.
+ */
+function getRelativeTime(isoDate: string): { vi: string; ja: string } {
+  const then = new Date(isoDate).getTime();
+  const now = Date.now();
+  const diffMs = now - then;
+
+  // Guard against future dates or clock skew
+  if (diffMs < 0) return { vi: "Vừa xong", ja: "たった今" };
+
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+
+  if (years > 0) return { vi: `${years} năm trước`, ja: `${years}年前` };
+  if (months > 0) return { vi: `${months} tháng trước`, ja: `${months}ヶ月前` };
+  if (days > 0) return { vi: `${days} ngày trước`, ja: `${days}日前` };
+  if (hours > 0) return { vi: `${hours} giờ trước`, ja: `${hours}時間前` };
+  if (minutes > 0) return { vi: `${minutes} phút trước`, ja: `${minutes}分前` };
+  return { vi: "Vừa xong", ja: "たった今" };
+}
 
 export default function LearnerSettingsPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { logout } = useAuth();
+  const { logout, user, updateUser } = useAuth();
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+
+  const [passwordChangedLabel, setPasswordChangedLabel] = useState<{ vi: string; ja: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    authApi.getProfile()
+      .then((profile) => {
+        if (!cancelled && profile.passwordChangedAt) {
+          setPasswordChangedLabel(getRelativeTime(profile.passwordChangedAt));
+        }
+      })
+      .catch(() => {
+        // Silently fail – the label will show fallback text
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const passwordSubtext = passwordChangedLabel
+    ? t(`Thay đổi lần cuối ${passwordChangedLabel.vi}`, `最終変更: ${passwordChangedLabel.ja}`)
+    : t("Chưa từng đổi mật khẩu", "パスワード未変更");
+
   return (
     <div className="bg-[#FAFAFA] dark:bg-slate-950 text-on-background font-body min-h-screen pb-20 md:pb-0">
       <LearnerNavbar />
@@ -32,9 +87,19 @@ export default function LearnerSettingsPage() {
           <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-[24px] p-8 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-8">
             <div className="relative">
               <div className="w-[120px] h-[120px] rounded-2xl overflow-hidden bg-slate-200">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kenji&backgroundColor=c0aede" alt="Avatar" className="w-full h-full object-cover" />
+                <Image
+                  src={user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.displayName || "User"}&backgroundColor=c0aede`}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                  width={120}
+                  height={120}
+                  unoptimized
+                />
               </div>
-              <button className="absolute -bottom-3 -right-3 w-10 h-10 bg-[#112340] hover:bg-[#1E3A8A] text-white rounded-full flex items-center justify-center transition-colors shadow-lg border-2 border-white dark:border-slate-900">
+              <button
+                onClick={() => setShowAvatarModal(true)}
+                className="absolute -bottom-3 -right-3 w-10 h-10 bg-[#112340] hover:bg-[#1E3A8A] text-white rounded-full flex items-center justify-center transition-colors shadow-lg border-2 border-white dark:border-slate-900"
+              >
                 <span className="material-symbols-outlined text-[20px]">edit</span>
               </button>
             </div>
@@ -44,13 +109,15 @@ export default function LearnerSettingsPage() {
                 <p className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">
                   {t("HỌ VÀ TÊN", "氏名")}
                 </p>
-                <h2 className="text-[24px] font-extrabold text-[#112340] dark:text-white">Tanaka Yuki</h2>
+                <h2 className="text-[24px] font-extrabold text-[#112340] dark:text-white">
+                  {t(user?.displayName || "Loading...", user?.displayNameJa || user?.displayName || "Loading...")}
+                </h2>
               </div>
               <div>
                 <p className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider mb-1">
                   {t("EMAIL", "メール")}
                 </p>
-                <p className="text-[#334155] dark:text-slate-300 text-[15px]">tanaka.yuki@vietimmerse.com</p>
+                <p className="text-[#334155] dark:text-slate-300 text-[15px]">{user?.email || "Loading..."}</p>
               </div>
             </div>
           </div>
@@ -137,7 +204,7 @@ export default function LearnerSettingsPage() {
                 <h3 className="font-bold text-[#112340] dark:text-white text-[16px] mb-1 group-hover:text-primary transition-colors">
                   {t("Đổi mật khẩu", "パスワード変更")}
                 </h3>
-                <p className="text-[12px] text-[#94A3B8]">{t("Thay đổi lần cuối 3 tháng trước", "最終変更: 3ヶ月前")}</p>
+                <p className="text-[12px] text-[#94A3B8]">{passwordSubtext}</p>
               </div>
               <span className="material-symbols-outlined text-[#CBD5E1] group-hover:text-[#94A3B8] transition-colors">chevron_right</span>
             </Link>
@@ -157,6 +224,14 @@ export default function LearnerSettingsPage() {
         </div>
       </main>
       <LearnerBottomNav />
+
+      {/* Avatar Upload Modal */}
+      <AvatarUploadModal
+        open={showAvatarModal}
+        onClose={() => setShowAvatarModal(false)}
+        onSuccess={(avatarUrl) => updateUser({ avatarUrl })}
+        currentAvatarUrl={user?.avatarUrl}
+      />
     </div>
   );
 }

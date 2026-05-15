@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: activates for <html class="dark"> and all descendants */
+@custom-variant dark (&:is(.dark, .dark *));
+
 :root {
   --background: #f9f9f7;
   --foreground: #1a1c1b;
@@ -55,6 +58,64 @@
   --inverse-on-surface: #f1f1ef;
   --inverse-primary: #adc7f7;
   --on-background: #1a1c1b;
+}
+
+/* Material Design 3 dark scheme — same hue family, inverted tonal values */
+.dark {
+  --background: #111418;
+  --foreground: #e2e2e0;
+
+  --primary: #adc7f7;
+  --on-primary: #0a2a50;
+  --primary-container: #2d476f;
+  --on-primary-container: #d6e3ff;
+  --primary-fixed: #d6e3ff;
+  --primary-fixed-dim: #adc7f7;
+  --on-primary-fixed: #001b3c;
+  --on-primary-fixed-variant: #2d476f;
+
+  --secondary: #e0c29f;
+  --on-secondary: #3e2c15;
+  --secondary-container: #584329;
+  --on-secondary-container: #fdddb9;
+  --secondary-fixed: #fdddb9;
+  --secondary-fixed-dim: #e0c29f;
+  --on-secondary-fixed: #281803;
+  --on-secondary-fixed-variant: #584329;
+
+  --tertiary: #ecbbba;
+  --on-tertiary: #44201f;
+  --tertiary-container: #603d3e;
+  --on-tertiary-container: #ffdad9;
+  --tertiary-fixed: #ffdad9;
+  --tertiary-fixed-dim: #ecbbba;
+  --on-tertiary-fixed: #2f1314;
+  --on-tertiary-fixed-variant: #603d3e;
+
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+
+  --surface: #111418;
+  --on-surface: #e2e2e0;
+  --surface-variant: #44474d;
+  --on-surface-variant: #c4c6cd;
+  --surface-dim: #111418;
+  --surface-bright: #37393e;
+  --surface-container-lowest: #0c0e13;
+  --surface-container-low: #1a1c21;
+  --surface-container: #1e2025;
+  --surface-container-high: #282a30;
+  --surface-container-highest: #33353b;
+  --surface-tint: #adc7f7;
+
+  --outline: #8e9097;
+  --outline-variant: #44474d;
+  --inverse-surface: #e2e2e0;
+  --inverse-on-surface: #2f3130;
+  --inverse-primary: #455f88;
+  --on-background: #e2e2e0;
 }
 
 @theme inline {
@@ -153,6 +214,11 @@ body {
 /* Lotus gradient */
 .lotus-gradient {
   background: linear-gradient(135deg, #09294f 0%, #243f67 100%);
+}
+
+/* Profile card shadow for matching page */
+.profile-card-shadow {
+  box-shadow: 0 4px 20px -2px rgba(9, 41, 79, 0.04);
 }
 
 /* Glass panel */

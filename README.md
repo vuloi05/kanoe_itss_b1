@@ -2,11 +2,11 @@
 
 > **Nền tảng học tiếng Việt giọng miền Bắc dành cho người Nhật tại Hà Nội**
 
-## 🚀 Bắt đầu nhanh (Quick Start)
+## Bắt đầu nhanh (Quick Start)
 
 ### Yêu cầu hệ thống
 
-- **Node.js**: v20 LTS trở lên (khuyến nghị v24)
+- **Node.js**: v20 LTS trở lên (khuyến nghị v22 LTS)
 - **npm**: v10 trở lên
 - **Git**: v2.x
 - **.NET SDK**: v10.0 trở lên
@@ -20,6 +20,7 @@ git clone <repository-url>
 cd kanoe_itss_b1
 
 # Cài đặt dependencies
+cd frontend
 npm install
 
 # Chạy development server
@@ -77,9 +78,16 @@ SMTP_PORT=587
 SMTP_USER=<your_gmail_address>
 SMTP_PASSWORD=<your_16_char_app_password>
 SMTP_FROM=VietImmerse <your_gmail_address>
+
+# ===================================
+# CLOUDINARY (Avatar Upload)
+# ===================================
+CLOUDINARY_CLOUD_NAME=<your_cloud_name>
+CLOUDINARY_API_KEY=<your_api_key>
+CLOUDINARY_API_SECRET=<your_api_secret>
 ```
 
-#### 📧 Cấu hình SMTP — Hướng dẫn chi tiết
+#### Cấu hình SMTP — Hướng dẫn chi tiết
 
 Dự án sử dụng **Gmail SMTP** để gửi email (quên mật khẩu, xác thực, v.v.). Cấu hình mặc định:
 
@@ -118,7 +126,42 @@ SMTP_PASSWORD=abcdefghijklmnop
 > - Đảm bảo `.env` đã có trong `.gitignore` (dự án đã cấu hình sẵn tại dòng `.env` trong `.gitignore`).
 > - Nếu bạn vô tình commit `.env`, hãy **revoke ngay** App Password cũ và tạo mới.
 
-#### 🐳 Docker Context
+#### Cấu hình Cloudinary (Lưu trữ hình ảnh)
+
+Dự án sử dụng **Cloudinary** để lưu trữ ảnh đại diện (Avatar) của người dùng. Thêm 3 biến sau vào file `.env`:
+
+```env
+# ===================================
+# CLOUDINARY (Avatar Upload)
+# ===================================
+CLOUDINARY_CLOUD_NAME=<your_cloud_name>
+CLOUDINARY_API_KEY=<your_api_key>
+CLOUDINARY_API_SECRET=<your_api_secret>
+```
+
+| Variable | Mô tả |
+| --- | --- |
+| `CLOUDINARY_CLOUD_NAME` | Tên cloud duy nhất của tài khoản Cloudinary |
+| `CLOUDINARY_API_KEY` | API Key công khai để xác thực request |
+| `CLOUDINARY_API_SECRET` | API Secret bí mật — **tuyệt đối không để lộ** |
+
+**Các bước lấy thông số Cloudinary:**
+
+1. Đăng ký hoặc đăng nhập tại [cloudinary.com](https://cloudinary.com/).
+2. Truy cập trang **Dashboard** (Bảng điều khiển) — [console.cloudinary.com](https://console.cloudinary.com/).
+3. Tại mục **Product Environment Credentials**, bạn sẽ thấy đầy đủ 3 giá trị: `Cloud Name`, `API Key`, và `API Secret`.
+4. Copy từng giá trị và paste vào file `.env` tương ứng.
+
+> [!CAUTION]
+> **Tuyệt đối KHÔNG để lộ `CLOUDINARY_API_SECRET`!**
+>
+> - Giá trị này cho phép toàn quyền truy cập tài khoản Cloudinary của bạn (upload, xóa, sửa ảnh).
+> - Không hardcode vào source code, không chia sẻ qua chat/email.
+> - Nếu nghi ngờ bị lộ, vào **Dashboard → Settings → Access Keys** để regenerate key mới ngay lập tức.
+>
+> **Free Tier:** Cloudinary cho phép **25,000 transformations** và **25 GB storage** mỗi tháng — đủ cho môi trường development và staging.
+
+#### Docker Context
 
 File `docker-compose.yml` đã được cấu hình với `env_file: .env` cho tất cả các service (`db`, `backend`, `frontend`). Khi chạy:
 
@@ -151,50 +194,81 @@ Backend sẽ chạy tại [http://localhost:8080](http://localhost:8080).
 
 ---
 
-## 📁 Cấu trúc dự án
+## Cấu trúc dự án
 
 ```text
 kanoe_itss_b1/
-├── src/
-│   ├── app/                        # App Router (Next.js 15)
-│   │   ├── layout.tsx              # Root layout (fonts, metadata)
-│   │   ├── globals.css             # Design System (color tokens)
-│   │   ├── page.tsx                # Landing page (/)
-│   │   ├── login/page.tsx          # Đăng nhập
-│   │   ├── signup/                 # Đăng ký
-│   │   │   ├── page.tsx            # Chọn loại (Learner/Partner)
-│   │   │   ├── learner/page.tsx    # Form đăng ký Learner
-│   │   │   └── partner/page.tsx    # Form đăng ký Partner
-│   │   ├── forgot-password/        # Quên mật khẩu
-│   │   ├── change-password/        # Đổi mật khẩu
-│   │   ├── learner/                # Learner flow
-│   │   │   ├── home/page.tsx       # Dashboard
-│   │   │   ├── lessons/page.tsx    # Danh sách bài học
-│   │   │   ├── lessons/[id]/       # Chi tiết bài học
-│   │   │   ├── matching/page.tsx   # Ghép cặp
-│   │   │   ├── messages/page.tsx   # Tin nhắn
-│   │   │   └── settings/page.tsx   # Cài đặt
-│   │   └── partner/                # Partner flow
-│   │       ├── home/page.tsx       # Dashboard
-│   │       ├── messages/page.tsx   # Tin nhắn
-│   │       └── settings/page.tsx   # Cài đặt
-│   └── components/
-│       └── layout/                 # Shared layout components
-│           ├── LearnerNavbar.tsx
-│           ├── LearnerBottomNav.tsx
-│           ├── PartnerNavbar.tsx
-│           └── PartnerBottomNav.tsx
-├── legacy-html/                    # HTML gốc (tham khảo)
-├── public/                         # Static assets
-├── .env.example                    # Template biến môi trường
-├── .prettierrc                     # Code formatting config
-├── .editorconfig                   # Editor settings
-└── package.json
+├── backend/
+│   └── backend/
+│       ├── Controllers/
+│       │   ├── AuthController.cs       # Đăng ký, đăng nhập, quên/đổi mật khẩu
+│       │   ├── UserController.cs       # Upload avatar
+│       │   └── HomeController.cs       # Health check
+│       ├── Services/
+│       │   ├── IAuthService.cs         # Auth interface
+│       │   ├── AuthService.cs          # Auth implementation
+│       │   ├── IPhotoService.cs        # Photo upload interface
+│       │   ├── CloudinaryPhotoService.cs # Cloudinary integration
+│       │   ├── IJwtService.cs / JwtService.cs
+│       │   └── IEmailService.cs / SmtpEmailService.cs
+│       ├── Models/                     # EF Core entities
+│       ├── DTOs/                       # Request/Response DTOs
+│       ├── Migrations/                 # EF Core migrations
+│       ├── Program.cs                  # App startup & DI
+│       └── backend.csproj
+├── frontend/
+│   └── src/
+│       ├── app/                        # App Router (Next.js 16)
+│       │   ├── layout.tsx              # Root layout (fonts, metadata)
+│       │   ├── globals.css             # Design System (color tokens)
+│       │   ├── page.tsx                # Landing page (/)
+│       │   ├── login/page.tsx          # Đăng nhập
+│       │   ├── signup/                 # Đăng ký
+│       │   │   ├── page.tsx            # Chọn loại (Learner/Partner)
+│       │   │   ├── learner/page.tsx    # Form đăng ký Learner
+│       │   │   └── partner/page.tsx    # Form đăng ký Partner
+│       │   ├── forgot-password/        # Quên mật khẩu
+│       │   ├── reset-password/         # Đặt lại mật khẩu (từ email)
+│       │   ├── change-password/        # Đổi mật khẩu (authenticated)
+│       │   ├── learner/                # Learner flow
+│       │   │   ├── home/page.tsx       # Dashboard
+│       │   │   ├── lessons/page.tsx    # Danh sách bài học
+│       │   │   ├── lessons/[id]/       # Chi tiết bài học
+│       │   │   ├── matching/page.tsx   # Ghép cặp
+│       │   │   ├── messages/page.tsx   # Tin nhắn
+│       │   │   └── settings/page.tsx   # Cài đặt
+│       │   └── partner/                # Partner flow
+│       │       ├── home/page.tsx       # Dashboard
+│       │       ├── messages/page.tsx   # Tin nhắn
+│       │       └── settings/page.tsx   # Cài đặt
+│       ├── components/
+│       │   ├── auth/                   # Auth guards
+│       │   │   └── ProtectedRoute.tsx
+│       │   ├── common/                 # Shared UI components
+│       │   │   ├── AvatarUploadModal.tsx
+│       │   │   ├── ProfileDropdown.tsx
+│       │   │   └── LanguageSwitcher.tsx
+│       │   └── layout/                 # Navigation components
+│       │       ├── LearnerNavbar.tsx
+│       │       ├── LearnerBottomNav.tsx
+│       │       ├── PartnerNavbar.tsx
+│       │       └── PartnerBottomNav.tsx
+│       ├── contexts/
+│       │   └── LanguageContext.tsx     # i18n (Vi/Ja)
+│       ├── hooks/
+│       │   └── useForgotPassword.ts
+│       └── lib/
+│           ├── api.ts                  # API client & endpoints
+│           ├── auth.tsx                # AuthProvider & useAuth hook
+│           └── cropImage.ts            # Canvas crop utility
+├── docker-compose.yml
+├── .env.example                        # Template biến môi trường
+└── README.md
 ```
 
 ---
 
-## 🎨 Design System
+## Design System
 
 | Token | Giá trị | Mô tả |
 | ------- | --------- | ------- |
@@ -208,7 +282,7 @@ kanoe_itss_b1/
 
 ---
 
-## 🛣️ Routes
+## Routes
 
 | Route | Mô tả |
 | ------- | ------- |
@@ -217,6 +291,9 @@ kanoe_itss_b1/
 | `/signup` | Chọn loại đăng ký |
 | `/signup/learner` | Đăng ký học viên |
 | `/signup/partner` | Đăng ký đối tác |
+| `/forgot-password` | Quên mật khẩu |
+| `/reset-password` | Đặt lại mật khẩu (từ email) |
+| `/change-password` | Đổi mật khẩu |
 | `/learner/home` | Dashboard học viên |
 | `/learner/lessons` | Danh sách bài học |
 | `/learner/lessons/:id` | Chi tiết bài học |
@@ -229,9 +306,9 @@ kanoe_itss_b1/
 
 ---
 
-## 🧑‍💻 Quy ước phát triển
+## Quy ước phát triển
 
-- **Framework**: Next.js 15 + TypeScript
+- **Framework**: Next.js 16 + React 19 + TypeScript
 - **Styling**: Tailwind CSS v4
 - **Component**: React Server/Client Components (App Router)
 - **File naming**: `PascalCase.tsx` cho components, `page.tsx` cho routes
@@ -239,7 +316,7 @@ kanoe_itss_b1/
 
 ---
 
-## 📜 Scripts
+## Scripts
 
 ```bash
 npm run dev      # Chạy dev server

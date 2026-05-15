@@ -58,6 +58,7 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 Controllers/
  AuthController.cs
  HomeController.cs
+ UserController.cs
 DTOs/Auth/
  AuthResponse.cs
  ChangePasswordRequest.cs
@@ -70,6 +71,10 @@ DTOs/Auth/
 Migrations/
  20260510042159_InitialCreate.cs
  20260510042159_InitialCreate.Designer.cs
+ 20260514073250_AddPasswordChangedAt.cs
+ 20260514073250_AddPasswordChangedAt.Designer.cs
+ 20260515112116_AddDisplayNameJa.cs
+ 20260515112116_AddDisplayNameJa.Designer.cs
  VietImmerseDbContextModelSnapshot.cs
 Models/
  Booking.cs
@@ -99,9 +104,11 @@ obj/Debug/net10.0/
 Program.cs
 Services/
  AuthService.cs
+ CloudinaryPhotoService.cs
  IAuthService.cs
  IEmailService.cs
  IJwtService.cs
+ IPhotoService.cs
  JwtService.cs
  SmtpEmailService.cs
 
@@ -417,6 +424,7 @@ Services/
  WindowsBase.dll
 <NUGET>/
  bcrypt.net-next/4.0.3/lib/net6.0/BCrypt.Net-Next.dll
+ cloudinarydotnet/1.29.1/lib/netstandard2.0/CloudinaryDotNet.dll
  dotnetenv/3.2.0/lib/netstandard2.0/DotNetEnv.dll
  microsoft.aspnetcore.authentication.jwtbearer/10.0.7/lib/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
  microsoft.aspnetcore.openapi/10.0.6/lib/net10.0/Microsoft.AspNetCore.OpenApi.dll
@@ -430,6 +438,7 @@ Services/
  microsoft.identitymodel.protocols/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.dll
  microsoft.identitymodel.tokens/8.0.1/lib/net9.0/Microsoft.IdentityModel.Tokens.dll
  microsoft.openapi/2.0.0/lib/net8.0/Microsoft.OpenApi.dll
+ newtonsoft.json/13.0.3/lib/net6.0/Newtonsoft.Json.dll
  npgsql.entityframeworkcore.postgresql/10.0.1/lib/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll
  npgsql/10.0.2/lib/net10.0/Npgsql.dll
  superpower/3.0.0/lib/net5.0/Superpower.dll

@@ -48,6 +48,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<IPhotoService, CloudinaryPhotoService>();
 
 // CORS: allow frontend dev server
 builder.Services.AddCors(options =>
@@ -107,6 +108,7 @@ using (var scope = app.Services.CreateScope())
                 Email = sampleLearnerEmail,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
                 DisplayName = "Học viên Demo",
+                DisplayNameJa = "デモ学生",
                 Role = "learner",
                 AccountStatus = "active",
                 CreatedAt = DateTime.UtcNow,
@@ -137,6 +139,7 @@ using (var scope = app.Services.CreateScope())
                 Email = samplePartnerEmail,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
                 DisplayName = "Đối tác Demo",
+                DisplayNameJa = "デモパートナー",
                 Role = "partner",
                 AccountStatus = "active",
                 CreatedAt = DateTime.UtcNow,

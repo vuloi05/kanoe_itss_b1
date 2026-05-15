@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Models;
@@ -12,9 +13,11 @@ using backend.Models;
 namespace backend.Migrations
 {
     [DbContext(typeof(VietImmerseDbContext))]
-    partial class VietImmerseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514073250_AddPasswordChangedAt")]
+    partial class AddPasswordChangedAt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -995,11 +998,6 @@ namespace backend.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("display_name");
-
-                    b.Property<string>("DisplayNameJa")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("display_name_ja");
 
                     b.Property<string>("Email")
                         .IsRequired()
