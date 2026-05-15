@@ -53,6 +53,38 @@ async function request<T>(endpoint: string, options: ApiOptions = {}): Promise<T
   return res.json();
 }
 
+/**
+ * Multipart upload — does NOT set Content-Type header
+ * so the browser auto-generates the correct multipart boundary.
+ */
+async function uploadRequest<T>(endpoint: string, formData: FormData): Promise<T> {
+  const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+
+  const headers: Record<string, string> = {};
+  if (storedToken) {
+    headers["Authorization"] = `Bearer ${storedToken}`;
+  }
+
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let errorMessage = "Đã xảy ra lỗi.";
+    try {
+      const errorBody = await res.json();
+      errorMessage = errorBody.message || errorMessage;
+    } catch {
+      // Response body is not JSON
+    }
+    throw new ApiException(errorMessage, res.status);
+  }
+
+  return res.json();
+}
+
 // Typed API methods
 export const api = {
   get: <T>(endpoint: string, options?: ApiOptions) =>
@@ -74,6 +106,7 @@ export interface AuthResponse {
   userId: string;
   email: string;
   displayName: string;
+  displayNameJa: string | null;
   role: string;
   avatarUrl: string | null;
 }
@@ -82,20 +115,22 @@ export interface UserProfile {
   userId: string;
   email: string;
   displayName: string;
+  displayNameJa: string | null;
   role: string;
   avatarUrl: string | null;
   phone: string | null;
   languagePref: string | null;
   createdAt: string;
   lastLoginAt: string | null;
+  passwordChangedAt: string | null;
 }
 
 // Auth API endpoints
 export const authApi = {
-  registerLearner: (data: { email: string; password: string; displayName: string; level?: string }) =>
+  registerLearner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; level?: string }) =>
     api.post<AuthResponse>("/api/auth/register/learner", data),
 
-  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) =>
+  registerPartner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; phone?: string; bio?: string }) =>
     api.post<AuthResponse>("/api/auth/register/partner", data),
 
   login: (data: { email: string; password: string }) =>
@@ -112,4 +147,13 @@ export const authApi = {
 
   getProfile: () =>
     api.get<UserProfile>("/api/auth/me"),
+};
+
+// User profile API endpoints
+export const userApi = {
+  uploadAvatar: (file: Blob) => {
+    const formData = new FormData();
+    formData.append("file", file, "avatar.jpg");
+    return uploadRequest<{ avatarUrl: string }>("/api/users/avatar", formData);
+  },
 };

@@ -13,6 +13,7 @@ export default function LearnerSignupPage() {
   const { t } = useLanguage();
   const [level, setLevel] = useState("v3");
   const [displayName, setDisplayName] = useState("");
+  const [displayNameJa, setDisplayNameJa] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,7 +24,7 @@ export default function LearnerSignupPage() {
     setError("");
     setIsLoading(true);
     try {
-      await registerLearner({ email, password, displayName, level });
+      await registerLearner({ email, password, displayName, displayNameJa: displayNameJa || undefined, level });
       router.push("/learner/home");
     } catch (err) {
       setError(err instanceof ApiException ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.");
@@ -67,7 +68,8 @@ export default function LearnerSignupPage() {
                   {error}
                 </div>
               )}
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Họ và tên", "氏名")} type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Họ và tên (Tiếng Việt)", "氏名 (ベトナム語)")} type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("氏名 (tiếng Nhật)", "氏名 (漢字/かな)")} type="text" value={displayNameJa} onChange={(e) => setDisplayNameJa(e.target.value)} disabled={isLoading} /></div>
               <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Email", "メールアドレス")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} /></div>
               <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Mật khẩu", "パスワード")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={isLoading} /></div>
               <div className="space-y-4">

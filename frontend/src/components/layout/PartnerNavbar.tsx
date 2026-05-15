@@ -1,17 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/lib/auth";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import ProfileDropdown from "@/components/common/ProfileDropdown";
 
 export default function PartnerNavbar() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const { t } = useLanguage();
-  const { logout } = useAuth();
 
   const navLinks = [
     { name: t("Trang chủ", "ホーム"), href: "/partner/home" },
@@ -46,19 +44,7 @@ export default function PartnerNavbar() {
       </div>
       <div className="flex items-center gap-4">
         <LanguageSwitcher />
-        <button
-          onClick={() => router.push("/partner/settings")}
-          className="material-symbols-outlined text-primary dark:text-blue-400 cursor-pointer hover:bg-surface-container-low p-2 rounded-full transition-colors"
-        >
-          account_circle
-        </button>
-        <button
-          onClick={() => { logout(); router.push("/login"); }}
-          className="hidden md:flex items-center gap-2 px-4 py-2 text-sm text-error hover:bg-error-container rounded-lg transition-colors font-medium"
-        >
-          <span className="material-symbols-outlined text-sm">logout</span>
-          {t("Đăng xuất", "ログアウト")}
-        </button>
+        <ProfileDropdown settingsPath="/partner/settings" />
       </div>
     </header>
   );

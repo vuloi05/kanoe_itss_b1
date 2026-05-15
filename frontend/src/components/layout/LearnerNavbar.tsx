@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import ProfileDropdown from "@/components/common/ProfileDropdown";
 
 export default function LearnerNavbar() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const { t } = useLanguage();
 
@@ -45,12 +45,7 @@ export default function LearnerNavbar() {
           ))}
         </nav>
         <LanguageSwitcher />
-        <button
-          onClick={() => router.push("/learner/settings")}
-          className="p-2 rounded-full text-secondary dark:text-stone-400 hover:bg-surface-container-low dark:hover:bg-slate-800 transition-colors duration-300 cursor-pointer"
-        >
-          <span className="material-symbols-outlined">account_circle</span>
-        </button>
+        <ProfileDropdown settingsPath="/learner/settings" />
       </div>
     </header>
   );

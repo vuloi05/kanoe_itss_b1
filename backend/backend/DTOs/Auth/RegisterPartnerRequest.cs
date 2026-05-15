@@ -12,6 +12,9 @@ public record RegisterPartnerRequest(
     [Required][StringLength(100)]
     string DisplayName,
 
+    [StringLength(100)]
+    string? DisplayNameJa,
+
     [Phone][StringLength(20)]
     string? Phone,
 

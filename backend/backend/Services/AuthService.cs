@@ -30,6 +30,7 @@ public class AuthService : IAuthService
             Email = request.Email.Trim().ToLowerInvariant(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             DisplayName = request.DisplayName.Trim(),
+            DisplayNameJa = request.DisplayNameJa?.Trim(),
             Role = "learner",
             AccountStatus = "active",
             CreatedAt = DateTime.UtcNow,
@@ -87,6 +88,7 @@ public class AuthService : IAuthService
             Email = request.Email.Trim().ToLowerInvariant(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             DisplayName = request.DisplayName.Trim(),
+            DisplayNameJa = request.DisplayNameJa?.Trim(),
             Phone = request.Phone?.Trim(),
             Role = "partner",
             AccountStatus = "active",
@@ -156,6 +158,7 @@ public class AuthService : IAuthService
         try
         {
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+            user.PasswordChangedAt = DateTime.UtcNow;
             user.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
@@ -236,6 +239,7 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Mật khẩu hiện tại không chính xác.");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.PasswordChangedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
@@ -249,12 +253,14 @@ public class AuthService : IAuthService
             UserId: user.UserId.ToString(),
             Email: user.Email,
             DisplayName: user.DisplayName,
+            DisplayNameJa: user.DisplayNameJa,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl,
             Phone: user.Phone,
             LanguagePref: user.LanguagePref,
             CreatedAt: user.CreatedAt,
-            LastLoginAt: user.LastLoginAt
+            LastLoginAt: user.LastLoginAt,
+            PasswordChangedAt: user.PasswordChangedAt
         );
     }
 
@@ -273,6 +279,7 @@ public class AuthService : IAuthService
             UserId: user.UserId.ToString(),
             Email: user.Email,
             DisplayName: user.DisplayName,
+            DisplayNameJa: user.DisplayNameJa,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl
         );

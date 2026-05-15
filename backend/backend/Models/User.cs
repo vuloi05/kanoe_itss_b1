@@ -27,6 +27,10 @@ public partial class User
     [StringLength(100)]
     public string DisplayName { get; set; } = null!;
 
+    [Column("display_name_ja")]
+    [StringLength(100)]
+    public string? DisplayNameJa { get; set; }
+
     [Column("avatar_url")]
     public string? AvatarUrl { get; set; }
 
@@ -53,6 +57,9 @@ public partial class User
 
     [Column("deleted_at")]
     public DateTime? DeletedAt { get; set; }
+
+    [Column("password_changed_at")]
+    public DateTime? PasswordChangedAt { get; set; }
 
     [Column("role")]
     [StringLength(20)]

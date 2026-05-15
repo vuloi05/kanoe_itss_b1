@@ -12,9 +12,10 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   loginAction: (email: string, password: string) => Promise<AuthResponse>;
-  registerLearner: (data: { email: string; password: string; displayName: string; level?: string }) => Promise<AuthResponse>;
-  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) => Promise<AuthResponse>;
+  registerLearner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; level?: string }) => Promise<AuthResponse>;
+  registerPartner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; phone?: string; bio?: string }) => Promise<AuthResponse>;
   logout: () => void;
+  updateUser: (partial: Partial<UserProfile>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -76,12 +77,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userId: response.userId,
         email: response.email,
         displayName: response.displayName,
+        displayNameJa: response.displayNameJa,
         role: response.role,
         avatarUrl: response.avatarUrl,
         phone: null,
         languagePref: null,
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
+        passwordChangedAt: null,
       },
       token: response.token,
       isLoading: false,
@@ -95,13 +98,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response;
   };
 
-  const registerLearner = async (data: { email: string; password: string; displayName: string; level?: string }) => {
+  const registerLearner = async (data: { email: string; password: string; displayName: string; displayNameJa?: string; level?: string }) => {
     const response = await authApi.registerLearner(data);
     handleAuthSuccess(response);
     return response;
   };
 
-  const registerPartner = async (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) => {
+  const registerPartner = async (data: { email: string; password: string; displayName: string; displayNameJa?: string; phone?: string; bio?: string }) => {
     const response = await authApi.registerPartner(data);
     handleAuthSuccess(response);
     return response;
@@ -112,8 +115,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
   };
 
+  const updateUser = (partial: Partial<UserProfile>) => {
+    setState((prev) => ({
+      ...prev,
+      user: prev.user ? { ...prev.user, ...partial } : null,
+    }));
+  };
+
   return (
-    <AuthContext.Provider value={{ ...state, loginAction, registerLearner, registerPartner, logout }}>
+    <AuthContext.Provider value={{ ...state, loginAction, registerLearner, registerPartner, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
