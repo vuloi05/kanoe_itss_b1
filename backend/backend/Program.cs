@@ -4,6 +4,7 @@ using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Supabase;
 
 // Load .env from project root (shared config for all services)
 var rootEnvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
@@ -49,6 +50,23 @@ builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IPhotoService, CloudinaryPhotoService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+
+// Supabase Realtime (Broadcasting)
+var supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") 
+    ?? builder.Configuration["Supabase:Url"];
+var supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") 
+    ?? builder.Configuration["Supabase:Key"];
+
+if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(supabaseKey))
+{
+    var supabaseOptions = new SupabaseOptions
+    {
+        AutoRefreshToken = true,
+        AutoConnectRealtime = true
+    };
+    builder.Services.AddSingleton(provider => new Client(supabaseUrl, supabaseKey, supabaseOptions));
+}
 
 // CORS: allow frontend dev server
 builder.Services.AddCors(options =>
@@ -159,6 +177,23 @@ using (var scope = app.Services.CreateScope())
             context.SaveChanges();
 
             Console.WriteLine($"🌱 Seeded partner account: {samplePartnerEmail}");
+        }
+
+        // Seed sample conversation between learner and partner
+        var learner = context.Users.FirstOrDefault(u => u.Email == "abc@gmail.com");
+        var partner = context.Users.FirstOrDefault(u => u.Email == "doitac@gmail.com");
+        
+        if (learner != null && partner != null && !context.Conversations.Any(c => c.LearnerId == learner.UserId && c.PartnerId == partner.UserId))
+        {
+            var conversation = new backend.Models.Conversation
+            {
+                LearnerId = learner.UserId,
+                PartnerId = partner.UserId,
+                CreatedAt = DateTime.UtcNow
+            };
+            context.Conversations.Add(conversation);
+            context.SaveChanges();
+            Console.WriteLine($"🌱 Seeded conversation between {learner.Email} and {partner.Email} (ID: {conversation.ConversationId})");
         }
     }
     catch (Exception ex)
