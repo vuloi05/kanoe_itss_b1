@@ -42,7 +42,7 @@ export default function LessonsPage() {
             </div>
 
             {/* Lesson Card 1: Completed */}
-            <div className="group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1 cursor-pointer">
+            <Link href="/learner/lessons/2" className="block group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1">
               <div className="flex justify-between items-start mb-6">
                 <div className="flex gap-2">
                   <span className="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase rounded-md group-hover:bg-primary group-hover:text-white">{t("Sơ cấp", "初級")}</span>
@@ -54,7 +54,7 @@ export default function LessonsPage() {
               <div className="h-1 w-full bg-surface-container rounded-full overflow-hidden mt-6">
                 <div className="h-full bg-secondary w-full"></div>
               </div>
-            </div>
+            </Link>
 
             {/* Lesson Card 2: In Progress */}
             <Link href="/learner/lessons/1" className="block group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1">
@@ -96,7 +96,7 @@ export default function LessonsPage() {
             </div>
 
             {/* Lesson Card 3: In Progress */}
-            <div className="group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1 cursor-pointer">
+            <Link href="/learner/lessons/3" className="block group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1">
               <div className="flex justify-between items-start mb-6">
                 <span className="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase rounded-md group-hover:bg-primary group-hover:text-white">{t("Thực tế", "実践")}</span>
                 <div className="flex items-center gap-1 text-secondary font-bold text-xs uppercase group-hover:text-on-primary-container">
@@ -110,7 +110,7 @@ export default function LessonsPage() {
                 <span className="w-2 h-2 rounded-full bg-outline-variant"></span>
                 <span className="w-2 h-2 rounded-full bg-outline-variant"></span>
               </div>
-            </div>
+            </Link>
 
             {/* Lesson Card 4: Locked */}
             <div className="group bg-surface-container-low/50 p-6 rounded-xl border border-dashed border-outline-variant flex items-center justify-between opacity-80">
