@@ -5,73 +5,88 @@ import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface Conversation {
-  name: string;
-  lastMsg: string;
-  time: string;
-  avatar: string;
-  online?: boolean;
-}
-
-interface ChatMessage {
-  from: "partner" | "me";
-  text: string;
-  subtext?: string;
-  time: string;
-}
-
-const conversations: Conversation[] = [
-  {
-    name: "Linh Chi / リン・チー",
-    lastMsg: "Chào bạn! Rất vui được gặp... / 初めまして！お会い...",
-    time: "19:02",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCcRIndFOlW7wXeV-CLVZUfuscuqi3-G9TREAi9VISX3n6qHGpzcnc5Gwhu383eionE7kFgbQlYcRCY7NVLtvyU8iCs4_g1MR476HWmSMb_7bXrMTrwIGDyaJ1duOtv6FFr3MiiJtlqKcTtbIgBURHDFpXBFzUvcMT9SI17taj5bkY9J2TjXC94p0t2Pwd_l9DXiMaXDrSwF-Oz670i0tvP7GvGkVCyazhBuG47rgDGDLRujjm_vPugqtA6GhnMUOpkhfXQf405NQo",
-    online: true,
-  },
-  {
-    name: "Takeshi / タケシ",
-    lastMsg: "Cảm ơn vì buổi học hôm... / 昨日のレッスンありがと...",
-    time: "Hôm qua",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDOkg5MBETD5FafPOcFCZuGY1cXeY-f6vGPFIi_rDRSdBhsUjhbSU3NJkUGp-TwMZI5Vs3OMC4-G5ujFKqFHRodSz7RnD_5KErmDH8R1PZ0c6HcYDQm60YXSsSLx5_KM59xYdyB1lxdLxCSOQa017ZblreIAacLD7oYsPPrnnKN58_H58e2QuXRB5PTNol8r1kUBoOWCAFg3Af7tcN3U7eCOyY90ynokMsTrn1HUoQscO62Fu0i14AfvfkAFmBcHOjMCQPk07Ir0mU",
-  },
-  {
-    name: "Hương Giang / フォン・ジャン",
-    lastMsg: "Bạn có rảnh vào tối... / 今週の土曜日の夜は...",
-    time: "24/02",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDu0YYj69WT8kuLRHsEdE3AcOmM4DHDfJsK-XltmTQr4ujAtIbPUQ608MXYG1xQBh4MWmoi2NDU0QKMs17TVR3w-T_wYwHtEvU-8y09LcO19qzjrI2Cqs0VmpX6uZWsmtpAkxttxEuyRn01Yzd5nMCPyXZ6Z_m0rmECkwKRSZ6ava_tlgo-bvSVanGhtbkC6O3UtHjkstKQXyZ7fqrwQsHbyWM76raPw9oMUjM_IKFCrB8AC818NaP8W1a0b_Try3AAwxXGDflvao0",
-  },
-];
-
-const chatMessages: ChatMessage[] = [
-  {
-    from: "partner",
-    text: "Chào bạn! Rất vui được gặp bạn trên VietImmerse.",
-    subtext: "初めまして！VietImmerseでお会いできて嬉しいです。",
-    time: "18:45",
-  },
-  {
-    from: "me",
-    text: "Chào Linh Chi! Mình cũng rất vui. Mình muốn học thêm về cách phát âm tiếng Việt miền Bắc.",
-    subtext:
-      "リン・チーさん、こんにちは！私も嬉しいです。北部ベトナム語の発音についてもっと学びたいと思っています。",
-    time: "18:48",
-  },
-  {
-    from: "partner",
-    text: "Rất sẵn lòng! Mình có thể giúp bạn. Bạn có muốn đặt một buổi học thử không?",
-    subtext: "もちろんです！お手伝いできますよ。体験レッスンを予約しませんか？",
-    time: "18:52",
-  },
-];
+import { useEffect, useRef } from "react";
+import { useAuth } from "@/lib/auth";
+import { messageApi, type ConversationDto, type MessageDto } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 export default function LearnerMessagesPage() {
-  const [activeConv, setActiveConv] = useState(0);
+  const [activeConvIdx, setActiveConvIdx] = useState(0);
+  const [conversations, setConversations] = useState<ConversationDto[]>([]);
+  const [messages, setMessages] = useState<MessageDto[]>([]);
+  const [inputText, setInputText] = useState("");
+  const { user } = useAuth();
   const { t } = useLanguage();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const activeConversation = conversations[activeConv];
+  // Fetch conversations on load
+  useEffect(() => {
+    messageApi.getConversations().then(data => {
+      setConversations(data);
+    }).catch(console.error);
+  }, []);
+
+  const activeConv = conversations[activeConvIdx];
+
+  // Fetch messages and subscribe to Realtime when activeConv changes
+  useEffect(() => {
+    if (!activeConv) return;
+    
+    // Fetch initial messages
+    messageApi.getMessages(activeConv.conversationId).then(data => {
+      setMessages(data);
+      if (activeConv.unreadCount > 0) {
+        messageApi.markAsRead(activeConv.conversationId).catch(console.error);
+        setConversations(prev => prev.map((c, i) => i === activeConvIdx ? { ...c, unreadCount: 0 } : c));
+      }
+    }).catch(console.error);
+
+    // Subscribe to Supabase Realtime
+    const channel = supabase.channel(`conversation-${activeConv.conversationId}`);
+    channel.on("broadcast", { event: "new_message" }, (payload) => {
+      const newMsg = payload.payload.message as MessageDto;
+      setMessages(prev => {
+        // Prevent duplicating the message if we already optimistically added it
+        if (prev.find(m => m.messageId === newMsg.messageId)) return prev;
+        return [newMsg, ...prev];
+      });
+      
+      // Update last message in conversation list
+      setConversations(prev => {
+        const copy = [...prev];
+        const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
+        if (idx >= 0) {
+          copy[idx].lastMessage = newMsg.content;
+          copy[idx].lastMessageTime = newMsg.sentAt;
+        }
+        return copy;
+      });
+    }).subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeConv, activeConvIdx]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!inputText.trim() || !activeConv) return;
+    try {
+      const txt = inputText;
+      setInputText("");
+      const newMsg = await messageApi.sendMessage(activeConv.conversationId, txt);
+      
+      setMessages(prev => {
+        if (prev.find(m => m.messageId === newMsg.messageId)) return prev;
+        return [newMsg, ...prev];
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="bg-background text-on-background font-body min-h-screen flex flex-col">
@@ -88,57 +103,51 @@ export default function LearnerMessagesPage() {
             <div className="space-y-2">
               {conversations.map((conv, idx) => (
                 <button
-                  key={idx}
-                  onClick={() => setActiveConv(idx)}
+                  key={conv.conversationId}
+                  onClick={() => setActiveConvIdx(idx)}
                   className={`w-full text-left transition-all cursor-pointer ${
-                    activeConv === idx
+                    activeConvIdx === idx
                       ? "p-4 bg-surface-container-lowest rounded-xl shadow-sm border-l-4 border-primary"
                       : "p-4 hover:bg-surface-container-high rounded-xl"
                   }`}
                 >
                   <div
                     className={`flex items-center space-x-4 ${
-                      activeConv !== idx ? "opacity-70" : ""
+                      activeConvIdx !== idx ? "opacity-70" : ""
                     }`}
                   >
                     <div
-                      className={`w-12 h-12 rounded-full overflow-hidden shrink-0 ${
-                        activeConv === idx
+                      className={`w-12 h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center font-bold text-primary ${
+                        activeConvIdx === idx
                           ? "bg-primary-container"
                           : "bg-surface-variant"
                       }`}
                     >
-                      <Image
-                        className="w-full h-full object-cover"
-                        src={conv.avatar}
-                        alt={conv.name}
-                        width={48}
-                        height={48}
-                      />
+                      {conv.partnerName.charAt(0)}
                     </div>
                     <div className="flex-grow min-w-0">
                       <div className="flex justify-between items-start">
                         <p
                           className={`leading-tight truncate ${
-                            activeConv === idx
+                            activeConvIdx === idx
                               ? "font-bold text-primary"
                               : "font-semibold text-on-surface"
                           }`}
                         >
-                          {conv.name}
+                          {conv.partnerName}
                         </p>
                         <span className="text-[10px] text-outline shrink-0 ml-2">
-                          {conv.time}
+                          {conv.lastMessageTime ? new Date(conv.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
                         </span>
                       </div>
                       <p
                         className={`text-xs mt-1 truncate ${
-                          activeConv === idx
+                          activeConvIdx === idx
                             ? "text-secondary"
                             : "text-on-surface-variant"
-                        }`}
+                        } ${conv.unreadCount > 0 ? "font-bold text-primary" : ""}`}
                       >
-                        {conv.lastMsg}
+                        {conv.lastMessage || "Chưa có tin nhắn"}
                       </p>
                     </div>
                   </div>
@@ -153,66 +162,45 @@ export default function LearnerMessagesPage() {
           {/* Conversation Header */}
           <div className="px-8 py-4 bg-surface flex justify-between items-center z-10">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 rounded-full overflow-hidden">
-                <Image
-                  className="w-full h-full object-cover"
-                  src={activeConversation.avatar}
-                  alt={activeConversation.name}
-                  width={40}
-                  height={40}
-                />
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center font-bold text-primary">
+                {activeConv?.partnerName?.charAt(0)}
               </div>
               <div>
                 <h3 className="font-bold text-primary font-headline">
-                  {activeConversation.name}
+                  {activeConv?.partnerName}
                 </h3>
-                {activeConversation.online && (
-                  <p className="text-xs text-secondary flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-                    Online / オンライン
-                  </p>
-                )}
               </div>
             </div>
           </div>
 
           {/* Chat Messages Area */}
-          <div className="flex-grow overflow-y-auto p-8 space-y-8 bg-[#f9f9f7]">
-            {chatMessages.map((msg, idx) =>
-              msg.from === "partner" ? (
+          <div className="flex-grow overflow-y-auto p-8 space-y-8 bg-[#f9f9f7] flex flex-col-reverse">
+            <div ref={messagesEndRef} />
+            {messages.map((msg, idx) =>
+              msg.senderId !== user?.userId ? (
                 // Partner message
                 <div
-                  key={idx}
+                  key={msg.messageId}
                   className="flex flex-col items-start max-w-[80%]"
                 >
                   <div className="bg-surface-container-high text-on-surface px-5 py-3 rounded-tr-xl rounded-br-xl rounded-bl-xl leading-relaxed">
-                    <p className="text-sm">{msg.text}</p>
-                    {msg.subtext && (
-                      <p className="text-xs text-secondary mt-1">
-                        {msg.subtext}
-                      </p>
-                    )}
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   <span className="text-[10px] text-outline mt-1 ml-1">
-                    {msg.time}
+                    {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               ) : (
                 // User message
                 <div
-                  key={idx}
+                  key={msg.messageId}
                   className="flex flex-col items-end max-w-[80%] ml-auto"
                 >
                   <div className="bg-primary text-on-primary px-5 py-3 rounded-tl-xl rounded-bl-xl rounded-br-xl leading-relaxed">
-                    <p className="text-sm">{msg.text}</p>
-                    {msg.subtext && (
-                      <p className="text-[11px] text-on-primary-container mt-1 italic">
-                        {msg.subtext}
-                      </p>
-                    )}
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   </div>
                   <span className="text-[10px] text-outline mt-1 mr-1">
-                    {msg.time}
+                    {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               )
@@ -302,8 +290,11 @@ export default function LearnerMessagesPage() {
                   "メッセージを入力... / Viết tin nhắn..."
                 )}
                 type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
               />
-              <button className="absolute right-3 w-10 h-10 bg-primary text-on-primary rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 cursor-pointer">
+              <button onClick={handleSend} className="absolute right-3 w-10 h-10 bg-primary text-on-primary rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 cursor-pointer">
                 <span className="material-symbols-outlined text-lg">send</span>
               </button>
             </div>

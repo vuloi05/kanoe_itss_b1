@@ -4,9 +4,6 @@ interface ApiOptions extends RequestInit {
   token?: string;
 }
 
-
-
-
 export class ApiException extends Error {
   status: number;
 
@@ -25,7 +22,6 @@ async function request<T>(endpoint: string, options: ApiOptions = {}): Promise<T
     ...customHeaders,
   };
 
-  // Attach JWT token if available
   const storedToken = token || (typeof window !== "undefined" ? localStorage.getItem("auth_token") : null);
   if (storedToken) {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${storedToken}`;
@@ -47,16 +43,11 @@ async function request<T>(endpoint: string, options: ApiOptions = {}): Promise<T
     throw new ApiException(errorMessage, res.status);
   }
 
-  // Handle 204 No Content
   if (res.status === 204) return undefined as T;
 
   return res.json();
 }
 
-/**
- * Multipart upload — does NOT set Content-Type header
- * so the browser auto-generates the correct multipart boundary.
- */
 async function uploadRequest<T>(endpoint: string, formData: FormData): Promise<T> {
   const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
@@ -85,7 +76,6 @@ async function uploadRequest<T>(endpoint: string, formData: FormData): Promise<T
   return res.json();
 }
 
-// Typed API methods
 export const api = {
   get: <T>(endpoint: string, options?: ApiOptions) =>
     request<T>(endpoint, { ...options, method: "GET" }),
@@ -100,7 +90,6 @@ export const api = {
     request<T>(endpoint, { ...options, method: "DELETE" }),
 };
 
-// Auth-specific API types
 export interface AuthResponse {
   token: string;
   userId: string;
@@ -125,7 +114,6 @@ export interface UserProfile {
   passwordChangedAt: string | null;
 }
 
-// Auth API endpoints
 export const authApi = {
   registerLearner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; level?: string }) =>
     api.post<AuthResponse>("/api/auth/register/learner", data),
@@ -149,11 +137,45 @@ export const authApi = {
     api.get<UserProfile>("/api/auth/me"),
 };
 
-// User profile API endpoints
 export const userApi = {
   uploadAvatar: (file: Blob) => {
     const formData = new FormData();
     formData.append("file", file, "avatar.jpg");
     return uploadRequest<{ avatarUrl: string }>("/api/users/avatar", formData);
   },
+};
+
+export interface ConversationDto {
+  conversationId: string;
+  partnerId: string;
+  learnerId: string;
+  partnerName: string;
+  learnerName: string;
+  lastMessage: string | null;
+  lastMessageTime: string | null;
+  unreadCount: number;
+  createdAt: string;
+}
+
+export interface MessageDto {
+  messageId: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  isRead: boolean;
+  sentAt: string;
+}
+
+export const messageApi = {
+  getConversations: () =>
+    api.get<ConversationDto[]>("/api/message/conversations"),
+
+  getMessages: (conversationId: string, page: number = 1, pageSize: number = 50) =>
+    api.get<MessageDto[]>(`/api/message/${conversationId}?page=${page}&pageSize=${pageSize}`),
+
+  sendMessage: (conversationId: string, content: string) =>
+    api.post<MessageDto>(`/api/message/${conversationId}`, { content }),
+
+  markAsRead: (conversationId: string) =>
+    api.put<{ message: string }>(`/api/message/${conversationId}/read`),
 };
