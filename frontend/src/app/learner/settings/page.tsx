@@ -110,7 +110,7 @@ export default function LearnerSettingsPage() {
                   {t("HỌ VÀ TÊN", "氏名")}
                 </p>
                 <h2 className="text-[24px] font-extrabold text-[#112340] dark:text-white">
-                  {t(user?.displayName || "Loading...", user?.displayNameJa || user?.displayName || "Loading...")}
+                  {user?.displayName || "Loading..."}
                 </h2>
               </div>
               <div>

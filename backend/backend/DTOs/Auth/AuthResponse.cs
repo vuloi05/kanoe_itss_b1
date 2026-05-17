@@ -5,7 +5,6 @@ public record AuthResponse(
     string UserId,
     string Email,
     string DisplayName,
-    string? DisplayNameJa,
     string Role,
     string? AvatarUrl
 );

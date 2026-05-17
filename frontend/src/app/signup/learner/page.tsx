@@ -13,7 +13,6 @@ export default function LearnerSignupPage() {
   const { t } = useLanguage();
   const [level, setLevel] = useState("v3");
   const [displayName, setDisplayName] = useState("");
-  const [displayNameJa, setDisplayNameJa] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +23,7 @@ export default function LearnerSignupPage() {
     setError("");
     setIsLoading(true);
     try {
-      await registerLearner({ email, password, displayName, displayNameJa: displayNameJa || undefined, level });
+      await registerLearner({ email, password, displayName, level });
       router.push("/learner/home");
     } catch (err) {
       setError(err instanceof ApiException ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.");
@@ -51,7 +50,7 @@ export default function LearnerSignupPage() {
             </div>
             <div>
               <h2 className="font-headline text-4xl font-extrabold text-primary leading-tight">{t("Cảm hứng từ", "ハノイの")} <br/>{t("Hà Nội.", "街並みから。")}</h2>
-              <p className="mt-4 text-secondary font-medium max-w-xs leading-relaxed">{t("ハノイの街並みからインスピレーションを得た、新しい日本語学習体験。", "ハノイの街並みからインスピレーションを得た、新しい日本語学習体験。")}</p>
+              <p className="mt-4 text-secondary font-medium max-w-xs leading-relaxed">{t("Trải nghiệm học tiếng Nhật mới, lấy cảm hứng từ đường phố Hà Nội.", "ハノイの街並みからインスピレーションを得た、新しい日本語学習体験。")}</p>
             </div>
           </div>
         </section>
@@ -68,14 +67,13 @@ export default function LearnerSignupPage() {
                   {error}
                 </div>
               )}
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Họ và tên (Tiếng Việt)", "氏名 (ベトナム語)")} type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading} /></div>
-              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("氏名 (tiếng Nhật)", "氏名 (漢字/かな)")} type="text" value={displayNameJa} onChange={(e) => setDisplayNameJa(e.target.value)} disabled={isLoading} /></div>
+              <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Họ và tên", "氏名")} type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading} /></div>
               <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Email", "メールアドレス")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} /></div>
               <div className="relative"><input className="peer w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary py-2" placeholder={t("Mật khẩu", "パスワード")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={isLoading} /></div>
               <div className="space-y-4">
-                <span className="text-xs font-bold uppercase tracking-widest text-secondary block">{t("Trình độ hiện tại", "現在のレベル")}</span>
-                <div className="flex flex-wrap gap-3">
-                  {["V1","V2","V3","V4","V5"].map((l) => (
+                <span className="text-xs font-bold uppercase tracking-widest text-secondary block text-center">{t("Trình độ hiện tại", "現在のレベル")}</span>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  {["V1","V2","V3"].map((l) => (
                     <label key={l} className="cursor-pointer">
                       <input className="hidden peer" name="level" type="radio" value={l.toLowerCase()} checked={level === l.toLowerCase()} onChange={() => setLevel(l.toLowerCase())} />
                       <div className={`px-6 py-2 rounded-full border transition-all font-headline font-bold ${level === l.toLowerCase() ? 'bg-primary text-on-primary border-primary' : 'border-outline-variant text-on-surface-variant'}`}>{l}</div>

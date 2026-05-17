@@ -30,7 +30,6 @@ public class AuthService : IAuthService
             Email = request.Email.Trim().ToLowerInvariant(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             DisplayName = request.DisplayName.Trim(),
-            DisplayNameJa = request.DisplayNameJa?.Trim(),
             Role = "learner",
             AccountStatus = "active",
             CreatedAt = DateTime.UtcNow,
@@ -88,7 +87,6 @@ public class AuthService : IAuthService
             Email = request.Email.Trim().ToLowerInvariant(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             DisplayName = request.DisplayName.Trim(),
-            DisplayNameJa = request.DisplayNameJa?.Trim(),
             Phone = request.Phone?.Trim(),
             Role = "partner",
             AccountStatus = "active",
@@ -253,7 +251,6 @@ public class AuthService : IAuthService
             UserId: user.UserId.ToString(),
             Email: user.Email,
             DisplayName: user.DisplayName,
-            DisplayNameJa: user.DisplayNameJa,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl,
             Phone: user.Phone,
@@ -279,7 +276,6 @@ public class AuthService : IAuthService
             UserId: user.UserId.ToString(),
             Email: user.Email,
             DisplayName: user.DisplayName,
-            DisplayNameJa: user.DisplayNameJa,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl
         );
