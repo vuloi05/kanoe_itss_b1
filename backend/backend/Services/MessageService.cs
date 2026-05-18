@@ -1,7 +1,8 @@
 using backend.DTOs.Message;
+using backend.Hubs;
 using backend.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Supabase;
 
 namespace backend.Services;
 
@@ -10,20 +11,18 @@ public class MessageService : IMessageService
     private readonly VietImmerseDbContext _context;
     private readonly ILogger<MessageService> _logger;
     private readonly ITranslationService _translationService;
-    private readonly string _supabaseUrl;
-    private readonly string _supabaseKey;
+    private readonly IHubContext<ChatHub> _hubContext;
 
     public MessageService(
         VietImmerseDbContext context, 
         ILogger<MessageService> logger, 
-        IConfiguration configuration,
-        ITranslationService translationService)
+        ITranslationService translationService,
+        IHubContext<ChatHub> hubContext)
     {
         _context = context;
         _logger = logger;
         _translationService = translationService;
-        _supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") ?? configuration["Supabase:Url"] ?? "";
-        _supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") ?? configuration["Supabase:Key"] ?? "";
+        _hubContext = hubContext;
     }
 
     public async Task<IEnumerable<ConversationDto>> GetConversationsAsync(Guid userId)
@@ -119,36 +118,14 @@ public class MessageService : IMessageService
             SentAt = (DateTime)message.SentAt!
         };
 
-        // Broadcast to Supabase Realtime channel using HTTP API
-        if (!string.IsNullOrEmpty(_supabaseUrl) && !string.IsNullOrEmpty(_supabaseKey))
-        {
-            try
-            {
-                var channelName = $"conversation-{conversationId}";
-                using var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("apikey", _supabaseKey);
-                
-                var payload = new
-                {
-                    messages = new[]
-                    {
-                        new
-                        {
-                            topic = channelName,
-                            @event = "new_message",
-                            payload = new { message = messageDto }
-                        }
-                    }
-                };
+        // Determine the other participant to push the realtime event
+        var receiverId = conversation.LearnerId == senderId
+            ? conversation.PartnerId
+            : conversation.LearnerId;
 
-                var url = $"{_supabaseUrl.TrimEnd('/')}/realtime/v1/api/broadcast";
-                await client.PostAsJsonAsync(url, payload);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to broadcast message to Supabase Realtime.");
-            }
-        }
+        // Push via SignalR to the receiver's connection(s)
+        await _hubContext.Clients.User(receiverId.ToString())
+            .SendAsync("ReceiveMessage", messageDto);
 
         return messageDto;
     }
