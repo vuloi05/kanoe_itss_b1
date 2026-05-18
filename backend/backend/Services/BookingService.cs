@@ -78,7 +78,44 @@ public class BookingService : IBookingService
         };
 
         _context.Bookings.Add(booking);
-        await _context.SaveChangesAsync();
+
+        backend.DTOs.Message.MessageDto? messageDto = null;
+        if (conversation != null)
+        {
+            var message = new backend.Models.Message
+            {
+                ConversationId = conversation.ConversationId,
+                SenderId = partnerId,
+                MessageType = "LESSON_REQUEST",
+                Booking = booking,
+                Content = "",
+                SentAt = DateTime.UtcNow,
+                IsRead = false
+            };
+            _context.Messages.Add(message);
+            await _context.SaveChangesAsync();
+
+            messageDto = new backend.DTOs.Message.MessageDto
+            {
+                MessageId = message.MessageId,
+                ConversationId = message.ConversationId,
+                SenderId = message.SenderId,
+                Type = "LESSON_REQUEST",
+                Content = "",
+                IsRead = false,
+                Timestamp = message.SentAt,
+                LessonRequestId = booking.BookingId,
+                LessonDate = booking.StartTime.ToString("yyyy-MM-dd"),
+                LessonStartTime = booking.StartTime.ToString("HH:mm"),
+                LessonEndTime = booking.EndTime.ToString("HH:mm"),
+                LessonDuration = (int)(booking.EndTime - booking.StartTime).TotalMinutes,
+                LessonStatus = booking.Status.ToUpper()
+            };
+        }
+        else
+        {
+            await _context.SaveChangesAsync();
+        }
 
         var result = await MapToDtoAsync(booking);
 

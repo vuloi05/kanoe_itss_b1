@@ -74,10 +74,17 @@ public class MessageService : IMessageService
                 MessageId = m.MessageId,
                 ConversationId = (Guid)m.ConversationId!,
                 SenderId = (Guid)m.SenderId!,
+                Type = m.MessageType ?? "TEXT",
                 Content = m.Content ?? string.Empty,
                 ContentTranslated = m.ContentTranslated,
                 IsRead = m.IsRead ?? false,
-                SentAt = m.SentAt
+                Timestamp = m.SentAt,
+                LessonRequestId = m.BookingId,
+                LessonDate = m.Booking != null ? m.Booking.StartTime.ToString("yyyy-MM-dd") : null,
+                LessonStartTime = m.Booking != null ? m.Booking.StartTime.ToString("HH:mm") : null,
+                LessonEndTime = m.Booking != null ? m.Booking.EndTime.ToString("HH:mm") : null,
+                LessonDuration = m.Booking != null ? (int)(m.Booking.EndTime - m.Booking.StartTime).TotalMinutes : null,
+                LessonStatus = m.Booking != null ? m.Booking.Status.ToUpper() : null
             })
             .ToListAsync();
     }
@@ -98,6 +105,7 @@ public class MessageService : IMessageService
         {
             ConversationId = conversationId,
             SenderId = senderId,
+            MessageType = "TEXT",
             Content = text,
             ContentTranslated = translatedText,
             IsRead = false,
@@ -112,10 +120,11 @@ public class MessageService : IMessageService
             MessageId = message.MessageId,
             ConversationId = (Guid)message.ConversationId!,
             SenderId = (Guid)message.SenderId!,
+            Type = "TEXT",
             Content = message.Content,
             ContentTranslated = message.ContentTranslated,
             IsRead = (bool)message.IsRead!,
-            SentAt = (DateTime)message.SentAt!
+            Timestamp = (DateTime)message.SentAt!
         };
 
         // Determine the other participant to push the realtime event

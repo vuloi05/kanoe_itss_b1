@@ -15,10 +15,20 @@ export interface LocalMessage {
   messageId: string;
   conversationId: string;
   senderId: string;
+  type: "TEXT" | "LESSON_REQUEST" | "MEET_LINK";
   content: string;
   contentTranslated?: string | null;
   isRead: boolean;
-  sentAt: string;
+  timestamp: string;
+
+  // For LESSON_REQUEST
+  lessonRequestId?: string;
+  lessonDate?: string;
+  lessonStartTime?: string;
+  lessonEndTime?: string;
+  lessonDuration?: number;
+  lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+
   /** Client-only: track send status for optimistic updates */
   _sendStatus?: MessageSendStatus;
   /** Client-only: temporary ID before server ACK */
@@ -185,7 +195,7 @@ export function useOfflineQueue(
             );
             if (idx >= 0) {
               copy[idx].lastMessage = item.content;
-              copy[idx].lastMessageTime = newMsg.sentAt;
+              copy[idx].lastMessageTime = newMsg.timestamp;
             }
             return copy;
           });

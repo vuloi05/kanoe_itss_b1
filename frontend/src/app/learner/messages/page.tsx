@@ -162,7 +162,8 @@ export default function LearnerMessagesPage() {
       content: txt,
       contentTranslated: null,
       isRead: false,
-      sentAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
+      type: "TEXT",
       _sendStatus: isOnline ? "sending" : "queued",
       _tempId: tempId,
     };
@@ -195,7 +196,7 @@ export default function LearnerMessagesPage() {
         );
         if (idx >= 0) {
           copy[idx].lastMessage = txt;
-          copy[idx].lastMessageTime = newMsg.sentAt;
+          copy[idx].lastMessageTime = newMsg.timestamp;
         }
         return copy;
       });
@@ -508,7 +509,7 @@ export default function LearnerMessagesPage() {
                     </div>
                   )}
                   <span className="text-[10px] text-outline mt-1 ml-1">
-                    {formatMessageTime(msg.sentAt, t)}
+                    {formatMessageTime(msg.timestamp, t)}
                   </span>
                 </div>
               ) : (
@@ -546,7 +547,7 @@ export default function LearnerMessagesPage() {
                   )}
                   <div className="flex items-center mt-1 mr-1">
                     <span className="text-[10px] text-outline">
-                      {formatMessageTime(msg.sentAt, t)}
+                      {formatMessageTime(msg.timestamp, t)}
                     </span>
                     {renderStatusIcon(msg)}
                   </div>

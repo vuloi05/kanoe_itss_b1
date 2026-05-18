@@ -174,7 +174,8 @@ export default function PartnerMessagesPage() {
       content: txt,
       contentTranslated: null,
       isRead: false,
-      sentAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
+      type: "TEXT",
       _sendStatus: isOnline ? "sending" : "queued",
       _tempId: tempId,
     };
@@ -200,7 +201,7 @@ export default function PartnerMessagesPage() {
         const idx = copy.findIndex(c => c.conversationId === activeConv.conversationId);
         if (idx >= 0) {
           copy[idx].lastMessage = txt;
-          copy[idx].lastMessageTime = newMsg.sentAt;
+          copy[idx].lastMessageTime = newMsg.timestamp;
         }
         return copy;
       });
@@ -481,10 +482,128 @@ export default function PartnerMessagesPage() {
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-8 space-y-8 flex flex-col-reverse">
             <div ref={messagesEndRef} />
-            {messages.map((msg) =>
-              msg.senderId !== user?.userId ? (
-                // ── Received message (left-aligned) ──
-                <div key={msg.messageId} className="flex gap-4 max-w-[80%]">
+            {messages.map((msg) => {
+              // 1. Nếu là LESSON_REQUEST
+              if (msg.type === "LESSON_REQUEST") {
+                const isPartner = msg.senderId === user?.userId;
+                const statusBadge = msg.lessonStatus === "ACCEPTED"
+                  ? { label: t("Đã xác nhận", "確認済み"), color: "bg-emerald-100 text-emerald-700" }
+                  : msg.lessonStatus === "PENDING"
+                  ? { label: t("Chờ xác nhận", "確認待ち"), color: "bg-amber-100 text-amber-700" }
+                  : msg.lessonStatus === "CANCELLED"
+                  ? { label: t("Đã hủy", "キャンセル済み"), color: "bg-red-100 text-red-700" }
+                  : msg.lessonStatus === "DECLINED"
+                  ? { label: t("Đã từ chối", "辞退した"), color: "bg-red-100 text-red-700" }
+                  : null;
+
+                return (
+                  <div key={msg.messageId} className={`w-full max-w-md my-2 ${isPartner ? "self-end" : "self-start"}`}>
+                    <div className="bg-surface-container border border-outline-variant/30 rounded-2xl overflow-hidden engawa-shadow">
+                      <div className="p-1 bg-secondary text-white text-[10px] text-center font-bold tracking-widest uppercase">
+                        {t("Đề xuất buổi học mới", "新しいレッスンの提案")}
+                      </div>
+                      <div className="p-4 sm:p-6 flex items-start gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0">
+                          <span className="material-symbols-outlined">auto_stories</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-bold text-primary text-base font-headline">
+                              {msg.lessonStatus === "ACCEPTED" ? t("Đã xác nhận", "確認済み") : t("Yêu cầu đã gửi", "リクエスト送信済み")}
+                            </h4>
+                            {statusBadge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadge.color}`}>{statusBadge.label}</span>}
+                          </div>
+                          <p className="text-xs text-secondary mb-3">
+                            {msg.lessonStatus === "ACCEPTED" ? t("Học viên đã xác nhận", "学習者が承認しました") : t("Chờ học viên xác nhận", "学習者の承認待ち")}
+                          </p>
+                          <div className="space-y-1.5 mb-4">
+                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                              <span className="material-symbols-outlined text-sm">calendar_today</span>
+                              <span>{msg.lessonDate ? formatDateDisplay(msg.lessonDate) : ""}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                              <span className="material-symbols-outlined text-sm">schedule</span>
+                              <span>{msg.lessonStartTime} - {msg.lessonEndTime} ({msg.lessonDuration}m) (GMT+7)</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            {msg.lessonStatus === "PENDING" && (
+                              <button disabled={cancellingId === msg.lessonRequestId} onClick={() => setCancelModalId(msg.lessonRequestId!)} className="flex-1 py-2 text-xs font-bold text-error border border-error/20 rounded-lg hover:bg-error/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                {cancellingId === msg.lessonRequestId ? t("Đang hủy...", "処理中...") : t("Hủy", "キャンセル")}
+                              </button>
+                            )}
+                            <button onClick={() => setDetailModalId(msg.lessonRequestId!)} className="flex-1 py-2 text-xs font-bold text-primary bg-surface-container-highest rounded-lg hover:bg-white transition-colors cursor-pointer">
+                              {t("Chi tiết", "詳細")}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // 2. Normal text message
+              const isMe = msg.senderId === user?.userId;
+              return isMe ? (
+                // Sent message (right-aligned)
+                <div
+                  key={msg.messageId}
+                  className={`flex flex-col items-end gap-1 self-end max-w-[80%] transition-opacity ${
+                    msg._sendStatus === "failed" ? "opacity-70" : ""
+                  }`}
+                >
+                  {isMeetLink(msg.content) ? (
+                    <a href={msg.content.trim()} target="_blank" rel="noopener noreferrer" className="block min-w-[240px] max-w-[280px] lotus-gradient engawa-shadow rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline text-white">
+                      <div className="bg-white/20 px-4 py-2 border-b border-white/10 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-white text-lg">videocam</span>
+                        <span className="text-xs font-bold text-white">Google Meet</span>
+                      </div>
+                      <div className="p-4 flex flex-col items-center justify-center space-y-2">
+                        <div className="text-sm font-semibold">{t("Join Classroom", "クラスに入る")}</div>
+                        <div className="text-[10px] text-white/80 text-center break-all">{msg.content.trim()}</div>
+                        <div className="mt-2 w-full py-1.5 bg-white text-primary rounded text-xs font-bold flex items-center justify-center gap-1 hover:bg-white/90 transition-colors">
+                          {t("Tham gia", "参加する")}
+                          <span className="material-symbols-outlined text-sm">open_in_new</span>
+                        </div>
+                      </div>
+                    </a>
+                  ) : (
+                    <div className="lotus-gradient p-4 rounded-2xl rounded-tr-none text-white engawa-shadow">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {msg.content}
+                      </p>
+                      {msg.contentTranslated && (
+                        <p className="text-xs text-white/70 italic mt-1.5 whitespace-pre-wrap">
+                          {msg.contentTranslated}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex items-center px-1">
+                    <span className="text-[10px] text-outline">
+                      {formatMessageTime(msg.timestamp, t)}
+                    </span>
+                    {msg._sendStatus === "queued" ? (
+                      <span className="material-symbols-outlined text-[12px] text-amber-400 ml-1" title={t("Đang chờ gửi", "送信待ち")}>hourglass_empty</span>
+                    ) : msg._sendStatus === "sending" ? (
+                      <span className="material-symbols-outlined text-[12px] text-outline ml-1">schedule</span>
+                    ) : msg._sendStatus === "failed" ? (
+                      <button
+                        onClick={() => msg._tempId && handleRetry(msg._tempId)}
+                        className="ml-1 flex items-center gap-0.5 text-[10px] text-error hover:text-red-700 cursor-pointer transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">error</span>
+                        <span className="underline">{t("Thử lại", "リトライ")}</span>
+                      </button>
+                    ) : (
+                      <span className="material-symbols-outlined text-[12px] text-outline ml-1">done</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                // Received message (left-aligned)
+                <div key={msg.messageId} className="flex gap-4 max-w-[80%] self-start">
                   <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center shrink-0 mt-1">
                     <span className="material-symbols-outlined text-sm text-primary">
                       person
@@ -519,70 +638,12 @@ export default function PartnerMessagesPage() {
                       </div>
                     )}
                     <span className="text-[10px] text-outline px-1 block">
-                      {formatMessageTime(msg.sentAt, t)}
+                      {formatMessageTime(msg.timestamp, t)}
                     </span>
                   </div>
                 </div>
-              ) : (
-                // ── Sent message (right-aligned) ──
-                <div
-                  key={msg.messageId}
-                  className={`flex flex-col items-end gap-1 self-end max-w-[80%] transition-opacity ${
-                    msg._sendStatus === "failed" ? "opacity-70" : ""
-                  }`}
-                >
-                  {isMeetLink(msg.content) ? (
-                    <a href={msg.content.trim()} target="_blank" rel="noopener noreferrer" className="block min-w-[240px] max-w-[280px] lotus-gradient engawa-shadow rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline text-white">
-                      <div className="bg-white/20 px-4 py-2 border-b border-white/10 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-white text-lg">videocam</span>
-                        <span className="text-xs font-bold text-white">Google Meet</span>
-                      </div>
-                      <div className="p-4 flex flex-col items-center justify-center space-y-2">
-                        <div className="text-sm font-semibold">{t("Join Classroom", "クラスに入る")}</div>
-                        <div className="text-[10px] text-white/70 text-center break-all">{msg.content.trim()}</div>
-                        <div className="mt-2 w-full py-1.5 bg-white text-primary rounded text-xs font-bold flex items-center justify-center gap-1 hover:bg-white/90 transition-colors">
-                          {t("Tham gia", "参加する")}
-                          <span className="material-symbols-outlined text-sm">open_in_new</span>
-                        </div>
-                      </div>
-                    </a>
-                  ) : (
-                    <div className="lotus-gradient p-4 rounded-2xl rounded-tr-none text-white engawa-shadow">
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
-                      {msg.contentTranslated && (
-                        <p className="text-xs text-white/70 italic mt-1.5 whitespace-pre-wrap">
-                          {msg.contentTranslated}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex items-center px-1">
-                    <span className="text-[10px] text-outline">
-                      {formatMessageTime(msg.sentAt, t)}
-                    </span>
-                    {msg.senderId === user?.userId && (
-                      msg._sendStatus === "queued" ? (
-                        <span className="material-symbols-outlined text-[12px] text-amber-400 ml-1" title={t("Đang chờ gửi", "送信待ち")}>hourglass_empty</span>
-                      ) : msg._sendStatus === "sending" ? (
-                        <span className="material-symbols-outlined text-[12px] text-outline ml-1">schedule</span>
-                      ) : msg._sendStatus === "failed" ? (
-                        <button
-                          onClick={() => msg._tempId && handleRetry(msg._tempId)}
-                          className="ml-1 flex items-center gap-0.5 text-[10px] text-error hover:text-red-700 cursor-pointer transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[12px]">error</span>
-                          <span className="underline">{t("Thử lại", "リトライ")}</span>
-                        </button>
-                      ) : (
-                        <span className="material-symbols-outlined text-[12px] text-outline ml-1">done</span>
-                      )
-                    )}
-                  </div>
-                </div>
-              )
-            )}
+              );
+            })}
 
             {/* Lazy Load: sentinel + spinner (visual top in flex-col-reverse) */}
             {isLoadingMore && (
@@ -601,74 +662,6 @@ export default function PartnerMessagesPage() {
               </div>
             )}
             {hasMore && !isLoadingMore && <div ref={sentinelRef} className="h-1" />}
-
-            {/* Empty state */}
-            {bookingCards.length === 0 && (
-              <div className="self-center text-center py-4">
-                <span className="material-symbols-outlined text-3xl text-outline-variant mb-1">event_busy</span>
-                <p className="text-xs text-outline-variant">{t("Chưa có đề xuất buổi học nào.", "レッスンの提案はまだありません。")}</p>
-              </div>
-            )}
-
-            {/* Dynamic Booking Cards */}
-            {bookingCards.map(card => {
-              const statusBadge = card.status === "confirmed"
-                ? { label: t("Đã xác nhận", "確認済み"), color: "bg-emerald-100 text-emerald-700" }
-                : card.status === "pending"
-                ? { label: t("Chờ xác nhận", "確認待ち"), color: "bg-amber-100 text-amber-700" }
-                : null;
-              return (
-              <div key={card.bookingId} className={`self-center w-full max-w-md transition-all duration-300 ${card.removing ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
-                <div className="bg-surface-container border border-outline-variant/30 rounded-2xl overflow-hidden engawa-shadow">
-                  <div className="p-1 bg-secondary text-white text-[10px] text-center font-bold tracking-widest uppercase">
-                    {t("Đề xuất buổi học mới", "新しいレッスンの提案")}
-                  </div>
-                  <div className="p-6 flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0">
-                      <span className="material-symbols-outlined">auto_stories</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-bold text-primary text-base font-headline">
-                          {card.status === "confirmed" ? t("Đã xác nhận", "確認済み") : t("Yêu cầu đã gửi", "リクエスト送信済み")}
-                        </h4>
-                        {statusBadge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadge.color}`}>{statusBadge.label}</span>}
-                      </div>
-                      <p className="text-xs text-secondary mb-3">
-                        {card.status === "confirmed" ? t("Học viên đã xác nhận", "学習者が承認しました") : t("Chờ học viên xác nhận", "学習者の承認待ち")}
-                      </p>
-                      <div className="space-y-1.5 mb-4">
-                        <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                          <span className="material-symbols-outlined text-sm">calendar_today</span>
-                          <span>{formatBookingDate(card.startTime)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                          <span className="material-symbols-outlined text-sm">schedule</span>
-                          <span>{formatBookingTime(card.startTime)} - {formatBookingTime(card.endTime)} ({card.durationMinutes}m) (GMT+7)</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        {card.status === "pending" && (
-                          <button disabled={cancellingId === card.bookingId} onClick={() => setCancelModalId(card.bookingId)} className="flex-1 py-2 text-xs font-bold text-error border border-error/20 rounded-lg hover:bg-error/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                            {cancellingId === card.bookingId ? t("Đang hủy...", "処理中...") : t("Hủy", "キャンセル")}
-                          </button>
-                        )}
-                        {card.status === "confirmed" && card.meetingUrl && (
-                          <a href={card.meetingUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors cursor-pointer flex items-center justify-center gap-1.5 no-underline">
-                            <span className="material-symbols-outlined text-[14px]">videocam</span>
-                            {t("Vào lớp", "入室")}
-                          </a>
-                        )}
-                        <button disabled={cancellingId === card.bookingId} onClick={() => setDetailModalId(card.bookingId)} className="flex-1 py-2 text-xs font-bold text-primary bg-surface-container-highest rounded-lg hover:bg-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                          {t("Chi tiết", "詳細")}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              );
-            })}
           </div>
 
           {/* Chat Input Area */}
