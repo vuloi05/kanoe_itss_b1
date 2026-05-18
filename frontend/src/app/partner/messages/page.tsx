@@ -1,13 +1,11 @@
 "use client";
-import Image from "next/image";
 import PartnerNavbar from "@/components/layout/PartnerNavbar";
 import PartnerBottomNav from "@/components/layout/PartnerBottomNav";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePresence } from "@/contexts/PresenceContext";
 import { useAuth } from "@/lib/auth";
-import { messageApi, bookingApi, type ConversationDto, type MessageDto, type BookingDto } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
+import { messageApi, bookingApi, type ConversationDto, type BookingDto } from "@/lib/api";
 import {
   type LocalMessage,
   formatMessageTime,
@@ -17,6 +15,7 @@ import {
   useLazyLoadMessages,
   isMeetLink,
 } from "@/lib/chatUtils";
+import { useSignalR, type BookingEventPayload } from "@/hooks/useSignalR";
 
 export default function PartnerMessagesPage() {
   const [activeConvIdx, setActiveConvIdx] = useState(0);
@@ -50,7 +49,8 @@ export default function PartnerMessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Offline queue hook
-  const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations as any);
+  // Cast is needed because setConversations generic doesn't match the queue hook's broader signature
+  const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations as Dispatch<SetStateAction<ConversationDto[]>>);
 
   // Lazy load hook
   const { sentinelRef, isLoadingMore, hasMore, resetPagination } =
@@ -62,6 +62,68 @@ export default function PartnerMessagesPage() {
       setConversations(data);
     }).catch(console.error);
   }, []);
+
+  // Set up SignalR hook
+  const handleReceiveMessage = useCallback((newMsg: LocalMessage) => {
+    newMsg._sendStatus = "sent";
+    setMessages(prev => {
+      // Replace optimistic temp message if server ACK arrives
+      const withoutTemp = prev.filter(
+        m => !(m._tempId && m.content === newMsg.content && m.senderId === newMsg.senderId)
+      );
+      if (withoutTemp.find(m => m.messageId === newMsg.messageId)) return withoutTemp;
+      return [newMsg, ...withoutTemp];
+    });
+    
+    // Update last message in conversation list
+    setConversations(prev => {
+      const copy = [...prev];
+      const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
+      if (idx >= 0) {
+        copy[idx].lastMessage = newMsg.content;
+        copy[idx].lastMessageTime = newMsg.timestamp;
+      }
+      return copy;
+    });
+  }, []);
+
+  // Stable reference — declared before handlers that depend on it
+  const showToast = useCallback((message: string, type: "success" | "error" | "warning") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  // Handler: booking lifecycle events pushed by BookingService via SignalR
+  const handleReceiveBookingEvent = useCallback((payload: BookingEventPayload) => {
+    const { eventType, booking } = payload;
+
+    if (eventType === "lesson_accepted") {
+      // Update the booking card status to confirmed
+      setBookingCards(prev =>
+        prev.map(c => c.bookingId === booking.bookingId ? { ...c, status: booking.status } : c)
+      );
+      showToast(t("Học viên đã xác nhận lịch hẹn!", "学習者がレッスンを承認しました！"), "success");
+    } else if (eventType === "lesson_declined") {
+      // Animate out then remove the declined card
+      setBookingCards(prev =>
+        prev.map(c => c.bookingId === booking.bookingId ? { ...c, removing: true } : c)
+      );
+      setTimeout(() =>
+        setBookingCards(prev => prev.filter(c => c.bookingId !== booking.bookingId)),
+        300
+      );
+      showToast(t("Học viên đã từ chối lịch hẹn.", "学習者がレッスンを辞退しました。"), "warning");
+    }
+    // lesson_cancelled handled below in confirmCancel — no incoming event needed for the initiator
+  }, [showToast, t]);
+
+  const { startConnection, stopConnection } = useSignalR({
+    getToken: () => localStorage.getItem("auth_token"),
+    onReceiveMessage: handleReceiveMessage,
+    onReceiveBookingEvent: handleReceiveBookingEvent,
+  });
+
+
 
   const activeConv = conversations[activeConvIdx];
 
@@ -81,59 +143,18 @@ export default function PartnerMessagesPage() {
       }
     }).catch(console.error);
 
-    // Subscribe to Supabase Realtime
-    const channel = supabase.channel(`conversation-${activeConv.conversationId}`);
-    channel.on("broadcast", { event: "new_message" }, (payload: any) => {
-      const newMsg = payload.payload.message as LocalMessage;
-      newMsg._sendStatus = "sent";
-      setMessages(prev => {
-        // Replace optimistic temp message if server ACK arrives
-        const withoutTemp = prev.filter(
-          m => !(m._tempId && m.content === newMsg.content && m.senderId === newMsg.senderId)
-        );
-        if (withoutTemp.find(m => m.messageId === newMsg.messageId)) return withoutTemp;
-        return [newMsg, ...withoutTemp];
-      });
-      
-      // Update last message in conversation list
-      setConversations(prev => {
-        const copy = [...prev];
-        const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
-        if (idx >= 0) {
-          copy[idx].lastMessage = newMsg.content || t("Tin nhắn mới", "新着メッセージ");
-          copy[idx].lastMessageTime = newMsg.timestamp || newMsg.timestamp;
-        }
-        return copy;
-      });
-    })
-    .on("broadcast", { event: "LESSON_REQUEST_CREATED" }, (payload: any) => {
-      const newMsg = payload.payload as LocalMessage;
-      setMessages(prev => {
-        if (prev.find(m => m.messageId === newMsg.messageId)) return prev;
-        return [newMsg, ...prev];
-      });
-      showToast(t("Có yêu cầu buổi học mới!", "新しいレッスンリクエストがあります！"), "success");
-    })
-    .on("broadcast", { event: "LESSON_ACCEPTED" }, (payload: any) => {
-      const data = payload.payload;
-      setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status } : m));
-      showToast(t("Học viên đã xác nhận lịch hẹn!", "学習者がレッスンを承認しました！"), "success");
-    })
-    .on("broadcast", { event: "LESSON_DECLINED" }, (payload: any) => {
-      const data = payload.payload;
-      setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status } : m));
-      showToast(t("Học viên đã từ chối lịch hẹn.", "学習者がレッスンを辞退しました。"), "warning");
-    })
-    .on("broadcast", { event: "LESSON_CANCELLED" }, (payload: any) => {
-      const data = payload.payload;
-      setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status } : m));
-      showToast(t("Lịch hẹn đã bị hủy.", "レッスンがキャンセルされました。"), "warning");
-    })
-    .subscribe();
+    // Load bookings for this conversation
+    bookingApi.getBookingsForConversation(activeConv.conversationId)
+      .then(data => setBookingCards(data))
+      .catch(console.error);
+
+    // Connect to SignalR
+    startConnection();
 
     return () => {
-      supabase.removeChannel(channel);
+      stopConnection();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConv, activeConvIdx]);
 
   useEffect(() => {
@@ -221,12 +242,6 @@ export default function PartnerMessagesPage() {
     }
   }, [handleSend]);
 
-  // Show toast helper
-  const showToast = (message: string, type: "success" | "error" | "warning") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
-
   // Compute end time from start + duration
   const calcEndTime = (hour: string, minute: string, dur: string) => {
     const totalMin = parseInt(hour.split(":")[0]) * 60 + parseInt(minute) + parseInt(dur);
@@ -296,8 +311,8 @@ export default function PartnerMessagesPage() {
       setBookingDate(""); setBookingHour("09:00"); setBookingMinute("00"); setBookingDuration("30");
       setShowSchedulePanel(false);
       showToast(t("Đã gửi yêu cầu đặt lịch!", "リクエストを送信しました！"), "success");
-    } catch (err: any) {
-      const msg = err?.message || "";
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "";
       if (msg.includes("conflict") || msg.includes("Conflict")) {
         showToast(t("Trùng lịch với buổi học khác!", "他のレッスンとスケジュールが重複しています！"), "warning");
       } else {

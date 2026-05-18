@@ -1,5 +1,7 @@
 using backend.DTOs.Booking;
+using backend.Hubs;
 using backend.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
@@ -8,18 +10,19 @@ public class BookingService : IBookingService
 {
     private readonly VietImmerseDbContext _context;
     private readonly ILogger<BookingService> _logger;
-    private readonly string _supabaseUrl;
-    private readonly string _supabaseKey;
+    private readonly IHubContext<ChatHub> _hubContext;
+
+    // SignalR client-side method name for booking lifecycle events
+    private const string BookingEventMethod = "ReceiveBookingEvent";
 
     public BookingService(
         VietImmerseDbContext context,
         ILogger<BookingService> logger,
-        IConfiguration configuration)
+        IHubContext<ChatHub> hubContext)
     {
         _context = context;
         _logger = logger;
-        _supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") ?? configuration["Supabase:Url"] ?? "";
-        _supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") ?? configuration["Supabase:Key"] ?? "";
+        _hubContext = hubContext;
     }
 
     public async Task<BookingDto> CreateLessonRequestAsync(Guid partnerId, CreateBookingDto dto)
@@ -116,11 +119,9 @@ public class BookingService : IBookingService
 
         var result = await MapToDtoAsync(booking);
 
-        // Broadcast LESSON_REQUEST_CREATED event to learner via Supabase Realtime
-        if (conversation != null && messageDto != null)
-        {
-            await BroadcastLessonEventAsync(conversation.ConversationId, "LESSON_REQUEST_CREATED", messageDto);
-        }
+        // Push realtime event to the learner — they need to see the new lesson request
+        await _hubContext.Clients.User(dto.LearnerId.ToString())
+            .SendAsync(BookingEventMethod, new { eventType = "lesson_request", booking = result });
 
         return result;
     }
@@ -142,10 +143,9 @@ public class BookingService : IBookingService
 
         var result = await MapToDtoAsync(booking);
 
-        if (booking.ConversationId.HasValue)
-        {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_ACCEPTED", new { lesson_request_id = booking.BookingId, new_status = "ACCEPTED" });
-        }
+        // Push realtime event to the partner — they need to see the confirmation
+        await _hubContext.Clients.User(booking.PartnerId.ToString())
+            .SendAsync(BookingEventMethod, new { eventType = "lesson_accepted", booking = result });
 
         return result;
     }
@@ -167,10 +167,9 @@ public class BookingService : IBookingService
 
         var result = await MapToDtoAsync(booking);
 
-        if (booking.ConversationId.HasValue)
-        {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_DECLINED", new { lesson_request_id = booking.BookingId, new_status = "DECLINED" });
-        }
+        // Push realtime event to the partner — they need to know the request was declined
+        await _hubContext.Clients.User(booking.PartnerId.ToString())
+            .SendAsync(BookingEventMethod, new { eventType = "lesson_declined", booking = result });
 
         return result;
     }
@@ -193,10 +192,13 @@ public class BookingService : IBookingService
 
         var result = await MapToDtoAsync(booking);
 
-        if (booking.ConversationId.HasValue)
-        {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_CANCELLED", new { lesson_request_id = booking.BookingId, new_status = "CANCELLED" });
-        }
+        // Push to the *other* party: if partner cancelled → notify learner; vice versa
+        var targetUserId = booking.PartnerId == userId
+            ? booking.LearnerId
+            : booking.PartnerId;
+
+        await _hubContext.Clients.User(targetUserId.ToString())
+            .SendAsync(BookingEventMethod, new { eventType = "lesson_cancelled", booking = result });
 
         return result;
     }
@@ -280,38 +282,5 @@ public class BookingService : IBookingService
             Notes = booking.Notes,
             CreatedAt = booking.CreatedAt,
         };
-    }
-
-    private async Task BroadcastLessonEventAsync(Guid conversationId, string eventType, object payloadObj)
-    {
-        if (string.IsNullOrEmpty(_supabaseUrl) || string.IsNullOrEmpty(_supabaseKey))
-            return;
-
-        try
-        {
-            var channelName = $"conversation-{conversationId}";
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("apikey", _supabaseKey);
-
-            var payload = new
-            {
-                messages = new[]
-                {
-                    new
-                    {
-                        topic = channelName,
-                        @event = eventType,
-                        payload = payloadObj
-                    }
-                }
-            };
-
-            var url = $"{_supabaseUrl.TrimEnd('/')}/realtime/v1/api/broadcast";
-            await client.PostAsJsonAsync(url, payload);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to broadcast {EventType} to Supabase Realtime.", eventType);
-        }
     }
 }
