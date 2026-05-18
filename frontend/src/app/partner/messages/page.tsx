@@ -81,10 +81,16 @@ export default function PartnerMessagesPage() {
       const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
       if (idx >= 0) {
         copy[idx].lastMessage = newMsg.content;
-        copy[idx].lastMessageTime = newMsg.sentAt;
+        copy[idx].lastMessageTime = newMsg.timestamp;
       }
       return copy;
     });
+  }, []);
+
+  // Stable reference — declared before handlers that depend on it
+  const showToast = useCallback((message: string, type: "success" | "error" | "warning") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   }, []);
 
   // Handler: booking lifecycle events pushed by BookingService via SignalR
@@ -117,11 +123,7 @@ export default function PartnerMessagesPage() {
     onReceiveBookingEvent: handleReceiveBookingEvent,
   });
 
-  // Stable reference — declared before the useEffect that calls it to avoid "accessed before declaration"
-  const showToast = useCallback((message: string, type: "success" | "error" | "warning") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  }, []);
+
 
   const activeConv = conversations[activeConvIdx];
 

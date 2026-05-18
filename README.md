@@ -39,7 +39,7 @@ Dưới đây là template đầy đủ — copy và thay thế các giá trị 
 
 ```env
 # ===================================
-# BACKEND CONNECTION STRING (Supabase)
+# DATABASE CONNECTION STRING
 # ===================================
 # See "Cấu hình Supabase" section below for how to get this value.
 ConnectionStrings__DefaultConnection=Host=db.<project-ref>.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=<your-db-password>;Trust Server Certificate=true
@@ -79,12 +79,6 @@ SMTP_FROM=VietImmerse <your_gmail_address>
 CLOUDINARY_CLOUD_NAME=<your_cloud_name>
 CLOUDINARY_API_KEY=<your_api_key>
 CLOUDINARY_API_SECRET=<your_api_secret>
-
-# ===================================
-# SUPABASE (Database + Realtime)
-# ===================================
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your_supabase_anon_key>
 ```
 
 #### Cấu hình SMTP — Hướng dẫn chi tiết
@@ -163,7 +157,7 @@ CLOUDINARY_API_SECRET=<your_api_secret>
 
 #### Cấu hình Supabase (Cơ sở dữ liệu)
 
-Dự án sử dụng **Supabase (hosted PostgreSQL)** làm cơ sở dữ liệu chính. Backend sẽ tự động kết nối và chạy migration khi khởi động.
+Dự án sử dụng **Supabase (hosted PostgreSQL)** làm cơ sở dữ liệu chính. Backend sẽ tự động kết nối và chạy migration khi khởi động. Tính năng **Realtime** của Supabase **không còn được sử dụng** — hệ thống đã chuyển sang SignalR.
 
 **Các bước lấy Connection String từ Supabase:**
 
@@ -266,10 +260,12 @@ kanoe_itss_b1/
 │       ├── contexts/
 │       │   └── LanguageContext.tsx     # i18n (Vi/Ja)
 │       ├── hooks/
+│       │   ├── useSignalR.ts           # SignalR connection lifecycle hook
 │       │   └── useForgotPassword.ts
 │       └── lib/
 │           ├── api.ts                  # API client & endpoints
 │           ├── auth.tsx                # AuthProvider & useAuth hook
+│           ├── chatUtils.ts            # Chat utilities & offline queue
 │           └── cropImage.ts            # Canvas crop utility
 ├── docker-compose.yml
 ├── .env.example                        # Template biến môi trường
@@ -321,6 +317,7 @@ kanoe_itss_b1/
 - **Framework**: Next.js 16 + React 19 + TypeScript
 - **Styling**: Tailwind CSS v4
 - **Component**: React Server/Client Components (App Router)
+- **Realtime**: SignalR (WebSockets) thông qua .NET Backend cho nhắn tin và thông báo đặt lịch realtime
 - **File naming**: `PascalCase.tsx` cho components, `page.tsx` cho routes
 - **Commit**: Conventional Commits (`feat:`, `fix:`, `docs:`, ...)
 

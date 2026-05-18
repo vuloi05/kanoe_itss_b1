@@ -72,7 +72,7 @@ export default function LearnerMessagesPage() {
       const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
       if (idx >= 0) {
         copy[idx].lastMessage = newMsg.content;
-        copy[idx].lastMessageTime = newMsg.sentAt;
+        copy[idx].lastMessageTime = newMsg.timestamp;
       }
       return copy;
     });

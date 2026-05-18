@@ -13,13 +13,71 @@ namespace backend.Hubs;
 public class ChatHub : Hub
 {
     private readonly IMessageService _messageService;
+    private readonly PresenceTracker _presence;
     private readonly ILogger<ChatHub> _logger;
 
-    public ChatHub(IMessageService messageService, ILogger<ChatHub> logger)
+    public ChatHub(IMessageService messageService, PresenceTracker presence, ILogger<ChatHub> logger)
     {
         _messageService = messageService;
+        _presence = presence;
         _logger = logger;
     }
+
+    // ─── Presence Lifecycle ────────────────────────────────────────────────────
+
+    public override async Task OnConnectedAsync()
+    {
+        var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId != null)
+        {
+            bool isFirstConnection = _presence.UserConnected(userId, Context.ConnectionId);
+
+            if (isFirstConnection)
+            {
+                // Notify everyone else that this user just came online
+                await Clients.Others.SendAsync("UserIsOnline", userId);
+            }
+
+            // Send the full online list to the caller so they can hydrate their UI
+            var onlineIds = _presence.GetOnlineUserIds();
+            await Clients.Caller.SendAsync("GetOnlineUsers", onlineIds);
+
+            _logger.LogInformation(
+                "SignalR connected: ConnectionId={ConnId} UserId={UserId} FirstConnection={First}",
+                Context.ConnectionId, userId, isFirstConnection);
+        }
+
+        await base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId != null)
+        {
+            bool wentOffline = _presence.UserDisconnected(userId, Context.ConnectionId);
+
+            if (wentOffline)
+            {
+                // All tabs/devices for this user are gone — notify others
+                await Clients.Others.SendAsync("UserIsOffline", userId);
+
+                _logger.LogInformation(
+                    "SignalR disconnected (fully offline): ConnectionId={ConnId} UserId={UserId}",
+                    Context.ConnectionId, userId);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "SignalR disconnected (still has other connections): ConnectionId={ConnId} UserId={UserId}",
+                    Context.ConnectionId, userId);
+            }
+        }
+
+        await base.OnDisconnectedAsync(exception);
+    }
+
+    // ─── Messaging ─────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Called by the client to send a message to another user.
@@ -40,8 +98,6 @@ public class ChatHub : Hub
         }
 
         // Resolve the conversation between sender and receiver.
-        // TODO: If a direct "find or create conversation" use-case is needed,
-        // add a FindOrCreateConversationAsync method to IMessageService.
         var conversations = await _messageService.GetConversationsAsync(senderId);
         var conversation = conversations.FirstOrDefault(c =>
             (c.LearnerId == senderId && c.PartnerId == receiverId) ||
@@ -65,21 +121,5 @@ public class ChatHub : Hub
 
         // Optionally echo back to the sender's other tabs/devices
         await Clients.Caller.SendAsync("MessageSent", messageDto);
-    }
-
-    public override async Task OnConnectedAsync()
-    {
-        var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        _logger.LogInformation("SignalR connected: ConnectionId={ConnId} UserId={UserId}",
-            Context.ConnectionId, userId ?? "anonymous");
-        await base.OnConnectedAsync();
-    }
-
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        _logger.LogInformation("SignalR disconnected: ConnectionId={ConnId} UserId={UserId}",
-            Context.ConnectionId, userId ?? "anonymous");
-        await base.OnDisconnectedAsync(exception);
     }
 }

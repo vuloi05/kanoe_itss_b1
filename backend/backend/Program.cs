@@ -76,6 +76,8 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 
 // SignalR — registers the hub infrastructure and WebSocket support
 builder.Services.AddSignalR();
+// Singleton presence tracker: shared across all ChatHub instances
+builder.Services.AddSingleton<backend.Hubs.PresenceTracker>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
 
 // CORS: allow frontend dev server

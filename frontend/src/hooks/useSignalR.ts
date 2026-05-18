@@ -8,7 +8,7 @@
  */
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import {
   HubConnectionBuilder,
   HubConnection,
@@ -25,6 +25,11 @@ const HUB_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/c
 const SERVER_METHOD_SEND = "SendMessage";
 const CLIENT_METHOD_RECEIVE = "ReceiveMessage";
 const CLIENT_METHOD_BOOKING = "ReceiveBookingEvent";
+
+// Presence event names — must match ChatHub.cs exactly
+const CLIENT_METHOD_GET_ONLINE_USERS = "GetOnlineUsers";
+const CLIENT_METHOD_USER_ONLINE = "UserIsOnline";
+const CLIENT_METHOD_USER_OFFLINE = "UserIsOffline";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -54,6 +59,8 @@ interface UseSignalRReturn {
   stopConnection: () => Promise<void>;
   sendMessage: (receiverId: string, content: string) => Promise<void>;
   isConnected: () => boolean;
+  /** Set of UserIds currently online (updated via SignalR presence events). */
+  onlineUsers: Set<string>;
 }
 
 export function useSignalR({
@@ -63,6 +70,7 @@ export function useSignalR({
   onDisconnected,
 }: UseSignalROptions): UseSignalRReturn {
   const connectionRef = useRef<HubConnection | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
   /**
    * Build a fresh HubConnection.
@@ -101,9 +109,34 @@ export function useSignalR({
       onReceiveBookingEvent?.(payload);
     });
 
+    // ─── Presence Handlers ───────────────────────────────────────────────────
+
+    // Server sends the full online list to the caller right after connection
+    connection.on(CLIENT_METHOD_GET_ONLINE_USERS, (userIds: string[]) => {
+      setOnlineUsers(new Set(userIds));
+    });
+
+    // Another user just connected (their first tab/device)
+    connection.on(CLIENT_METHOD_USER_ONLINE, (userId: string) => {
+      setOnlineUsers((prev) => new Set(prev).add(userId));
+    });
+
+    // Another user fully disconnected (all tabs/devices closed)
+    connection.on(CLIENT_METHOD_USER_OFFLINE, (userId: string) => {
+      setOnlineUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Surface unexpected disconnects to the consumer
     connection.onclose((error) => {
       onDisconnected?.(error ?? undefined);
+      // Clear the online list on disconnect so stale data isn't shown
+      setOnlineUsers(new Set());
     });
 
     connectionRef.current = connection;
@@ -125,6 +158,7 @@ export function useSignalR({
       console.error("[SignalR] Error stopping connection:", err);
     } finally {
       connectionRef.current = null;
+      setOnlineUsers(new Set());
     }
   }, []);
 
@@ -156,5 +190,5 @@ export function useSignalR({
     };
   }, []);
 
-  return { startConnection, stopConnection, sendMessage, isConnected };
+  return { startConnection, stopConnection, sendMessage, isConnected, onlineUsers };
 }
