@@ -12,8 +12,8 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   loginAction: (email: string, password: string) => Promise<AuthResponse>;
-  registerLearner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; level?: string }) => Promise<AuthResponse>;
-  registerPartner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; phone?: string; bio?: string }) => Promise<AuthResponse>;
+  registerLearner: (data: { email: string; password: string; displayName: string; level?: string }) => Promise<AuthResponse>;
+  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) => Promise<AuthResponse>;
   logout: () => void;
   updateUser: (partial: Partial<UserProfile>) => void;
 }
@@ -77,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userId: response.userId,
         email: response.email,
         displayName: response.displayName,
-        displayNameJa: response.displayNameJa,
         role: response.role,
         avatarUrl: response.avatarUrl,
         phone: null,
@@ -98,13 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response;
   };
 
-  const registerLearner = async (data: { email: string; password: string; displayName: string; displayNameJa?: string; level?: string }) => {
+  const registerLearner = async (data: { email: string; password: string; displayName: string; level?: string }) => {
     const response = await authApi.registerLearner(data);
     handleAuthSuccess(response);
     return response;
   };
 
-  const registerPartner = async (data: { email: string; password: string; displayName: string; displayNameJa?: string; phone?: string; bio?: string }) => {
+  const registerPartner = async (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) => {
     const response = await authApi.registerPartner(data);
     handleAuthSuccess(response);
     return response;

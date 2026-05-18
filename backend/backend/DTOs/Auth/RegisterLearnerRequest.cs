@@ -12,9 +12,6 @@ public record RegisterLearnerRequest(
     [Required][StringLength(100)]
     string DisplayName,
 
-    [StringLength(100)]
-    string? DisplayNameJa,
-
     // Vietnamese proficiency level: V1 (beginner) – V5 (advanced)
     string? Level
 );

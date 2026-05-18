@@ -95,7 +95,6 @@ export interface AuthResponse {
   userId: string;
   email: string;
   displayName: string;
-  displayNameJa: string | null;
   role: string;
   avatarUrl: string | null;
 }
@@ -104,7 +103,6 @@ export interface UserProfile {
   userId: string;
   email: string;
   displayName: string;
-  displayNameJa: string | null;
   role: string;
   avatarUrl: string | null;
   phone: string | null;
@@ -115,10 +113,10 @@ export interface UserProfile {
 }
 
 export const authApi = {
-  registerLearner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; level?: string }) =>
+  registerLearner: (data: { email: string; password: string; displayName: string; level?: string }) =>
     api.post<AuthResponse>("/api/auth/register/learner", data),
 
-  registerPartner: (data: { email: string; password: string; displayName: string; displayNameJa?: string; phone?: string; bio?: string }) =>
+  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) =>
     api.post<AuthResponse>("/api/auth/register/partner", data),
 
   login: (data: { email: string; password: string }) =>

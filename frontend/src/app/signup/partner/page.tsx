@@ -12,7 +12,6 @@ export default function PartnerSignupPage() {
   const { registerPartner } = useAuth();
   const { t } = useLanguage();
   const [displayName, setDisplayName] = useState("");
-  const [displayNameJa, setDisplayNameJa] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +23,7 @@ export default function PartnerSignupPage() {
     setError("");
     setIsLoading(true);
     try {
-      await registerPartner({ email, password, displayName, displayNameJa: displayNameJa || undefined, phone: phone || undefined });
+      await registerPartner({ email, password, displayName, phone: phone || undefined });
       router.push("/partner/home");
     } catch (err) {
       setError(err instanceof ApiException ? err.message : "Đã xảy ra lỗi. Vui lòng thử lại.");
@@ -54,8 +53,7 @@ export default function PartnerSignupPage() {
                   {error}
                 </div>
               )}
-              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">{t("Họ và tên (Tiếng Việt)", "氏名 (ベトナム語)")}</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="Nguyen Van A" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading}/></div>
-              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">{t("氏名 (tiếng Nhật)", "氏名 (漢字/かな)")}</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="グエン バン エー" type="text" value={displayNameJa} onChange={(e) => setDisplayNameJa(e.target.value)} disabled={isLoading}/></div>
+              <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">{t("Họ và tên", "氏名")}</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder={t("Nhập họ và tên", "氏名を入力")} type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required disabled={isLoading}/></div>
               <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">{t("Email", "メールアドレス")}</label><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="partner@example.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading}/></div>
               <div className="relative group"><label className="block text-xs font-semibold tracking-wider mb-2 uppercase text-on-surface-variant">{t("Số điện thoại", "電話番号")}</label><div className="flex gap-4"><span className="py-3 text-lg border-b border-outline-variant text-outline">+84</span><input className="w-full bg-transparent border-0 border-b border-outline-variant focus:ring-0 focus:border-primary px-0 py-3 text-lg placeholder:text-outline" placeholder="0123 456 789" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isLoading}/></div></div>
               <div className="bg-surface-container-low p-6 rounded-xl space-y-4">
