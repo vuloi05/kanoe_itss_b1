@@ -55,6 +55,12 @@ public partial class User
     [Column("last_login_at")]
     public DateTime? LastLoginAt { get; set; }
 
+    [Column("is_online")]
+    public bool IsOnline { get; set; } = false;
+
+    [Column("last_seen")]
+    public DateTime? LastSeen { get; set; }
+
     [Column("deleted_at")]
     public DateTime? DeletedAt { get; set; }
 

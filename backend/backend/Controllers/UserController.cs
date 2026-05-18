@@ -4,8 +4,14 @@ using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
 
 namespace backend.Controllers;
+
+public class PresenceDto
+{
+    public bool IsOnline { get; set; }
+}
 
 [ApiController]
 [Route("api/users")]
@@ -14,14 +20,17 @@ public class UserController : ControllerBase
     private readonly VietImmerseDbContext _db;
     private readonly IPhotoService _photoService;
     private readonly ILogger<UserController> _logger;
+    private readonly IConfiguration _configuration;
 
     public UserController(
         VietImmerseDbContext db,
         IPhotoService photoService,
+        IConfiguration configuration,
         ILogger<UserController> logger)
     {
         _db = db;
         _photoService = photoService;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -83,6 +92,59 @@ public class UserController : ControllerBase
             _logger.LogError(ex, "Avatar upload failed for user {UserId}", userId);
             return StatusCode(500, new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Update user's online presence (Workflow 11)
+    /// </summary>
+    [Authorize]
+    [HttpPost("presence")]
+    public async Task<IActionResult> UpdatePresence([FromBody] PresenceDto dto)
+    {
+        var userId = GetCurrentUserId();
+        var user = await _db.Users.FindAsync(userId);
+        
+        if (user == null)
+            return NotFound(new { message = "User not found." });
+
+        user.IsOnline = dto.IsOnline;
+        user.LastSeen = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        // Broadcast to Supabase
+        var supabaseUrl = _configuration["Supabase:Url"];
+        var supabaseKey = _configuration["Supabase:ServiceRoleKey"];
+        
+        if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(supabaseKey))
+        {
+            try
+            {
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("apikey", supabaseKey);
+
+                var payload = new
+                {
+                    messages = new[]
+                    {
+                        new
+                        {
+                            topic = "global-presence",
+                            @event = dto.IsOnline ? "USER_ONLINE" : "USER_OFFLINE",
+                            payload = new { userId = user.UserId, role = user.Role, lastSeen = user.LastSeen }
+                        }
+                    }
+                };
+
+                var url = $"{supabaseUrl.TrimEnd('/')}/realtime/v1/api/broadcast";
+                await client.PostAsJsonAsync(url, payload);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to broadcast presence for user {UserId}", userId);
+            }
+        }
+
+        return Ok(new { isOnline = user.IsOnline, lastSeen = user.LastSeen });
     }
 
     private Guid GetCurrentUserId()

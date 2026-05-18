@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro, Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { PresenceProvider } from "@/contexts/PresenceContext";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-be-vietnam-pro",
@@ -43,7 +44,9 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <AuthProvider>
-            {children}
+            <PresenceProvider>
+              {children}
+            </PresenceProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>

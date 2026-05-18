@@ -231,3 +231,9 @@ body {
   background: rgba(244, 244, 242, 0.6);
   backdrop-filter: blur(20px);
 }
+
+/* Toast slide-in animation */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

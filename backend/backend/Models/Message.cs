@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,6 +23,9 @@ public partial class Message
 
     [Column("content")]
     public string Content { get; set; } = null!;
+
+    [Column("content_translated")]
+    public string? ContentTranslated { get; set; }
 
     [Column("is_read")]
     public bool? IsRead { get; set; }
