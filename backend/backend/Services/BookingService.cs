@@ -75,14 +75,51 @@ public class BookingService : IBookingService
         };
 
         _context.Bookings.Add(booking);
-        await _context.SaveChangesAsync();
+
+        backend.DTOs.Message.MessageDto? messageDto = null;
+        if (conversation != null)
+        {
+            var message = new backend.Models.Message
+            {
+                ConversationId = conversation.ConversationId,
+                SenderId = partnerId,
+                MessageType = "LESSON_REQUEST",
+                Booking = booking,
+                Content = "",
+                SentAt = DateTime.UtcNow,
+                IsRead = false
+            };
+            _context.Messages.Add(message);
+            await _context.SaveChangesAsync();
+
+            messageDto = new backend.DTOs.Message.MessageDto
+            {
+                MessageId = message.MessageId,
+                ConversationId = message.ConversationId,
+                SenderId = message.SenderId,
+                Type = "LESSON_REQUEST",
+                Content = "",
+                IsRead = false,
+                Timestamp = message.SentAt,
+                LessonRequestId = booking.BookingId,
+                LessonDate = booking.StartTime.ToString("yyyy-MM-dd"),
+                LessonStartTime = booking.StartTime.ToString("HH:mm"),
+                LessonEndTime = booking.EndTime.ToString("HH:mm"),
+                LessonDuration = (int)(booking.EndTime - booking.StartTime).TotalMinutes,
+                LessonStatus = booking.Status.ToUpper()
+            };
+        }
+        else
+        {
+            await _context.SaveChangesAsync();
+        }
 
         var result = await MapToDtoAsync(booking);
 
-        // Broadcast LESSON_REQUEST event to learner via Supabase Realtime
-        if (conversation != null)
+        // Broadcast LESSON_REQUEST_CREATED event to learner via Supabase Realtime
+        if (conversation != null && messageDto != null)
         {
-            await BroadcastLessonEventAsync(conversation.ConversationId, "lesson_request", result);
+            await BroadcastLessonEventAsync(conversation.ConversationId, "LESSON_REQUEST_CREATED", messageDto);
         }
 
         return result;
@@ -107,7 +144,7 @@ public class BookingService : IBookingService
 
         if (booking.ConversationId.HasValue)
         {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "lesson_accepted", result);
+            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_ACCEPTED", new { lesson_request_id = booking.BookingId, new_status = "ACCEPTED" });
         }
 
         return result;
@@ -132,7 +169,7 @@ public class BookingService : IBookingService
 
         if (booking.ConversationId.HasValue)
         {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "lesson_declined", result);
+            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_DECLINED", new { lesson_request_id = booking.BookingId, new_status = "DECLINED" });
         }
 
         return result;
@@ -158,7 +195,7 @@ public class BookingService : IBookingService
 
         if (booking.ConversationId.HasValue)
         {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "lesson_cancelled", result);
+            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_CANCELLED", new { lesson_request_id = booking.BookingId, new_status = "CANCELLED" });
         }
 
         return result;
@@ -245,7 +282,7 @@ public class BookingService : IBookingService
         };
     }
 
-    private async Task BroadcastLessonEventAsync(Guid conversationId, string eventType, BookingDto booking)
+    private async Task BroadcastLessonEventAsync(Guid conversationId, string eventType, object payloadObj)
     {
         if (string.IsNullOrEmpty(_supabaseUrl) || string.IsNullOrEmpty(_supabaseKey))
             return;
@@ -264,7 +301,7 @@ public class BookingService : IBookingService
                     {
                         topic = channelName,
                         @event = eventType,
-                        payload = new { booking }
+                        payload = payloadObj
                     }
                 }
             };
