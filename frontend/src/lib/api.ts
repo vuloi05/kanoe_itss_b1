@@ -138,11 +138,17 @@ export const authApi = {
 };
 
 export const userApi = {
-  uploadAvatar: (file: Blob) => {
+  uploadAvatar: (file: File) => {
     const formData = new FormData();
-    formData.append("file", file, "avatar.jpg");
-    return uploadRequest<{ avatarUrl: string }>("/api/users/avatar", formData);
+    formData.append("file", file);
+    return api.post<{ avatarUrl: string }>("/api/users/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   },
+  updatePresence: (isOnline: boolean) =>
+    api.post<{ isOnline: boolean; lastSeen: string }>("/api/users/presence", { isOnline }),
 };
 
 export interface ConversationDto {
@@ -161,7 +167,9 @@ export interface MessageDto {
   messageId: string;
   conversationId: string;
   senderId: string;
+  senderRole?: "learner" | "partner";
   content: string;
+  contentTranslated?: string | null;
   isRead: boolean;
   sentAt: string;
 }
@@ -178,4 +186,41 @@ export const messageApi = {
 
   markAsRead: (conversationId: string) =>
     api.put<{ message: string }>(`/api/message/${conversationId}/read`),
+};
+
+// ─── Booking / Lesson Request ─────────────────────────────────
+
+export interface BookingDto {
+  bookingId: string;
+  learnerId: string;
+  partnerId: string;
+  learnerName: string;
+  partnerName: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  status: "pending" | "confirmed" | "declined" | "cancelled";
+  meetingUrl: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export const bookingApi = {
+  createLessonRequest: (data: { learnerId: string; date: string; startTime: string; durationMinutes: number }) =>
+    api.post<BookingDto>("/api/booking/request", data),
+
+  acceptLessonRequest: (bookingId: string) =>
+    api.put<BookingDto>(`/api/booking/${bookingId}/accept`),
+
+  declineLessonRequest: (bookingId: string) =>
+    api.put<BookingDto>(`/api/booking/${bookingId}/decline`),
+
+  cancelLessonRequest: (bookingId: string) =>
+    api.delete<BookingDto>(`/api/booking/${bookingId}`),
+
+  getBookingsForConversation: (conversationId: string) =>
+    api.get<BookingDto[]>(`/api/booking/conversation/${conversationId}`),
+
+  getUpcomingBookings: () =>
+    api.get<BookingDto[]>("/api/booking/upcoming"),
 };

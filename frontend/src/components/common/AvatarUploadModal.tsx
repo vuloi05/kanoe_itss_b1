@@ -82,7 +82,8 @@ export default function AvatarUploadModal({
     setIsUploading(true);
     try {
       const blob = await getCroppedImg(effectiveImageSrc, croppedAreaPixels, rotation);
-      const result = await userApi.uploadAvatar(blob);
+      const file = new File([blob], "avatar.jpg", { type: blob.type || "image/jpeg" });
+      const result = await userApi.uploadAvatar(file);
       onSuccess(result.avatarUrl);
       showToast("success", t("Cập nhật ảnh đại diện thành công!", "アバターを更新しました！"));
       // Brief delay so user sees the toast before modal closes

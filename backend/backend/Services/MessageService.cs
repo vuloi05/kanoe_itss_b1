@@ -9,13 +9,19 @@ public class MessageService : IMessageService
 {
     private readonly VietImmerseDbContext _context;
     private readonly ILogger<MessageService> _logger;
+    private readonly ITranslationService _translationService;
     private readonly string _supabaseUrl;
     private readonly string _supabaseKey;
 
-    public MessageService(VietImmerseDbContext context, ILogger<MessageService> logger, IConfiguration configuration)
+    public MessageService(
+        VietImmerseDbContext context, 
+        ILogger<MessageService> logger, 
+        IConfiguration configuration,
+        ITranslationService translationService)
     {
         _context = context;
         _logger = logger;
+        _translationService = translationService;
         _supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") ?? configuration["Supabase:Url"] ?? "";
         _supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") ?? configuration["Supabase:Key"] ?? "";
     }
@@ -70,6 +76,7 @@ public class MessageService : IMessageService
                 ConversationId = (Guid)m.ConversationId!,
                 SenderId = (Guid)m.SenderId!,
                 Content = m.Content ?? string.Empty,
+                ContentTranslated = m.ContentTranslated,
                 IsRead = m.IsRead ?? false,
                 SentAt = m.SentAt
             })
@@ -85,11 +92,15 @@ public class MessageService : IMessageService
         if (conversation.PartnerId != senderId && conversation.LearnerId != senderId)
             throw new Exception("User is not part of this conversation");
 
+        // Perform translation (null if fails, per spec)
+        var translatedText = await _translationService.TranslateAsync(text);
+
         var message = new backend.Models.Message
         {
             ConversationId = conversationId,
             SenderId = senderId,
             Content = text,
+            ContentTranslated = translatedText,
             IsRead = false,
             SentAt = DateTime.UtcNow
         };
@@ -103,6 +114,7 @@ public class MessageService : IMessageService
             ConversationId = (Guid)message.ConversationId!,
             SenderId = (Guid)message.SenderId!,
             Content = message.Content,
+            ContentTranslated = message.ContentTranslated,
             IsRead = (bool)message.IsRead!,
             SentAt = (DateTime)message.SentAt!
         };

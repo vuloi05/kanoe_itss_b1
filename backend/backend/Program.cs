@@ -46,11 +46,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // DI: Application services
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IPhotoService, CloudinaryPhotoService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddSingleton<ITranslationService, TranslationService>();
 
 // Supabase Realtime (Broadcasting)
 var supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") 

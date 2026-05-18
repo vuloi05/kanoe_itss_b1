@@ -5,9 +5,36 @@ import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useEffect, useState } from "react";
+import { bookingApi, BookingDto } from "@/lib/api";
 
 export default function LearnerHomePage() {
   const { t } = useLanguage();
+  const [upcomingBookings, setUpcomingBookings] = useState<BookingDto[]>([]);
+
+  useEffect(() => {
+    bookingApi.getUpcomingBookings()
+      .then(data => setUpcomingBookings(data))
+      .catch(console.error);
+  }, []);
+
+  // Format a UTC ISO string to Hanoi Time date display
+  const formatBookingDate = (utcIso: string) => {
+    const d = new Date(utcIso);
+    const hanoi = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+    const dd = String(hanoi.getUTCDate()).padStart(2, "0");
+    const mm = String(hanoi.getUTCMonth() + 1).padStart(2, "0");
+    const yyyy = hanoi.getUTCFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
+
+  // Format a UTC ISO string to Hanoi Time HH:MM
+  const formatBookingTime = (utcIso: string) => {
+    const d = new Date(utcIso);
+    const hanoi = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+    return `${String(hanoi.getUTCHours()).padStart(2, "0")}:${String(hanoi.getUTCMinutes()).padStart(2, "0")}`;
+  };
+
   return (
     <div className="bg-surface font-body text-on-surface leading-relaxed min-h-screen">
       <LearnerNavbar />
@@ -96,41 +123,47 @@ export default function LearnerHomePage() {
               </Link>
             </div>
             <div className="space-y-4">
-              {/* Session Card */}
-              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg bg-surface-container-low/50 border border-outline-variant/20 group hover:border-primary/30 transition-colors">
-                <div className="flex items-center gap-4 grow w-full">
-                  <div className="w-12 h-12 rounded-full bg-secondary-fixed shrink-0 flex items-center justify-center text-secondary font-bold text-xl overflow-hidden border-2 border-white shadow-sm">
-                    <Image
-                      alt="Minh Anh"
-                      src="https://lh3.googleusercontent.com/aida-public/AKb_5YQ_f5T5T4S5Y-vR9y_g8VnJjF3Y5oX3H9K6H4I6J7P8L9M0N1O2P3Q4R5S6=s120"
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                    />
-                  </div>
-                  <div className="grow">
-                    <h4 className="font-bold text-primary">Minh Anh</h4>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1">
-                      <span className="text-xs text-on-surface-variant flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">
-                          calendar_today
+              {upcomingBookings.map(booking => (
+                <div key={booking.bookingId} className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg bg-surface-container-low/50 border border-outline-variant/20 group hover:border-primary/30 transition-colors">
+                  <div className="flex items-center gap-4 grow w-full">
+                    <div className="w-12 h-12 rounded-full bg-surface-container-high shrink-0 flex items-center justify-center text-primary font-bold text-xl overflow-hidden border-2 border-white shadow-sm">
+                      {booking.partnerName.charAt(0)}
+                    </div>
+                    <div className="grow">
+                      <h4 className="font-bold text-primary">{booking.partnerName}</h4>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
+                        <span className="text-xs text-on-surface-variant flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">
+                            calendar_today
+                          </span>
+                          {formatBookingDate(booking.startTime)}
                         </span>
-                        14/10/2023
-                      </span>
-                      <span className="text-xs text-on-surface-variant flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">
-                          schedule
+                        <span className="text-xs text-on-surface-variant flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">
+                            schedule
+                          </span>
+                          {formatBookingTime(booking.startTime)} - {formatBookingTime(booking.endTime)}
                         </span>
-                        19:00 - 19:30
-                      </span>
+                      </div>
                     </div>
                   </div>
+                  {booking.meetingUrl ? (
+                    <a href={booking.meetingUrl} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto bg-green-500 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition-all no-underline flex items-center justify-center gap-2">
+                      <span className="material-symbols-outlined text-[16px]">videocam</span>
+                      {t("Tham gia", "入室")}
+                    </a>
+                  ) : (
+                    <Link href={`/learner/messages`} className="w-full sm:w-auto bg-primary text-on-primary px-6 py-2 rounded-lg font-bold text-sm hover:bg-primary-container hover:text-on-primary-container transition-all cursor-pointer text-center">
+                      {t("Chi tiết", "詳細")}
+                    </Link>
+                  )}
                 </div>
-                <button className="w-full sm:w-auto bg-primary text-on-primary px-6 py-2 rounded-lg font-bold text-sm hover:bg-primary-container hover:text-on-primary-container transition-all cursor-pointer">
-                  {t("Tham gia", "入室")}
-                </button>
-              </div>
+              ))}
+              {upcomingBookings.length === 0 && (
+                <div className="p-4 rounded-lg bg-surface-container-low/50 border border-outline-variant/20 text-center text-sm text-secondary italic">
+                  {t("Chưa có lịch hẹn nào / 予定はありません", "予定はありません / Chưa có lịch hẹn nào")}
+                </div>
+              )}
             </div>
           </div>
         </section>

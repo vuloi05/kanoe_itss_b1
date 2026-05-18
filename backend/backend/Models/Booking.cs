@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -40,6 +40,13 @@ public partial class Booking
     [Column("partner_notes")]
     public string? PartnerNotes { get; set; }
 
+    [Column("status")]
+    [MaxLength(20)]
+    public string Status { get; set; } = "pending";
+
+    [Column("conversation_id")]
+    public Guid? ConversationId { get; set; }
+
     [Column("cancelled_by")]
     public Guid? CancelledBy { get; set; }
 
@@ -51,6 +58,9 @@ public partial class Booking
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
+
+    [ForeignKey("ConversationId")]
+    public virtual Conversation? Conversation { get; set; }
 
     [ForeignKey("CancelledBy")]
     [InverseProperty("BookingCancelledByNavigations")]

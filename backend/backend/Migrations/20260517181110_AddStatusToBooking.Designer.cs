@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Models;
@@ -12,9 +13,11 @@ using backend.Models;
 namespace backend.Migrations
 {
     [DbContext(typeof(VietImmerseDbContext))]
-    partial class VietImmerseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260517181110_AddStatusToBooking")]
+    partial class AddStatusToBooking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,10 +67,6 @@ namespace backend.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("cancelled_by");
 
-                    b.Property<Guid?>("ConversationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("conversation_id");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -108,8 +107,7 @@ namespace backend.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasColumnType("text")
                         .HasColumnName("status");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -122,8 +120,6 @@ namespace backend.Migrations
                         .HasName("bookings_pkey");
 
                     b.HasIndex("CancelledBy");
-
-                    b.HasIndex("ConversationId");
 
                     b.HasIndex(new[] { "LearnerId" }, "idx_bookings_learner");
 
@@ -1023,10 +1019,6 @@ namespace backend.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("email");
 
-                    b.Property<bool>("IsOnline")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_online");
-
                     b.Property<string>("LanguagePref")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(10)
@@ -1037,10 +1029,6 @@ namespace backend.Migrations
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_login_at");
-
-                    b.Property<DateTime?>("LastSeen")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_seen");
 
                     b.Property<DateTime?>("PasswordChangedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1253,10 +1241,6 @@ namespace backend.Migrations
                         .HasForeignKey("CancelledBy")
                         .HasConstraintName("bookings_cancelled_by_fkey");
 
-                    b.HasOne("backend.Models.Conversation", "Conversation")
-                        .WithMany()
-                        .HasForeignKey("ConversationId");
-
                     b.HasOne("backend.Models.User", "Learner")
                         .WithMany("BookingLearners")
                         .HasForeignKey("LearnerId")
@@ -1272,8 +1256,6 @@ namespace backend.Migrations
                         .HasConstraintName("bookings_partner_id_fkey");
 
                     b.Navigation("CancelledByNavigation");
-
-                    b.Navigation("Conversation");
 
                     b.Navigation("Learner");
 
