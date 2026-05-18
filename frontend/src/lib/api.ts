@@ -167,11 +167,18 @@ export interface MessageDto {
   messageId: string;
   conversationId: string;
   senderId: string;
-  senderRole?: "learner" | "partner";
+  type: "TEXT" | "LESSON_REQUEST" | "MEET_LINK";
   content: string;
   contentTranslated?: string | null;
   isRead: boolean;
-  sentAt: string;
+  timestamp: string;
+  
+  lessonRequestId?: string;
+  lessonDate?: string;
+  lessonStartTime?: string;
+  lessonEndTime?: string;
+  lessonDuration?: number;
+  lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
 }
 
 export const messageApi = {

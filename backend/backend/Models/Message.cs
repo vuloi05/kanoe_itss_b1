@@ -30,6 +30,16 @@ public partial class Message
     [Column("is_read")]
     public bool? IsRead { get; set; }
 
+    [Column("message_type")]
+    [MaxLength(20)]
+    public string MessageType { get; set; } = "TEXT";
+
+    [Column("booking_id")]
+    public Guid? BookingId { get; set; }
+
+    [ForeignKey("BookingId")]
+    public virtual Booking? Booking { get; set; }
+
     [Column("sent_at")]
     public DateTime SentAt { get; set; }
 
