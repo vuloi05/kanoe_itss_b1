@@ -39,10 +39,16 @@ Dưới đây là template đầy đủ — copy và thay thế các giá trị 
 
 ```env
 # ===================================
-# DATABASE CONNECTION STRING
+# DATABASE (Docker)
 # ===================================
-# See "Cấu hình Supabase" section below for how to get this value.
-ConnectionStrings__DefaultConnection=Host=db.<project-ref>.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=<your-db-password>;Trust Server Certificate=true
+POSTGRES_DB=VietImmerse_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<your_db_password>
+
+# ===================================
+# BACKEND CONNECTION STRING
+# ===================================
+DATABASE_CONNECTION_STRING=Host=db;Port=5432;Database=VietImmerse_db;Username=postgres;Password=<your_db_password>
 
 # ===================================
 # JWT AUTHENTICATION
@@ -155,39 +161,29 @@ CLOUDINARY_API_SECRET=<your_api_secret>
 >
 > **Free Tier:** Cloudinary cho phép **25,000 transformations** và **25 GB storage** mỗi tháng — đủ cho môi trường development và staging.
 
-#### Cấu hình Supabase (Cơ sở dữ liệu)
+#### Docker Context
 
-Dự án sử dụng **Supabase (hosted PostgreSQL)** làm cơ sở dữ liệu chính. Backend sẽ tự động kết nối và chạy migration khi khởi động. Tính năng **Realtime** của Supabase **không còn được sử dụng** — hệ thống đã chuyển sang SignalR.
+File `docker-compose.yml` đã được cấu hình với `env_file: .env` cho tất cả các service (`db`, `backend`, `frontend`). Khi chạy:
 
-**Các bước lấy Connection String từ Supabase:**
-
-1. Đăng nhập tại [supabase.com](https://supabase.com/) và mở project của bạn.
-2. Vào **Project Settings** (biểu tượng bánh răng ở thanh bên trái).
-3. Chọn tab **Database**.
-4. Cuộn xuống mục **Connection string** → chọn tab **URI**.
-5. Copy chuỗi kết nối, sau đó **chuyển đổi sang định dạng Npgsql** (EF Core dùng Npgsql, không phải URI chuẩn):
-
-```env
-# Supabase cung cấp (URI format):
-# postgresql://postgres:<password>@db.<ref>.supabase.co:5432/postgres
-
-# Chuyển sang Npgsql format cho .env:
-ConnectionStrings__DefaultConnection=Host=db.<ref>.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=<password>;Trust Server Certificate=true
+```bash
+docker-compose up --build
 ```
 
-> [!TIP]
-> **Direct vs Pooler connection:**
->
-> - **Direct** (`db.<ref>.supabase.co:5432`): Dùng cho migration và backend thông thường — **khuyến nghị**.
-> - **Pooler Transaction** (`aws-0-<region>.pooler.supabase.co:6543`): Dùng cho serverless/edge functions. Thêm `Pooling=true` vào connection string nếu dùng.
-> [!WARNING]
-> **Bảo mật Connection String**
->
-> - Connection string chứa database password — **KHÔNG commit** lên repository.
-> - Đảm bảo `.env` đã nằm trong `.gitignore` (đã cấu hình sẵn).
-> - Nếu bị lộ, reset password ngay tại: Supabase Dashboard → Project Settings → Database → Reset database password.
+Docker Compose sẽ **tự động đọc toàn bộ biến** từ file `.env` tại root project và inject vào các container tương ứng — bạn không cần truyền biến thủ công.
 
-#### 2. Chạy backend
+> [!NOTE]
+> Trong `DATABASE_CONNECTION_STRING`, giá trị `Host=db` trỏ đến tên service `db` trong Docker network (không phải `localhost`). Khi chạy backend **ngoài Docker** (bare-metal), đổi thành `Host=localhost`.
+
+#### 2. Tạo database
+
+```bash
+# Mở psql và tạo database (nếu chưa có)
+psql -U postgres -h localhost -p 5432
+CREATE DATABASE "VietImmerse_db";
+\q
+```
+
+#### 3. Chạy backend
 
 ```bash
 cd backend/backend
@@ -260,12 +256,10 @@ kanoe_itss_b1/
 │       ├── contexts/
 │       │   └── LanguageContext.tsx     # i18n (Vi/Ja)
 │       ├── hooks/
-│       │   ├── useSignalR.ts           # SignalR connection lifecycle hook
 │       │   └── useForgotPassword.ts
 │       └── lib/
 │           ├── api.ts                  # API client & endpoints
 │           ├── auth.tsx                # AuthProvider & useAuth hook
-│           ├── chatUtils.ts            # Chat utilities & offline queue
 │           └── cropImage.ts            # Canvas crop utility
 ├── docker-compose.yml
 ├── .env.example                        # Template biến môi trường
@@ -317,7 +311,6 @@ kanoe_itss_b1/
 - **Framework**: Next.js 16 + React 19 + TypeScript
 - **Styling**: Tailwind CSS v4
 - **Component**: React Server/Client Components (App Router)
-- **Realtime**: SignalR (WebSockets) thông qua .NET Backend cho nhắn tin và thông báo đặt lịch realtime
 - **File naming**: `PascalCase.tsx` cho components, `page.tsx` cho routes
 - **Commit**: Conventional Commits (`feat:`, `fix:`, `docs:`, ...)
 

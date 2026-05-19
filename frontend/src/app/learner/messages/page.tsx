@@ -1,11 +1,13 @@
 "use client";
+import Image from "next/image";
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
-import { useState, useEffect, useRef, useCallback, type Dispatch, type SetStateAction } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePresence } from "@/contexts/PresenceContext";
 import { useAuth } from "@/lib/auth";
-import { messageApi, bookingApi, type ConversationDto, type BookingDto } from "@/lib/api";
+import { messageApi, bookingApi, type ConversationDto, type MessageDto, type BookingDto } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 import {
   type LocalMessage,
   formatMessageTime,
@@ -15,7 +17,6 @@ import {
   useLazyLoadMessages,
   isMeetLink,
 } from "@/lib/chatUtils";
-import { useSignalR, type BookingEventPayload } from "@/hooks/useSignalR";
 
 export default function LearnerMessagesPage() {
   const [activeConvIdx, setActiveConvIdx] = useState(0);
@@ -34,13 +35,13 @@ export default function LearnerMessagesPage() {
   const [acceptingId, setAcceptingId] = useState<string|null>(null);
   const [decliningId, setDecliningId] = useState<string|null>(null);
 
-  const showToast = useCallback((message: string, type: "success" | "error" | "warning") => {
+  const showToast = (message: string, type: "success" | "error" | "warning") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
-  }, []);
+  };
 
   // Offline queue hook
-  const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations as Dispatch<SetStateAction<ConversationDto[]>>);
+  const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations as any);
 
   // Lazy load hook
   const { sentinelRef, isLoadingMore, hasMore, resetPagination } =
@@ -53,54 +54,6 @@ export default function LearnerMessagesPage() {
       .then((data) => setConversations(data))
       .catch(console.error);
   }, []);
-
-  // Set up SignalR hook
-  const handleReceiveMessage = useCallback((newMsg: LocalMessage) => {
-    newMsg._sendStatus = "sent";
-    setMessages(prev => {
-      // Replace optimistic temp message if server ACK arrives
-      const withoutTemp = prev.filter(
-        m => !(m._tempId && m.content === newMsg.content && m.senderId === newMsg.senderId)
-      );
-      if (withoutTemp.find(m => m.messageId === newMsg.messageId)) return withoutTemp;
-      return [newMsg, ...withoutTemp];
-    });
-    
-    // Update last message in conversation list
-    setConversations(prev => {
-      const copy = [...prev];
-      const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
-      if (idx >= 0) {
-        copy[idx].lastMessage = newMsg.content;
-        copy[idx].lastMessageTime = newMsg.timestamp;
-      }
-      return copy;
-    });
-  }, []);
-
-  // Handler: booking lifecycle events pushed by BookingService via SignalR
-  const handleReceiveBookingEvent = useCallback((payload: BookingEventPayload) => {
-    const { eventType, booking } = payload;
-
-    if (eventType === "lesson_request") {
-      // Add new booking card if it doesn't already exist
-      setBookingCards(prev => {
-        if (prev.find(b => b.bookingId === booking.bookingId)) return prev;
-        return [booking, ...prev];
-      });
-      showToast(t("Đề xuất buổi học mới!", "新しいレッスンの提案！"), "success");
-    } else if (eventType === "lesson_cancelled") {
-      // Remove the cancelled booking card from the list
-      setBookingCards(prev => prev.filter(b => b.bookingId !== booking.bookingId));
-      showToast(t("Đối tác đã hủy buổi học.", "パートナーがレッスンをキャンセルしました。"), "warning");
-    }
-  }, [showToast, t]);
-
-  const { startConnection, stopConnection } = useSignalR({
-    getToken: () => localStorage.getItem("auth_token"),
-    onReceiveMessage: handleReceiveMessage,
-    onReceiveBookingEvent: handleReceiveBookingEvent,
-  });
 
   const activeConv = conversations[activeConvIdx];
 
@@ -134,13 +87,57 @@ export default function LearnerMessagesPage() {
       .then(data => setBookingCards(data))
       .catch(console.error);
 
-    // Connect to SignalR
-    startConnection();
+    // Subscribe to Supabase Realtime
+    const channel = supabase.channel(
+      `conversation-${activeConv.conversationId}`
+    );
+    channel
+      .on("broadcast", { event: "new_message" }, (payload: any) => {
+        const newMsg = payload.payload.message as LocalMessage;
+        newMsg._sendStatus = "sent";
+        setMessages((prev) => {
+          // Replace optimistic temp message if server ACK arrives
+          const withoutTemp = prev.filter(
+            (m) => !(m._tempId && m.content === newMsg.content && m.senderId === newMsg.senderId)
+          );
+          if (withoutTemp.find((m) => m.messageId === newMsg.messageId))
+            return withoutTemp;
+          return [newMsg, ...withoutTemp];
+        });
+
+        // Update last message in conversation list
+        setConversations((prev) => {
+          const copy = [...prev];
+          const idx = copy.findIndex(
+            (c) => c.conversationId === newMsg.conversationId
+          );
+          if (idx >= 0) {
+            copy[idx].lastMessage = newMsg.content;
+            copy[idx].lastMessageTime = newMsg.timestamp;
+          }
+          return copy;
+        });
+      })
+      // Listen for lesson lifecycle events
+      .on("broadcast", { event: "lesson_request" }, (payload: any) => {
+        const booking = payload.payload.booking as BookingDto;
+        setBookingCards(prev => {
+          if (prev.find(b => b.bookingId === booking.bookingId)) return prev;
+          return [booking, ...prev];
+        });
+        showToast(t("Đề xuất buổi học mới!", "新しいレッスンの提案！"), "success");
+      })
+      .on("broadcast", { event: "lesson_cancelled" }, (payload: any) => {
+        const booking = payload.payload.booking as BookingDto;
+        setBookingCards(prev => prev.filter(b => b.bookingId !== booking.bookingId));
+        showToast(t("Đối tác đã hủy buổi học.", "パートナーがレッスンをキャンセルしました。"), "warning");
+      })
+      .subscribe();
 
     return () => {
-      stopConnection();
+      supabase.removeChannel(channel);
     };
-  }, [activeConv, activeConvIdx, resetPagination, startConnection, stopConnection]);
+  }, [activeConv, activeConvIdx]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

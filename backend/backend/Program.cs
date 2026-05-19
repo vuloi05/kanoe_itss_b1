@@ -1,10 +1,10 @@
 using System.Text;
-using backend.Hubs;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Supabase;
 
 // Load .env from project root (shared config for all services)
 var rootEnvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
@@ -17,8 +17,7 @@ if (File.Exists(".env"))
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Reads ConnectionStrings__DefaultConnection from env (Docker/Supabase) or appsettings.json fallback
-var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<VietImmerseDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -43,25 +42,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ClockSkew = TimeSpan.Zero,
         };
-
-        // SignalR WebSocket transports cannot send custom HTTP headers after the
-        // initial upgrade, so the client appends ?access_token=<jwt> to the URL.
-        // This event reads it and places it into the Authorization context.
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    path.StartsWithSegments("/chathub"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
     });
 builder.Services.AddAuthorization();
 
@@ -73,12 +53,23 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IPhotoService, CloudinaryPhotoService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
-
-// SignalR — registers the hub infrastructure and WebSocket support
-builder.Services.AddSignalR();
-// Singleton presence tracker: shared across all ChatHub instances
-builder.Services.AddSingleton<backend.Hubs.PresenceTracker>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
+
+// Supabase Realtime (Broadcasting)
+var supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") 
+    ?? builder.Configuration["Supabase:Url"];
+var supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") 
+    ?? builder.Configuration["Supabase:Key"];
+
+if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(supabaseKey))
+{
+    var supabaseOptions = new SupabaseOptions
+    {
+        AutoRefreshToken = true,
+        AutoConnectRealtime = true
+    };
+    builder.Services.AddSingleton(provider => new Client(supabaseUrl, supabaseKey, supabaseOptions));
+}
 
 // CORS: allow frontend dev server
 builder.Services.AddCors(options =>
@@ -113,20 +104,21 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ---- SAFE AUTO-MIGRATE ON STARTUP ----
-// MigrateAsync() only applies migrations not yet in __EFMigrationsHistory.
-// It NEVER drops columns or tables — existing data is always preserved.
-await using (var scope = app.Services.CreateAsyncScope())
+// ---- AUTO-MIGRATE & KIỂM TRA KẾT NỐI DATABASE ----
+using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
         var context = services.GetRequiredService<VietImmerseDbContext>();
 
-        logger.LogInformation("Đang kiểm tra và cập nhật Database...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Database đã được cập nhật thành công.");
+        // Apply pending migrations on startup (creates tables in fresh Docker DB)
+        context.Database.Migrate();
+
+        Console.WriteLine("==================================================");
+        Console.WriteLine("🎉 KẾT NỐI DATABASE POSTGRESQL THÀNH CÔNG! 🎉");
+        Console.WriteLine("📦 Migrations applied successfully.");
+        Console.WriteLine("==================================================");
 
         // Seed sample learner account (idempotent – skips if already exists)
         const string sampleLearnerEmail = "abc@gmail.com";
@@ -143,7 +135,7 @@ await using (var scope = app.Services.CreateAsyncScope())
                 UpdatedAt = DateTime.UtcNow,
             };
             context.Users.Add(user);
-            await context.SaveChangesAsync();
+            context.SaveChanges();
 
             var learnerProfile = new backend.Models.LearnerProfile
             {
@@ -153,9 +145,9 @@ await using (var scope = app.Services.CreateAsyncScope())
                 UpdatedAt = DateTime.UtcNow,
             };
             context.LearnerProfiles.Add(learnerProfile);
-            await context.SaveChangesAsync();
+            context.SaveChanges();
 
-            logger.LogInformation("Seeded learner account: {Email}", sampleLearnerEmail);
+            Console.WriteLine($"🌱 Seeded learner account: {sampleLearnerEmail}");
         }
 
         // Seed sample partner account (idempotent – skips if already exists)
@@ -173,7 +165,7 @@ await using (var scope = app.Services.CreateAsyncScope())
                 UpdatedAt = DateTime.UtcNow,
             };
             context.Users.Add(partnerUser);
-            await context.SaveChangesAsync();
+            context.SaveChanges();
 
             var partnerProfile = new backend.Models.PartnerProfile
             {
@@ -183,15 +175,15 @@ await using (var scope = app.Services.CreateAsyncScope())
                 UpdatedAt = DateTime.UtcNow,
             };
             context.PartnerProfiles.Add(partnerProfile);
-            await context.SaveChangesAsync();
+            context.SaveChanges();
 
-            logger.LogInformation("Seeded partner account: {Email}", samplePartnerEmail);
+            Console.WriteLine($"🌱 Seeded partner account: {samplePartnerEmail}");
         }
 
         // Seed sample conversation between learner and partner
         var learner = context.Users.FirstOrDefault(u => u.Email == "abc@gmail.com");
         var partner = context.Users.FirstOrDefault(u => u.Email == "doitac@gmail.com");
-
+        
         if (learner != null && partner != null && !context.Conversations.Any(c => c.LearnerId == learner.UserId && c.PartnerId == partner.UserId))
         {
             var conversation = new backend.Models.Conversation
@@ -201,24 +193,19 @@ await using (var scope = app.Services.CreateAsyncScope())
                 CreatedAt = DateTime.UtcNow
             };
             context.Conversations.Add(conversation);
-            await context.SaveChangesAsync();
-            logger.LogInformation("Seeded conversation between {Learner} and {Partner} (ID: {Id})",
-                learner.Email, partner.Email, conversation.ConversationId);
+            context.SaveChanges();
+            Console.WriteLine($"🌱 Seeded conversation between {learner.Email} and {partner.Email} (ID: {conversation.ConversationId})");
         }
     }
     catch (Exception ex)
     {
-        // Log full exception chain to console for easy Docker log debugging
-        var logger2 = services.GetRequiredService<ILogger<Program>>();
-        logger2.LogError(ex, "FATAL: Database migration or seeding failed. Application will exit.");
-        throw; // Re-throw so the container exits with non-zero code and is visible in orchestrators
+        Console.WriteLine("==================================================");
+        Console.WriteLine($"❌ ĐÃ XẢY RA LỖI KHI KẾT NỐI DATABASE: {ex.Message}");
+        Console.WriteLine("==================================================");
     }
 }
-// -----------------------------------------------
+// ---------------------------------------------
 
 app.MapControllers();
-
-// Map the SignalR hub endpoint
-app.MapHub<ChatHub>("/chathub");
 
 app.Run();
