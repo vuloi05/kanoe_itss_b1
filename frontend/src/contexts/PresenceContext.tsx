@@ -1,14 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
-import { useAuth } from "@/lib/auth";
-import {
-  HubConnectionBuilder,
-  HubConnection,
-  LogLevel,
-} from "@microsoft/signalr";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { userApi } from "@/lib/api";
 
-const HUB_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"}/chathub`;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface PresenceContextType {
   onlineUserIds: Set<string>;
@@ -23,66 +21,64 @@ const PresenceContext = createContext<PresenceContextType>({
 export const usePresence = () => useContext(PresenceContext);
 
 export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
-  const connectionRef = useRef<HubConnection | null>(null);
-
-  const isUserOnline = useCallback(
-    (userId: string) => onlineUserIds.has(userId),
-    [onlineUserIds]
-  );
 
   useEffect(() => {
-    if (!user) return;
+    // 1. Tell the backend we are online (updates DB)
+    userApi.updatePresence(true).catch(console.error);
 
-    const token = localStorage.getItem("auth_token");
-    if (!token) return;
-
-    const connection = new HubConnectionBuilder()
-      .withUrl(HUB_URL, {
-        accessTokenFactory: () => localStorage.getItem("auth_token") ?? "",
+    // 2. Subscribe to global presence channel to receive real-time updates of OTHERS
+    const channel = supabase.channel("global-presence");
+    
+    channel
+      .on("broadcast", { event: "USER_ONLINE" }, (payload) => {
+        if (payload.payload?.userId) {
+          setOnlineUserIds((prev) => {
+            const next = new Set(prev);
+            next.add(payload.payload.userId);
+            return next;
+          });
+        }
       })
-      .withAutomaticReconnect([0, 2000, 5000, 10000])
-      .configureLogging(
-        process.env.NODE_ENV === "development" ? LogLevel.Information : LogLevel.Error
-      )
-      .build();
+      .on("broadcast", { event: "USER_OFFLINE" }, (payload) => {
+        if (payload.payload?.userId) {
+          setOnlineUserIds((prev) => {
+            const next = new Set(prev);
+            next.delete(payload.payload.userId);
+            return next;
+          });
+        }
+      })
+      .subscribe();
 
-    // Server sends the full online list right after connection is established
-    connection.on("GetOnlineUsers", (userIds: string[]) => {
-      setOnlineUserIds(new Set(userIds));
-    });
+    // 3. Handle page close/unload
+    const handleBeforeUnload = () => {
+      // Beacon or sync fetch to tell backend we are offline
+      // fetch API with keepalive is best for beforeunload
+      const token = localStorage.getItem("token");
+      if (token) {
+        fetch("/api/users/presence", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ isOnline: false }),
+          keepalive: true
+        }).catch(() => {});
+      }
+    };
 
-    // Another user just came online (their first connection)
-    connection.on("UserIsOnline", (userId: string) => {
-      setOnlineUserIds((prev) => new Set(prev).add(userId));
-    });
-
-    // Another user went fully offline (all tabs/devices closed)
-    connection.on("UserIsOffline", (userId: string) => {
-      setOnlineUserIds((prev) => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    });
-
-    connection.onclose(() => {
-      setOnlineUserIds(new Set());
-    });
-
-    connectionRef.current = connection;
-
-    connection.start().catch((err) => {
-      console.error("[PresenceContext] SignalR connection failed:", err);
-    });
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      connection.stop().catch(() => {});
-      connectionRef.current = null;
-      setOnlineUserIds(new Set());
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      supabase.removeChannel(channel);
+      userApi.updatePresence(false).catch(console.error);
     };
-  }, [user]);
+  }, []);
+
+  const isUserOnline = (userId: string) => onlineUserIds.has(userId);
 
   return (
     <PresenceContext.Provider value={{ onlineUserIds, isUserOnline }}>
