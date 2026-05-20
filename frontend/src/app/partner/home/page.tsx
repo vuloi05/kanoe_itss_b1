@@ -1,12 +1,46 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PartnerNavbar from "@/components/layout/PartnerNavbar";
 import PartnerBottomNav from "@/components/layout/PartnerBottomNav";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/lib/auth";
+import { bookingApi, type BookingDto } from "@/lib/api";
+
+// Convert UTC datetime string to Hanoi time (GMT+7) display string
+function formatHanoiTime(utcDateStr: string): string {
+  const date = new Date(utcDateStr);
+  return date.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
+}
 
 export default function PartnerHomePage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [nextLesson, setNextLesson] = useState<BookingDto | null>(null);
+  const [isLoadingLesson, setIsLoadingLesson] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    bookingApi.getUpcomingBookings()
+      .then((bookings) => {
+        if (!cancelled) {
+          setNextLesson(bookings.length > 0 ? bookings[0] : null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setNextLesson(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingLesson(false);
+      });
+
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen pb-20 md:pb-0">
@@ -20,7 +54,10 @@ export default function PartnerHomePage() {
               {t("XÁC MINH GIỌNG BẮC", "北部訛り認定済")}
             </div>
             <h1 className="text-4xl md:text-5xl font-headline font-extrabold text-primary tracking-tight leading-tight">
-              {t("Chào mừng trở lại, Minh Anh!", "お帰りなさい、ミン・アンさん！")}
+              {t(
+                `Chào mừng trở lại, ${user?.displayName ?? "Partner"}!`,
+                `お帰りなさい、${user?.displayName ?? "パートナー"}さん！`
+              )}
             </h1>
           </div>
           <div className="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl">
@@ -43,24 +80,54 @@ export default function PartnerHomePage() {
             <div className="relative z-10 flex-1">
               <div className="flex items-center gap-4 mb-6">
                 <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-xs font-bold uppercase tracking-widest">{t("BUỔI DẠY TIẾP THEO", "次のレッスン")}</span>
-                <span className="flex items-center gap-1 text-sm font-medium text-primary-fixed">
-                  <span className="material-symbols-outlined text-sm">schedule</span> 14:00 - 15:00
-                </span>
+                {nextLesson && (
+                  <span className="flex items-center gap-1 text-sm font-medium text-primary-fixed">
+                    <span className="material-symbols-outlined text-sm">schedule</span>
+                    {formatHanoiTime(nextLesson.startTime)} - {formatHanoiTime(nextLesson.endTime)}
+                  </span>
+                )}
               </div>
-              <div className="flex items-center gap-6">
-                <img alt="Student Avatar" className="w-20 h-20 rounded-2xl object-cover border-2 border-white/30 shadow-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0JoaeUqQ2H6KLevScWQJBGH4tyUvYcDKUTM7ZIG3KezsoCLH7-CPUDObUY2uH-z1gEqHDdckWcx2VKQiCN45jpoF5JIuUFyajgUSWPVVxM5zv1Hyhj1QKKRlHTAGtslcNw750y70FU_LgrfAK5VEp_TCM2VbRSbNkhYpOQMHhTeQH93fTq-mthaESD7WZd8hhjl-DmLr9dn2fK9C-ThEiv4a1LCNpfPlcD8qWmn-f1eHdHidCxTu5AnVZH64VMzR3fkaSmc3aTlY" />
-                <div>
-                  <h2 className="text-3xl font-headline font-bold">Kenji Sato</h2>
-                  <p className="text-primary-fixed/80 font-body text-lg">Hanoi Dialect Mastery: Lesson 12</p>
+
+              {isLoadingLesson ? (
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-2xl bg-white/10 animate-pulse" />
+                  <div className="space-y-3">
+                    <div className="h-6 w-40 bg-white/10 rounded animate-pulse" />
+                    <div className="h-4 w-56 bg-white/10 rounded animate-pulse" />
+                  </div>
                 </div>
+              ) : nextLesson ? (
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 rounded-2xl bg-white/20 border-2 border-white/30 shadow-lg flex items-center justify-center">
+                    <span className="material-symbols-outlined text-4xl text-white/80">person</span>
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-headline font-bold">{nextLesson.learnerName}</h2>
+                    <p className="text-primary-fixed/80 font-body text-lg">
+                      {nextLesson.notes ?? t("Buổi học đã xác nhận", "確認済みレッスン")}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-4xl text-white/40">event_busy</span>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-headline font-bold text-white/70">{t("Chưa có buổi dạy", "レッスンなし")}</h2>
+                    <p className="text-primary-fixed/60 font-body text-lg">{t("Bạn chưa có buổi dạy nào sắp tới.", "今後のレッスン予定はありません。")}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            {nextLesson?.meetingUrl && (
+              <div className="relative z-10 w-full md:w-auto">
+                <a href={nextLesson.meetingUrl} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto px-10 py-5 bg-white text-primary font-headline font-extrabold rounded-2xl hover:bg-surface-bright transition-all active:scale-95 shadow-lg flex items-center justify-center gap-3 group">
+                  {t("VÀO LỚP", "入室")}
+                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
+                </a>
               </div>
-            </div>
-            <div className="relative z-10 w-full md:w-auto">
-              <button className="w-full md:w-auto px-10 py-5 bg-white text-primary font-headline font-extrabold rounded-2xl hover:bg-surface-bright transition-all active:scale-95 shadow-lg flex items-center justify-center gap-3 group">
-                {t("VÀO LỚP", "入室")}
-                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward_ios</span>
-              </button>
-            </div>
+            )}
           </div>
         </section>
 

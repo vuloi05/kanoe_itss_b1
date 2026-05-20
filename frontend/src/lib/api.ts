@@ -48,6 +48,7 @@ async function request<T>(endpoint: string, options: ApiOptions = {}): Promise<T
   return res.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function uploadRequest<T>(endpoint: string, formData: FormData): Promise<T> {
   const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
@@ -85,6 +86,9 @@ export const api = {
 
   put: <T>(endpoint: string, body?: unknown, options?: ApiOptions) =>
     request<T>(endpoint, { ...options, method: "PUT", body: JSON.stringify(body) }),
+
+  patch: <T>(endpoint: string, body?: unknown, options?: ApiOptions) =>
+    request<T>(endpoint, { ...options, method: "PATCH", body: JSON.stringify(body) }),
 
   delete: <T>(endpoint: string, options?: ApiOptions) =>
     request<T>(endpoint, { ...options, method: "DELETE" }),
@@ -147,6 +151,8 @@ export const userApi = {
   },
   updatePresence: (isOnline: boolean) =>
     api.post<{ isOnline: boolean; lastSeen: string }>("/api/users/presence", { isOnline }),
+  getOnlineUsers: () =>
+    api.get<string[]>("/api/users/presence"),
 };
 
 export interface ConversationDto {
@@ -177,6 +183,7 @@ export interface MessageDto {
   lessonEndTime?: string;
   lessonDuration?: number;
   lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+  meetingUrl?: string | null;
 }
 
 export const messageApi = {
@@ -211,14 +218,14 @@ export interface BookingDto {
 }
 
 export const bookingApi = {
-  createLessonRequest: (data: { learnerId: string; date: string; startTime: string; durationMinutes: number }) =>
+  createLessonRequest: (data: { learnerId: string; date: string; startTime: string; durationMinutes: number; notes?: string; meetingUrl?: string }) =>
     api.post<BookingDto>("/api/booking/request", data),
 
   acceptLessonRequest: (bookingId: string) =>
-    api.put<BookingDto>(`/api/booking/${bookingId}/accept`),
+    api.patch<BookingDto>(`/api/booking/${bookingId}/accept`),
 
   declineLessonRequest: (bookingId: string) =>
-    api.put<BookingDto>(`/api/booking/${bookingId}/decline`),
+    api.patch<BookingDto>(`/api/booking/${bookingId}/decline`),
 
   cancelLessonRequest: (bookingId: string) =>
     api.delete<BookingDto>(`/api/booking/${bookingId}`),

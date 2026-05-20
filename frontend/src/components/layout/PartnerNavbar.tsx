@@ -12,9 +12,9 @@ export default function PartnerNavbar() {
   const { t } = useLanguage();
 
   const navLinks = [
-    { name: t("Trang chủ / ホーム", "ホーム / Trang chủ"), href: "/partner/home" },
-    { name: t("Tin nhắn / メッセージ", "メッセージ / Tin nhắn"), href: "/partner/messages" },
-    { name: t("Cài đặt / 設定", "設定 / Cài đặt"), href: "/partner/settings" },
+    { name: t("Trang chủ", "ホーム"), href: "/partner/home" },
+    { name: t("Tin nhắn", "メッセージ"), href: "/partner/messages" },
+    { name: t("Cài đặt", "設定"), href: "/partner/settings" },
   ];
 
   return (

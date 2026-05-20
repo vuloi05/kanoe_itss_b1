@@ -161,7 +161,7 @@ export default function LearnerHomePage() {
               ))}
               {upcomingBookings.length === 0 && (
                 <div className="p-4 rounded-lg bg-surface-container-low/50 border border-outline-variant/20 text-center text-sm text-secondary italic">
-                  {t("Chưa có lịch hẹn nào / 予定はありません", "予定はありません / Chưa có lịch hẹn nào")}
+                  {t("Chưa có lịch hẹn nào", "予定はありません")}
                 </div>
               )}
             </div>

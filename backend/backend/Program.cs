@@ -1,10 +1,10 @@
 using System.Text;
+using backend.Hubs;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Supabase;
 
 // Load .env from project root (shared config for all services)
 var rootEnvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
@@ -17,7 +17,7 @@ if (File.Exists(".env"))
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<VietImmerseDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -42,6 +42,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ClockSkew = TimeSpan.Zero,
         };
+
+        // Allow SignalR to receive JWT from query string (WebSocket doesn't support Authorization header)
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 builder.Services.AddAuthorization();
 
@@ -55,21 +70,8 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
 
-// Supabase Realtime (Broadcasting)
-var supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") 
-    ?? builder.Configuration["Supabase:Url"];
-var supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") 
-    ?? builder.Configuration["Supabase:Key"];
-
-if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(supabaseKey))
-{
-    var supabaseOptions = new SupabaseOptions
-    {
-        AutoRefreshToken = true,
-        AutoConnectRealtime = true
-    };
-    builder.Services.AddSingleton(provider => new Client(supabaseUrl, supabaseKey, supabaseOptions));
-}
+// SignalR (Realtime Messaging — replaces Supabase Realtime)
+builder.Services.AddSignalR();
 
 // CORS: allow frontend dev server
 builder.Services.AddCors(options =>
@@ -104,108 +106,140 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ---- AUTO-MIGRATE & KIỂM TRA KẾT NỐI DATABASE ----
+// ---- AUTO-MIGRATE & DATABASE HEALTH CHECK ----
+const int maxRetries = 5;
+const int retryDelayMs = 3000;
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    for (int attempt = 1; attempt <= maxRetries; attempt++)
     {
-        var context = services.GetRequiredService<VietImmerseDbContext>();
-
-        // Apply pending migrations on startup (creates tables in fresh Docker DB)
-        context.Database.Migrate();
-
-        Console.WriteLine("==================================================");
-        Console.WriteLine("🎉 KẾT NỐI DATABASE POSTGRESQL THÀNH CÔNG! 🎉");
-        Console.WriteLine("📦 Migrations applied successfully.");
-        Console.WriteLine("==================================================");
-
-        // Seed sample learner account (idempotent – skips if already exists)
-        const string sampleLearnerEmail = "abc@gmail.com";
-        if (!context.Users.Any(u => u.Email == sampleLearnerEmail))
+        try
         {
-            var user = new backend.Models.User
-            {
-                Email = sampleLearnerEmail,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
-                DisplayName = "Học viên Demo",
-                Role = "learner",
-                AccountStatus = "active",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
-            context.Users.Add(user);
-            context.SaveChanges();
+            var context = services.GetRequiredService<VietImmerseDbContext>();
 
-            var learnerProfile = new backend.Models.LearnerProfile
-            {
-                UserId = user.UserId,
-                NativeLanguage = "ja",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
-            context.LearnerProfiles.Add(learnerProfile);
-            context.SaveChanges();
+            // Log pending migrations before applying
+            var pending = (await context.Database.GetPendingMigrationsAsync()).ToList();
+            var applied = (await context.Database.GetAppliedMigrationsAsync()).ToList();
 
-            Console.WriteLine($"🌱 Seeded learner account: {sampleLearnerEmail}");
+            logger.LogInformation("Database migration check: {Applied} applied, {Pending} pending",
+                applied.Count, pending.Count);
+
+            if (pending.Count > 0)
+            {
+                logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
+                    pending.Count, string.Join(", ", pending));
+            }
+
+            // Apply pending migrations (creates tables for fresh DB, adds columns for existing DB)
+            // Safe: EF Core only runs new migrations — never drops tables or deletes data
+            await context.Database.MigrateAsync();
+
+            Console.WriteLine("==================================================");
+            Console.WriteLine("🎉 KẾT NỐI DATABASE POSTGRESQL THÀNH CÔNG! 🎉");
+            Console.WriteLine($"📦 Migrations: {applied.Count} applied, {pending.Count} newly applied.");
+            Console.WriteLine("==================================================");
+
+            // Seed sample learner account (idempotent – skips if already exists)
+            const string sampleLearnerEmail = "abc@gmail.com";
+            if (!context.Users.Any(u => u.Email == sampleLearnerEmail))
+            {
+                var user = new backend.Models.User
+                {
+                    Email = sampleLearnerEmail,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
+                    DisplayName = "Học viên Demo",
+                    Role = "learner",
+                    AccountStatus = "active",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                context.Users.Add(user);
+                context.SaveChanges();
+
+                var learnerProfile = new backend.Models.LearnerProfile
+                {
+                    UserId = user.UserId,
+                    NativeLanguage = "ja",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                context.LearnerProfiles.Add(learnerProfile);
+                context.SaveChanges();
+
+                Console.WriteLine($"🌱 Seeded learner account: {sampleLearnerEmail}");
+            }
+
+            // Seed sample partner account (idempotent – skips if already exists)
+            const string samplePartnerEmail = "doitac@gmail.com";
+            if (!context.Users.Any(u => u.Email == samplePartnerEmail))
+            {
+                var partnerUser = new backend.Models.User
+                {
+                    Email = samplePartnerEmail,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
+                    DisplayName = "Đối tác Demo",
+                    Role = "partner",
+                    AccountStatus = "active",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                context.Users.Add(partnerUser);
+                context.SaveChanges();
+
+                var partnerProfile = new backend.Models.PartnerProfile
+                {
+                    UserId = partnerUser.UserId,
+                    Bio = "Tài khoản đối tác demo",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                context.PartnerProfiles.Add(partnerProfile);
+                context.SaveChanges();
+
+                Console.WriteLine($"🌱 Seeded partner account: {samplePartnerEmail}");
+            }
+
+            // Seed sample conversation between learner and partner
+            var learner = context.Users.FirstOrDefault(u => u.Email == "abc@gmail.com");
+            var partner = context.Users.FirstOrDefault(u => u.Email == "doitac@gmail.com");
+            
+            if (learner != null && partner != null && !context.Conversations.Any(c => c.LearnerId == learner.UserId && c.PartnerId == partner.UserId))
+            {
+                var conversation = new backend.Models.Conversation
+                {
+                    LearnerId = learner.UserId,
+                    PartnerId = partner.UserId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.Conversations.Add(conversation);
+                context.SaveChanges();
+                Console.WriteLine($"🌱 Seeded conversation between {learner.Email} and {partner.Email} (ID: {conversation.ConversationId})");
+            }
+
+            // Migration succeeded — break out of retry loop
+            break;
         }
-
-        // Seed sample partner account (idempotent – skips if already exists)
-        const string samplePartnerEmail = "doitac@gmail.com";
-        if (!context.Users.Any(u => u.Email == samplePartnerEmail))
+        catch (Exception ex) when (attempt < maxRetries)
         {
-            var partnerUser = new backend.Models.User
-            {
-                Email = samplePartnerEmail,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
-                DisplayName = "Đối tác Demo",
-                Role = "partner",
-                AccountStatus = "active",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
-            context.Users.Add(partnerUser);
-            context.SaveChanges();
-
-            var partnerProfile = new backend.Models.PartnerProfile
-            {
-                UserId = partnerUser.UserId,
-                Bio = "Tài khoản đối tác demo",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
-            context.PartnerProfiles.Add(partnerProfile);
-            context.SaveChanges();
-
-            Console.WriteLine($"🌱 Seeded partner account: {samplePartnerEmail}");
+            Console.WriteLine($"⚠️  Database connection attempt {attempt}/{maxRetries} failed: {ex.Message}");
+            Console.WriteLine($"    Retrying in {retryDelayMs}ms...");
+            Thread.Sleep(retryDelayMs);
         }
-
-        // Seed sample conversation between learner and partner
-        var learner = context.Users.FirstOrDefault(u => u.Email == "abc@gmail.com");
-        var partner = context.Users.FirstOrDefault(u => u.Email == "doitac@gmail.com");
-        
-        if (learner != null && partner != null && !context.Conversations.Any(c => c.LearnerId == learner.UserId && c.PartnerId == partner.UserId))
+        catch (Exception ex)
         {
-            var conversation = new backend.Models.Conversation
-            {
-                LearnerId = learner.UserId,
-                PartnerId = partner.UserId,
-                CreatedAt = DateTime.UtcNow
-            };
-            context.Conversations.Add(conversation);
-            context.SaveChanges();
-            Console.WriteLine($"🌱 Seeded conversation between {learner.Email} and {partner.Email} (ID: {conversation.ConversationId})");
+            Console.WriteLine("==================================================");
+            Console.WriteLine($"❌ ĐÃ XẢY RA LỖI KHI KẾT NỐI DATABASE: {ex.Message}");
+            Console.WriteLine("==================================================");
         }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("==================================================");
-        Console.WriteLine($"❌ ĐÃ XẢY RA LỖI KHI KẾT NỐI DATABASE: {ex.Message}");
-        Console.WriteLine("==================================================");
     }
 }
 // ---------------------------------------------
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

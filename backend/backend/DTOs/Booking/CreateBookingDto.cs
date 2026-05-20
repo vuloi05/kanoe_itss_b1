@@ -6,6 +6,8 @@ public class CreateBookingDto
     public string Date { get; set; } = null!;        // "2025-05-18"
     public string StartTime { get; set; } = null!;    // "15:00"
     public int DurationMinutes { get; set; }           // 30, 45, 60, 75, 90, 105, 120
+    public string? Notes { get; set; }
+    public string? MeetingUrl { get; set; }
 }
 
 public class BookingDto

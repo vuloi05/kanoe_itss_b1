@@ -1,5 +1,7 @@
 using backend.DTOs.Booking;
+using backend.Hubs;
 using backend.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
@@ -8,18 +10,16 @@ public class BookingService : IBookingService
 {
     private readonly VietImmerseDbContext _context;
     private readonly ILogger<BookingService> _logger;
-    private readonly string _supabaseUrl;
-    private readonly string _supabaseKey;
+    private readonly IHubContext<ChatHub> _hubContext;
 
     public BookingService(
         VietImmerseDbContext context,
         ILogger<BookingService> logger,
-        IConfiguration configuration)
+        IHubContext<ChatHub> hubContext)
     {
         _context = context;
         _logger = logger;
-        _supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") ?? configuration["Supabase:Url"] ?? "";
-        _supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") ?? configuration["Supabase:Key"] ?? "";
+        _hubContext = hubContext;
     }
 
     public async Task<BookingDto> CreateLessonRequestAsync(Guid partnerId, CreateBookingDto dto)
@@ -70,6 +70,8 @@ public class BookingService : IBookingService
             EndTime = endUtc,
             Status = "pending",
             ConversationId = conversation?.ConversationId,
+            Notes = dto.Notes,
+            MeetingUrl = dto.MeetingUrl,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -92,6 +94,11 @@ public class BookingService : IBookingService
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
 
+            // Convert UTC back to Hanoi Time (GMT+7) for display strings
+            var hanoiTz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            var startHanoi = TimeZoneInfo.ConvertTimeFromUtc(booking.StartTime, hanoiTz);
+            var endHanoi = TimeZoneInfo.ConvertTimeFromUtc(booking.EndTime, hanoiTz);
+
             messageDto = new backend.DTOs.Message.MessageDto
             {
                 MessageId = message.MessageId,
@@ -102,11 +109,12 @@ public class BookingService : IBookingService
                 IsRead = false,
                 Timestamp = message.SentAt,
                 LessonRequestId = booking.BookingId,
-                LessonDate = booking.StartTime.ToString("yyyy-MM-dd"),
-                LessonStartTime = booking.StartTime.ToString("HH:mm"),
-                LessonEndTime = booking.EndTime.ToString("HH:mm"),
+                LessonDate = startHanoi.ToString("yyyy-MM-dd"),
+                LessonStartTime = startHanoi.ToString("HH:mm"),
+                LessonEndTime = endHanoi.ToString("HH:mm"),
                 LessonDuration = (int)(booking.EndTime - booking.StartTime).TotalMinutes,
-                LessonStatus = booking.Status.ToUpper()
+                LessonStatus = booking.Status.ToUpper(),
+                MeetingUrl = booking.MeetingUrl
             };
         }
         else
@@ -116,10 +124,10 @@ public class BookingService : IBookingService
 
         var result = await MapToDtoAsync(booking);
 
-        // Broadcast LESSON_REQUEST_CREATED event to learner via Supabase Realtime
+        // Broadcast via SignalR
         if (conversation != null && messageDto != null)
         {
-            await BroadcastLessonEventAsync(conversation.ConversationId, "LESSON_REQUEST_CREATED", messageDto);
+            await BroadcastLessonEventAsync(conversation.ConversationId, "LessonRequestCreated", messageDto);
         }
 
         return result;
@@ -144,7 +152,7 @@ public class BookingService : IBookingService
 
         if (booking.ConversationId.HasValue)
         {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_ACCEPTED", new { lesson_request_id = booking.BookingId, new_status = "ACCEPTED" });
+            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LessonAccepted", new { lesson_request_id = booking.BookingId, new_status = "ACCEPTED" });
         }
 
         return result;
@@ -169,7 +177,7 @@ public class BookingService : IBookingService
 
         if (booking.ConversationId.HasValue)
         {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_DECLINED", new { lesson_request_id = booking.BookingId, new_status = "DECLINED" });
+            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LessonDeclined", new { lesson_request_id = booking.BookingId, new_status = "DECLINED" });
         }
 
         return result;
@@ -195,7 +203,7 @@ public class BookingService : IBookingService
 
         if (booking.ConversationId.HasValue)
         {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LESSON_CANCELLED", new { lesson_request_id = booking.BookingId, new_status = "CANCELLED" });
+            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LessonCancelled", new { lesson_request_id = booking.BookingId, new_status = "CANCELLED" });
         }
 
         return result;
@@ -227,13 +235,15 @@ public class BookingService : IBookingService
         });
     }
 
-    public async Task<IEnumerable<BookingDto>> GetUpcomingBookingsAsync(Guid learnerId)
+    public async Task<IEnumerable<BookingDto>> GetUpcomingBookingsAsync(Guid userId)
     {
         var now = DateTime.UtcNow;
+        // Support both partner and learner viewing upcoming lessons
         var bookings = await _context.Bookings
             .Include(b => b.Learner)
             .Include(b => b.Partner)
-            .Where(b => b.LearnerId == learnerId && b.Status == "confirmed" && b.StartTime > now)
+            .Where(b => (b.LearnerId == userId || b.PartnerId == userId)
+                        && b.Status == "confirmed" && b.StartTime > now)
             .OrderBy(b => b.StartTime)
             .Take(3)
             .ToListAsync();
@@ -284,34 +294,15 @@ public class BookingService : IBookingService
 
     private async Task BroadcastLessonEventAsync(Guid conversationId, string eventType, object payloadObj)
     {
-        if (string.IsNullOrEmpty(_supabaseUrl) || string.IsNullOrEmpty(_supabaseKey))
-            return;
-
         try
         {
-            var channelName = $"conversation-{conversationId}";
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("apikey", _supabaseKey);
-
-            var payload = new
-            {
-                messages = new[]
-                {
-                    new
-                    {
-                        topic = channelName,
-                        @event = eventType,
-                        payload = payloadObj
-                    }
-                }
-            };
-
-            var url = $"{_supabaseUrl.TrimEnd('/')}/realtime/v1/api/broadcast";
-            await client.PostAsJsonAsync(url, payload);
+            await _hubContext.Clients
+                .Group($"conversation-{conversationId}")
+                .SendAsync(eventType, payloadObj);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to broadcast {EventType} to Supabase Realtime.", eventType);
+            _logger.LogError(ex, "Failed to broadcast {EventType} via SignalR.", eventType);
         }
     }
 }

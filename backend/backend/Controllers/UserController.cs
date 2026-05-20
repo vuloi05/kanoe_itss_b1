@@ -1,10 +1,11 @@
 using System.Security.Claims;
+using backend.Hubs;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Net.Http.Json;
 
 namespace backend.Controllers;
 
@@ -20,17 +21,17 @@ public class UserController : ControllerBase
     private readonly VietImmerseDbContext _db;
     private readonly IPhotoService _photoService;
     private readonly ILogger<UserController> _logger;
-    private readonly IConfiguration _configuration;
+    private readonly IHubContext<ChatHub> _hubContext;
 
     public UserController(
         VietImmerseDbContext db,
         IPhotoService photoService,
-        IConfiguration configuration,
+        IHubContext<ChatHub> hubContext,
         ILogger<UserController> logger)
     {
         _db = db;
         _photoService = photoService;
-        _configuration = configuration;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -111,40 +112,36 @@ public class UserController : ControllerBase
         user.LastSeen = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
-        // Broadcast to Supabase
-        var supabaseUrl = _configuration["Supabase:Url"];
-        var supabaseKey = _configuration["Supabase:ServiceRoleKey"];
-        
-        if (!string.IsNullOrEmpty(supabaseUrl) && !string.IsNullOrEmpty(supabaseKey))
+        // Broadcast presence via SignalR
+        try
         {
-            try
-            {
-                using var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("apikey", supabaseKey);
-
-                var payload = new
-                {
-                    messages = new[]
-                    {
-                        new
-                        {
-                            topic = "global-presence",
-                            @event = dto.IsOnline ? "USER_ONLINE" : "USER_OFFLINE",
-                            payload = new { userId = user.UserId, role = user.Role, lastSeen = user.LastSeen }
-                        }
-                    }
-                };
-
-                var url = $"{supabaseUrl.TrimEnd('/')}/realtime/v1/api/broadcast";
-                await client.PostAsJsonAsync(url, payload);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to broadcast presence for user {UserId}", userId);
-            }
+            var eventName = dto.IsOnline ? "UserOnline" : "UserOffline";
+            await _hubContext.Clients
+                .Group("global-presence")
+                .SendAsync(eventName, new { userId = user.UserId, role = user.Role, lastSeen = user.LastSeen });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast presence for user {UserId}", userId);
         }
 
         return Ok(new { isOnline = user.IsOnline, lastSeen = user.LastSeen });
+    }
+
+    /// <summary>
+    /// Retrieve list of online users
+    /// </summary>
+    [Authorize]
+    [HttpGet("presence")]
+    public async Task<IActionResult> GetOnlineUsers()
+    {
+        // Get only the user IDs to minimize payload
+        var onlineUserIds = await _db.Users
+            .Where(u => u.IsOnline == true)
+            .Select(u => u.UserId)
+            .ToListAsync();
+            
+        return Ok(onlineUserIds);
     }
 
     private Guid GetCurrentUserId()

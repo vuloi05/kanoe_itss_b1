@@ -1,7 +1,8 @@
 using backend.DTOs.Message;
+using backend.Hubs;
 using backend.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Supabase;
 
 namespace backend.Services;
 
@@ -10,20 +11,18 @@ public class MessageService : IMessageService
     private readonly VietImmerseDbContext _context;
     private readonly ILogger<MessageService> _logger;
     private readonly ITranslationService _translationService;
-    private readonly string _supabaseUrl;
-    private readonly string _supabaseKey;
+    private readonly IHubContext<ChatHub> _hubContext;
 
     public MessageService(
         VietImmerseDbContext context, 
         ILogger<MessageService> logger, 
-        IConfiguration configuration,
-        ITranslationService translationService)
+        ITranslationService translationService,
+        IHubContext<ChatHub> hubContext)
     {
         _context = context;
         _logger = logger;
         _translationService = translationService;
-        _supabaseUrl = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_URL") ?? configuration["Supabase:Url"] ?? "";
-        _supabaseKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_SUPABASE_ANON_KEY") ?? configuration["Supabase:Key"] ?? "";
+        _hubContext = hubContext;
     }
 
     public async Task<IEnumerable<ConversationDto>> GetConversationsAsync(Guid userId)
@@ -65,12 +64,27 @@ public class MessageService : IMessageService
 
     public async Task<IEnumerable<MessageDto>> GetMessagesAsync(Guid conversationId, int page, int pageSize)
     {
-        return await _context.Messages
+        var hanoiTz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+        // Materialize first so timezone conversion runs in-memory, not in SQL
+        var rawMessages = await _context.Messages
+            .Include(m => m.Booking)
             .Where(m => m.ConversationId == conversationId)
             .OrderByDescending(m => m.SentAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(m => new MessageDto
+            .ToListAsync();
+
+        return rawMessages.Select(m =>
+        {
+            DateTime? startHanoi = m.Booking != null
+                ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(m.Booking.StartTime, DateTimeKind.Utc), hanoiTz)
+                : null;
+            DateTime? endHanoi = m.Booking != null
+                ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(m.Booking.EndTime, DateTimeKind.Utc), hanoiTz)
+                : null;
+
+            return new MessageDto
             {
                 MessageId = m.MessageId,
                 ConversationId = (Guid)m.ConversationId!,
@@ -81,13 +95,14 @@ public class MessageService : IMessageService
                 IsRead = m.IsRead ?? false,
                 Timestamp = m.SentAt,
                 LessonRequestId = m.BookingId,
-                LessonDate = m.Booking != null ? m.Booking.StartTime.ToString("yyyy-MM-dd") : null,
-                LessonStartTime = m.Booking != null ? m.Booking.StartTime.ToString("HH:mm") : null,
-                LessonEndTime = m.Booking != null ? m.Booking.EndTime.ToString("HH:mm") : null,
+                LessonDate = startHanoi?.ToString("yyyy-MM-dd"),
+                LessonStartTime = startHanoi?.ToString("HH:mm"),
+                LessonEndTime = endHanoi?.ToString("HH:mm"),
                 LessonDuration = m.Booking != null ? (int)(m.Booking.EndTime - m.Booking.StartTime).TotalMinutes : null,
-                LessonStatus = m.Booking != null ? m.Booking.Status.ToUpper() : null
-            })
-            .ToListAsync();
+                LessonStatus = m.Booking != null ? m.Booking.Status.ToUpper() : null,
+                MeetingUrl = m.Booking?.MeetingUrl
+            };
+        }).ToList();
     }
 
     public async Task<MessageDto> SendMessageAsync(Guid senderId, Guid conversationId, string text)
@@ -128,35 +143,16 @@ public class MessageService : IMessageService
             Timestamp = (DateTime)message.SentAt!
         };
 
-        // Broadcast to Supabase Realtime channel using HTTP API
-        if (!string.IsNullOrEmpty(_supabaseUrl) && !string.IsNullOrEmpty(_supabaseKey))
+        // Broadcast via SignalR to conversation group
+        try
         {
-            try
-            {
-                var channelName = $"conversation-{conversationId}";
-                using var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("apikey", _supabaseKey);
-                
-                var payload = new
-                {
-                    messages = new[]
-                    {
-                        new
-                        {
-                            topic = channelName,
-                            @event = "new_message",
-                            payload = new { message = messageDto }
-                        }
-                    }
-                };
-
-                var url = $"{_supabaseUrl.TrimEnd('/')}/realtime/v1/api/broadcast";
-                await client.PostAsJsonAsync(url, payload);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to broadcast message to Supabase Realtime.");
-            }
+            await _hubContext.Clients
+                .Group($"conversation-{conversationId}")
+                .SendAsync("ReceiveMessage", messageDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to broadcast message via SignalR.");
         }
 
         return messageDto;
