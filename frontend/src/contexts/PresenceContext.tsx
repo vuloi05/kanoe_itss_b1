@@ -1,12 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { ensureConnected, getSignalRConnection } from "@/lib/signalr";
 import { userApi } from "@/lib/api";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface PresenceContextType {
   onlineUserIds: Set<string>;
@@ -24,57 +20,54 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // 1. Tell the backend we are online (updates DB)
-    userApi.updatePresence(true).catch(console.error);
+    // Connect to SignalR and join global presence group
+    let mounted = true;
 
-    // 2. Subscribe to global presence channel to receive real-time updates of OTHERS
-    const channel = supabase.channel("global-presence");
-    
-    channel
-      .on("broadcast", { event: "USER_ONLINE" }, (payload) => {
-        if (payload.payload?.userId) {
-          setOnlineUserIds((prev) => {
-            const next = new Set(prev);
-            next.add(payload.payload.userId);
-            return next;
-          });
+    const setup = async () => {
+      try {
+        // Fetch initial online users
+        const initialOnlineUsers = await userApi.getOnlineUsers();
+        if (mounted) {
+          setOnlineUserIds(new Set(initialOnlineUsers));
         }
-      })
-      .on("broadcast", { event: "USER_OFFLINE" }, (payload) => {
-        if (payload.payload?.userId) {
-          setOnlineUserIds((prev) => {
-            const next = new Set(prev);
-            next.delete(payload.payload.userId);
-            return next;
-          });
-        }
-      })
-      .subscribe();
-
-    // 3. Handle page close/unload
-    const handleBeforeUnload = () => {
-      // Beacon or sync fetch to tell backend we are offline
-      // fetch API with keepalive is best for beforeunload
-      const token = localStorage.getItem("token");
-      if (token) {
-        fetch("/api/users/presence", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ isOnline: false }),
-          keepalive: true
-        }).catch(() => {});
+      } catch (err) {
+        console.error("Failed to fetch initial online users:", err);
       }
+
+      const conn = await ensureConnected();
+
+      // Join global presence group on server
+      await conn.invoke("JoinPresence").catch(console.error);
+
+      conn.on("UserOnline", (payload: { userId: string }) => {
+        if (!mounted) return;
+        setOnlineUserIds((prev) => {
+          const next = new Set(prev);
+          next.add(payload.userId);
+          return next;
+        });
+      });
+
+      conn.on("UserOffline", (payload: { userId: string }) => {
+        if (!mounted) return;
+        setOnlineUserIds((prev) => {
+          const next = new Set(prev);
+          next.delete(payload.userId);
+          return next;
+        });
+      });
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    setup().catch(console.error);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      supabase.removeChannel(channel);
-      userApi.updatePresence(false).catch(console.error);
+      mounted = false;
+
+      // Cleanup SignalR listeners
+      const conn = getSignalRConnection();
+      conn.off("UserOnline");
+      conn.off("UserOffline");
+      conn.invoke("LeavePresence").catch(() => {});
     };
   }, []);
 

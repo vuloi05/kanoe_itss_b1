@@ -142,14 +142,14 @@ public class BookingController : ControllerBase
     }
 
     /// <summary>
-    /// Get upcoming confirmed bookings for the Learner.
+    /// Get upcoming confirmed bookings for the authenticated user (learner or partner).
     /// GET /api/booking/upcoming
     /// </summary>
     [HttpGet("upcoming")]
     public async Task<IActionResult> GetUpcomingBookings()
     {
-        var learnerId = GetCurrentUserId();
-        var bookings = await _bookingService.GetUpcomingBookingsAsync(learnerId);
+        var userId = GetCurrentUserId();
+        var bookings = await _bookingService.GetUpcomingBookingsAsync(userId);
         return Ok(bookings);
     }
 }

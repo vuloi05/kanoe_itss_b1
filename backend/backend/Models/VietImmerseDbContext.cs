@@ -58,7 +58,7 @@ public partial class VietImmerseDbContext : DbContext
         if (!optionsBuilder.IsConfigured)
         {
             // Fallback: read from environment variable when DI is not available (e.g. EF migrations CLI)
-            var connStr = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING");
+            var connStr = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
             if (!string.IsNullOrEmpty(connStr))
             {
                 optionsBuilder.UseNpgsql(connStr);

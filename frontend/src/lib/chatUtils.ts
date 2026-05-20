@@ -3,7 +3,7 @@
  * Implements the VietImmerse messaging workflow spec.
  */
 import { useState, useEffect, useCallback, useRef } from "react";
-import { messageApi } from "@/lib/api";
+import { messageApi, type ConversationDto } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -28,6 +28,7 @@ export interface LocalMessage {
   lessonEndTime?: string;
   lessonDuration?: number;
   lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+  meetingUrl?: string | null;
 
   /** Client-only: track send status for optimistic updates */
   _sendStatus?: MessageSendStatus;
@@ -128,7 +129,7 @@ const RETRY_DELAYS = [2000, 4000]; // exponential backoff: 2s, 4s
  */
 export function useOfflineQueue(
   setMessages: React.Dispatch<React.SetStateAction<LocalMessage[]>>,
-  setConversations: React.Dispatch<React.SetStateAction<any[]>>
+  setConversations: React.Dispatch<React.SetStateAction<ConversationDto[]>>
 ) {
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true
@@ -149,14 +150,6 @@ export function useOfflineQueue(
       window.removeEventListener("offline", goOffline);
     };
   }, []);
-
-  // Auto-flush queue when network comes back
-  useEffect(() => {
-    if (isOnline && queueRef.current.length > 0) {
-      flushQueue();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOnline]);
 
   /** Delay helper */
   const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -188,7 +181,7 @@ export function useOfflineQueue(
             )
           );
           // Update conversation sidebar
-          setConversations((prev: any[]) => {
+          setConversations((prev) => {
             const copy = [...prev];
             const idx = copy.findIndex(
               (c) => c.conversationId === item.conversationId
@@ -244,6 +237,13 @@ export function useOfflineQueue(
 
     flushingRef.current = false;
   }, [sendWithRetry]);
+
+  // Auto-flush queue when network comes back
+  useEffect(() => {
+    if (isOnline && queueRef.current.length > 0) {
+      flushQueue();
+    }
+  }, [isOnline, flushQueue]);
 
   /** Add a message to the offline queue */
   const enqueue = useCallback(

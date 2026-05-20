@@ -1,13 +1,13 @@
 "use client";
-import Image from "next/image";
+
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePresence } from "@/contexts/PresenceContext";
 import { useAuth } from "@/lib/auth";
-import { messageApi, bookingApi, type ConversationDto, type MessageDto, type BookingDto } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
+import { messageApi, bookingApi, type ConversationDto } from "@/lib/api";
+import { ensureConnected, getSignalRConnection } from "@/lib/signalr";
 import {
   type LocalMessage,
   formatMessageTime,
@@ -27,9 +27,9 @@ export default function LearnerMessagesPage() {
   const { t } = useLanguage();
   const { isUserOnline } = usePresence();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Booking state
-  const [bookingCards, setBookingCards] = useState<BookingDto[]>([]);
   const [toast, setToast] = useState<{message:string; type:"success"|"error"|"warning"} | null>(null);
   const [declineModalId, setDeclineModalId] = useState<string|null>(null);
   const [acceptingId, setAcceptingId] = useState<string|null>(null);
@@ -40,8 +40,7 @@ export default function LearnerMessagesPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Offline queue hook
-  const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations as any);
+  const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations);
 
   // Lazy load hook
   const { sentinelRef, isLoadingMore, hasMore, resetPagination } =
@@ -82,21 +81,18 @@ export default function LearnerMessagesPage() {
       })
       .catch(console.error);
 
-    // Load bookings for this conversation
-    bookingApi.getBookingsForConversation(activeConv.conversationId)
-      .then(data => setBookingCards(data))
-      .catch(console.error);
 
-    // Subscribe to Supabase Realtime
-    const channel = supabase.channel(
-      `conversation-${activeConv.conversationId}`
-    );
-    channel
-      .on("broadcast", { event: "new_message" }, (payload: any) => {
-        const newMsg = payload.payload.message as LocalMessage;
+
+    // Subscribe to SignalR conversation events
+    let mounted = true;
+    const setupSignalR = async () => {
+      const conn = await ensureConnected();
+      await conn.invoke("JoinConversation", activeConv.conversationId).catch(console.error);
+
+      conn.on("ReceiveMessage", (newMsg: LocalMessage) => {
+        if (!mounted) return;
         newMsg._sendStatus = "sent";
         setMessages((prev) => {
-          // Replace optimistic temp message if server ACK arrives
           const withoutTemp = prev.filter(
             (m) => !(m._tempId && m.content === newMsg.content && m.senderId === newMsg.senderId)
           );
@@ -105,7 +101,6 @@ export default function LearnerMessagesPage() {
           return [newMsg, ...withoutTemp];
         });
 
-        // Update last message in conversation list
         setConversations((prev) => {
           const copy = [...prev];
           const idx = copy.findIndex(
@@ -117,30 +112,41 @@ export default function LearnerMessagesPage() {
           }
           return copy;
         });
-      })
-      // Listen for lesson lifecycle events
-      .on("broadcast", { event: "lesson_request" }, (payload: any) => {
-        const booking = payload.payload.booking as BookingDto;
-        setBookingCards(prev => {
-          if (prev.find(b => b.bookingId === booking.bookingId)) return prev;
-          return [booking, ...prev];
+      });
+
+      conn.on("LessonRequestCreated", (newMsg: LocalMessage) => {
+        if (!mounted) return;
+        setMessages(prev => {
+          if (prev.find(m => m.messageId === newMsg.messageId)) return prev;
+          return [newMsg, ...prev];
         });
         showToast(t("Đề xuất buổi học mới!", "新しいレッスンの提案！"), "success");
-      })
-      .on("broadcast", { event: "lesson_cancelled" }, (payload: any) => {
-        const booking = payload.payload.booking as BookingDto;
-        setBookingCards(prev => prev.filter(b => b.bookingId !== booking.bookingId));
+      });
+
+      conn.on("LessonCancelled", (data: { lesson_request_id: string; new_status: string }) => {
+        if (!mounted) return;
+        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status as LocalMessage["lessonStatus"] } : m));
         showToast(t("Đối tác đã hủy buổi học.", "パートナーがレッスンをキャンセルしました。"), "warning");
-      })
-      .subscribe();
+      });
+    };
+    setupSignalR().catch(console.error);
 
     return () => {
-      supabase.removeChannel(channel);
+      mounted = false;
+      const conn = getSignalRConnection();
+      conn.off("ReceiveMessage");
+      conn.off("LessonRequestCreated");
+      conn.off("LessonCancelled");
+      conn.invoke("LeaveConversation", activeConv.conversationId).catch(() => {});
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConv, activeConvIdx]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Scroll messages container directly to avoid bubbling scroll to parent section
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = 0;
+    }
   }, [messages]);
 
   // Send message handler with optimistic UI + offline queue
@@ -298,33 +304,23 @@ export default function LearnerMessagesPage() {
 
   // ─── Booking Helpers ───────────────────────────────────────
 
-  // Format a UTC ISO string to Hanoi Time date display
-  const formatBookingDate = (utcIso: string) => {
-    const d = new Date(utcIso);
-    const hanoi = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+  // Format date from yyyy-MM-dd string (used by LESSON_REQUEST messages)
+  const formatDateDisplay = (dateStr: string) => {
+    const d = new Date(dateStr + "T00:00:00");
     const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
     const daysJa = ["日", "月", "火", "水", "木", "金", "土"];
-    const dd = String(hanoi.getUTCDate()).padStart(2, "0");
-    const mm = String(hanoi.getUTCMonth() + 1).padStart(2, "0");
-    const yyyy = hanoi.getUTCFullYear();
     return t(
-      `${days[hanoi.getUTCDay()]}, ${dd}/${mm}/${yyyy}`,
-      `${yyyy}年${hanoi.getUTCMonth()+1}月${hanoi.getUTCDate()}日(${daysJa[hanoi.getUTCDay()]})`
+      `${days[d.getDay()]}, ${d.toLocaleDateString("vi-VN")}`,
+      `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${daysJa[d.getDay()]})`
     );
-  };
-
-  const formatBookingTime = (utcIso: string) => {
-    const d = new Date(utcIso);
-    const hanoi = new Date(d.getTime() + 7 * 60 * 60 * 1000);
-    return `${String(hanoi.getUTCHours()).padStart(2, "0")}:${String(hanoi.getUTCMinutes()).padStart(2, "0")}`;
   };
 
   // Accept lesson request
   const handleAccept = async (bookingId: string) => {
     setAcceptingId(bookingId);
     try {
-      const result = await bookingApi.acceptLessonRequest(bookingId);
-      setBookingCards(prev => prev.map(b => b.bookingId === bookingId ? { ...b, status: result.status } : b));
+      await bookingApi.acceptLessonRequest(bookingId);
+      setMessages(prev => prev.map(m => m.lessonRequestId === bookingId ? { ...m, lessonStatus: "ACCEPTED" } : m));
       showToast(t("Đã xác nhận lịch hẹn!", "レッスンを承認しました！"), "success");
     } catch {
       showToast(t("Có lỗi xảy ra, vui lòng thử lại.", "エラーが発生しました。"), "error");
@@ -338,7 +334,7 @@ export default function LearnerMessagesPage() {
     setDecliningId(bookingId);
     try {
       await bookingApi.declineLessonRequest(bookingId);
-      setBookingCards(prev => prev.filter(b => b.bookingId !== bookingId));
+      setMessages(prev => prev.map(m => m.lessonRequestId === bookingId ? { ...m, lessonStatus: "DECLINED" } : m));
       setDeclineModalId(null);
       showToast(t("Đã từ chối lịch hẹn.", "レッスンを辞退しました。"), "warning");
     } catch {
@@ -349,7 +345,7 @@ export default function LearnerMessagesPage() {
   };
 
   return (
-    <div className="bg-background text-on-background font-body min-h-screen flex flex-col">
+    <div className="bg-background text-on-background font-body h-screen flex flex-col overflow-hidden pt-[79px]">
       <LearnerNavbar />
 
       {/* Toast Notification */}
@@ -364,19 +360,19 @@ export default function LearnerMessagesPage() {
 
       {/* Offline Banner */}
       {!isOnline && (
-        <div className="fixed top-[64px] left-0 right-0 z-50 bg-amber-500 text-white text-center py-2 text-sm font-bold flex items-center justify-center gap-2 animate-[slideInRight_0.3s_ease-out]">
+        <div className="bg-amber-500 text-white text-center py-2 text-sm font-bold flex items-center justify-center gap-2 shrink-0">
           <span className="material-symbols-outlined text-base">wifi_off</span>
-          {t("Mất kết nối mạng / ネットワーク接続なし", "ネットワーク接続なし / Mất kết nối mạng")}
+          {t("Mất kết nối mạng", "ネットワーク接続なし")}
         </div>
       )}
 
       {/* Full-height layout below navbar */}
-      <main className={`flex-grow flex overflow-hidden ${!isOnline ? "mt-[104px]" : "mt-[64px]"}`}>
+      <main className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Column: Chat List (30%) */}
-        <aside className="w-[30%] bg-surface-container-low flex-col border-r border-outline-variant/10 hidden md:flex">
+        <aside className="w-[30%] bg-surface-container-low flex-col border-r border-outline-variant/10 hidden md:flex overflow-y-auto">
           <div className="p-6">
             <h2 className="text-xl font-bold text-primary mb-6 font-headline">
-              {t("Tin nhắn / メッセージ", "メッセージ / Tin nhắn")}
+              {t("Tin nhắn", "メッセージ")}
             </h2>
             <div className="space-y-2">
               {conversations.map((conv, idx) => (
@@ -394,14 +390,21 @@ export default function LearnerMessagesPage() {
                       activeConvIdx !== idx ? "opacity-70" : ""
                     }`}
                   >
-                    <div
-                      className={`w-12 h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center font-bold text-primary ${
-                        activeConvIdx === idx
-                          ? "bg-primary-container"
-                          : "bg-surface-variant"
-                      }`}
-                    >
-                      {conv.partnerName.charAt(0)}
+                    <div className="relative shrink-0">
+                      <div
+                        className={`w-12 h-12 rounded-full overflow-hidden flex items-center justify-center font-bold text-primary ${
+                          activeConvIdx === idx
+                            ? "bg-primary-container"
+                            : "bg-surface-variant"
+                        }`}
+                      >
+                        {conv.partnerName.charAt(0)}
+                      </div>
+                      <div 
+                        className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                          isUserOnline(conv.partnerId) ? "bg-green-500" : "bg-gray-400"
+                        }`}
+                      />
                     </div>
                     <div className="flex-grow min-w-0">
                       <div className="flex justify-between items-start">
@@ -438,10 +441,10 @@ export default function LearnerMessagesPage() {
         {/* Right Column: Conversation View (70%) */}
         <section className="w-full md:w-[70%] flex flex-col bg-surface overflow-hidden relative">
           {/* Conversation Header */}
-          <div className="px-8 py-4 bg-surface flex justify-between items-center z-10">
+          <div className="px-8 py-4 bg-surface flex justify-between items-center z-10 border-b border-outline-variant/10 shrink-0">
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center font-bold text-primary">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-container flex items-center justify-center font-bold text-on-primary-container text-sm">
                   {activeConv?.partnerName?.charAt(0)}
                 </div>
                 {activeConv && (
@@ -453,17 +456,17 @@ export default function LearnerMessagesPage() {
                 )}
               </div>
               <div>
-                <h3 className="font-bold text-primary font-headline flex items-center gap-2">
+                <h3 className="font-bold text-primary font-headline">
                   {activeConv?.partnerName}
                 </h3>
                 {activeConv && (
-                  <p className="text-xs text-on-surface-variant flex items-center gap-1">
+                  <p className="text-xs text-secondary flex items-center gap-1">
                     <span 
                       className={`inline-block w-2 h-2 rounded-full ${
                         isUserOnline(activeConv.partnerId) ? "bg-green-500" : "bg-gray-400"
                       }`} 
                     />
-                    {isUserOnline(activeConv.partnerId) ? t("Đang hoạt động", "オンライン") : t("Ngoại tuyến", "オフライン")}
+                    {isUserOnline(activeConv.partnerId) ? "Online / オンライン" : "Offline / オフライン"}
                   </p>
                 )}
               </div>
@@ -471,10 +474,105 @@ export default function LearnerMessagesPage() {
           </div>
 
           {/* Chat Messages Area */}
-          <div className="flex-grow overflow-y-auto p-8 space-y-4 bg-[#f9f9f7] flex flex-col-reverse">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-8 space-y-8 bg-[#f9f9f7] flex flex-col-reverse min-h-0">
             <div ref={messagesEndRef} />
-            {messages.map((msg) =>
-              msg.senderId !== user?.userId ? (
+            {messages.map((msg) => {
+              // 1. Render LESSON_REQUEST card inline
+              if (msg.type === "LESSON_REQUEST") {
+                const isPending = msg.lessonStatus === "PENDING";
+                const isAccepted = msg.lessonStatus === "ACCEPTED";
+                const statusBadge = isAccepted
+                  ? { label: t("Đã xác nhận", "確認済み"), color: "bg-emerald-100 text-emerald-700" }
+                  : msg.lessonStatus === "PENDING"
+                  ? { label: t("Chờ xác nhận", "確認待ち"), color: "bg-amber-100 text-amber-700" }
+                  : msg.lessonStatus === "CANCELLED"
+                  ? { label: t("Đã hủy", "キャンセル済み"), color: "bg-red-100 text-red-700" }
+                  : msg.lessonStatus === "DECLINED"
+                  ? { label: t("Đã từ chối", "辞退した"), color: "bg-red-100 text-red-700" }
+                  : null;
+                const isProcessing = acceptingId === msg.lessonRequestId || decliningId === msg.lessonRequestId;
+
+                return (
+                  <div key={msg.messageId} className="w-full max-w-md my-2 self-center flex flex-col">
+                    <div className="bg-surface-container border border-outline-variant/30 rounded-2xl overflow-hidden shadow-sm">
+                      <div className="p-1 bg-secondary text-white text-[10px] text-center font-bold tracking-widest uppercase">
+                        {t("Đề xuất buổi học mới", "新しいレッスンの提案")}
+                      </div>
+                      <div className="p-4 sm:p-6 flex items-start gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0">
+                          <span className="material-symbols-outlined">auto_stories</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-bold text-primary text-base font-headline">
+                              {t("Lesson Request", "レッスンリクエスト")}
+                            </h4>
+                            {statusBadge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadge.color}`}>{statusBadge.label}</span>}
+                          </div>
+                          <div className="space-y-1.5 mb-4">
+                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                              <span className="material-symbols-outlined text-sm">calendar_today</span>
+                              <span>{msg.lessonDate ? formatDateDisplay(msg.lessonDate) : ""}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                              <span className="material-symbols-outlined text-sm">schedule</span>
+                              <span>{msg.lessonStartTime} - {msg.lessonEndTime} ({msg.lessonDuration}m) (GMT+7)</span>
+                            </div>
+                          </div>
+                          {isPending && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                disabled={isProcessing}
+                                onClick={() => handleAccept(msg.lessonRequestId!)}
+                                className="py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                              >
+                                {acceptingId === msg.lessonRequestId && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                                {t("Accept", "承認")}
+                              </button>
+                              <button
+                                disabled={isProcessing}
+                                onClick={() => setDeclineModalId(msg.lessonRequestId!)}
+                                className="py-2 text-xs font-bold text-secondary border border-outline-variant/20 rounded-lg hover:bg-surface-variant transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {t("Decline", "辞退")}
+                              </button>
+                            </div>
+                          )}
+                          {isAccepted && (
+                            <div className="flex items-center gap-2 text-emerald-600">
+                              <span className="material-symbols-outlined text-lg">check_circle</span>
+                              <span className="text-xs font-bold">{t("Đã xác nhận", "承認済み")}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  {/* Meeting link - separate element below the card, centered */}
+                  {isAccepted && msg.meetingUrl && (
+                    <a
+                      href={msg.meetingUrl!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mx-auto mt-3 flex items-center justify-between max-w-md w-full p-3 bg-surface-container-lowest border border-outline-variant/20 rounded-xl hover:shadow-md transition-shadow no-underline"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 shrink-0">
+                          <span className="material-symbols-outlined">video_chat</span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-on-surface">Join Classroom (Google Meet)</p>
+                          <p className="text-[10px] text-secondary">{t("クラスに入る", "クラスに入る")}</p>
+                        </div>
+                      </div>
+                      <span className="material-symbols-outlined text-outline text-sm">open_in_new</span>
+                    </a>
+                  )}
+                </div>
+                );
+              }
+
+              // 2. Normal text / meet link messages
+              return msg.senderId !== user?.userId ? (
                 // ── Received message (left-aligned, white bg) ──
                 <div
                   key={msg.messageId}
@@ -496,10 +594,10 @@ export default function LearnerMessagesPage() {
                       </div>
                     </a>
                   ) : (
-                    <div className="bg-surface-container-high text-on-surface px-5 py-3 rounded-tr-xl rounded-br-xl rounded-bl-xl leading-relaxed border border-outline-variant/10">
+                    <div className="bg-surface-container-high text-on-surface px-5 py-3 rounded-tr-xl rounded-br-xl rounded-bl-xl leading-relaxed">
                       <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                       {msg.contentTranslated && (
-                        <p className="text-xs text-outline italic mt-1 whitespace-pre-wrap">
+                        <p className="text-xs text-secondary mt-1 whitespace-pre-wrap">
                           {msg.contentTranslated}
                         </p>
                       )}
@@ -536,7 +634,7 @@ export default function LearnerMessagesPage() {
                     <div className="bg-primary text-on-primary px-5 py-3 rounded-tl-xl rounded-bl-xl rounded-br-xl leading-relaxed">
                       <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                       {msg.contentTranslated && (
-                        <p className="text-xs text-white/70 italic mt-1 whitespace-pre-wrap">
+                        <p className="text-[11px] text-on-primary-container mt-1 italic whitespace-pre-wrap">
                           {msg.contentTranslated}
                         </p>
                       )}
@@ -549,8 +647,8 @@ export default function LearnerMessagesPage() {
                     {renderStatusIcon(msg)}
                   </div>
                 </div>
-              )
-            )}
+              );
+            })}
 
             {/* Lazy Load: sentinel + spinner (visual top in flex-col-reverse) */}
             {isLoadingMore && (
@@ -564,92 +662,18 @@ export default function LearnerMessagesPage() {
             {!hasMore && messages.length > 0 && (
               <div className="flex justify-center py-3">
                 <span className="text-[11px] text-outline/60 bg-surface-container-high/50 px-4 py-1.5 rounded-full">
-                  {t("Đã tải hết lịch sử / 全履歴を読み込みました", "全履歴を読み込みました / Đã tải hết lịch sử")}
+                  {t("Đã tải hết lịch sử", "全履歴を読み込みました")}
                 </span>
               </div>
             )}
             {hasMore && !isLoadingMore && <div ref={sentinelRef} className="h-1" />}
-
-            {/* Dynamic Lesson Request Booking Cards */}
-            {bookingCards.map(card => {
-              const isPending = card.status === "pending";
-              const isConfirmed = card.status === "confirmed";
-              const statusBadge = isConfirmed
-                ? { label: t("Đã xác nhận / 承認済み", "承認済み / Đã xác nhận"), color: "bg-emerald-100 text-emerald-700" }
-                : { label: t("Pending / 保留中", "保留中 / Pending"), color: "bg-secondary-container text-on-secondary-container" };
-              const isProcessing = acceptingId === card.bookingId || decliningId === card.bookingId;
-              return (
-                <div key={card.bookingId} className="max-w-[420px] w-full mx-auto">
-                  <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm">
-                    <div className="bg-primary-container/10 px-6 py-3 flex justify-between items-center border-b border-outline-variant/10">
-                      <h4 className="text-sm font-bold text-primary tracking-tight font-headline">
-                        {t("Lesson Request / レッスンリクエスト", "レッスンリクエスト / Lesson Request")}
-                      </h4>
-                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider ${statusBadge.color}`}>
-                        {statusBadge.label}
-                      </span>
-                    </div>
-                    <div className="p-6 space-y-4">
-                      <div className="flex items-start space-x-3">
-                        <span className="material-symbols-outlined text-primary text-xl">calendar_today</span>
-                        <div>
-                          <p className="text-sm font-bold text-on-surface">{formatBookingDate(card.startTime)}</p>
-                          <p className="text-xs text-secondary">Hà Nội, Việt Nam</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start space-x-3">
-                        <span className="material-symbols-outlined text-primary text-xl">schedule</span>
-                        <div>
-                          <p className="text-sm font-bold text-on-surface">{formatBookingTime(card.startTime)} - {formatBookingTime(card.endTime)}</p>
-                          <p className="text-xs text-secondary">(Hanoi Time) · {card.durationMinutes}m</p>
-                        </div>
-                      </div>
-                      {isPending && (
-                        <div className="pt-4 grid grid-cols-2 gap-3">
-                          <button
-                            disabled={isProcessing}
-                            onClick={() => handleAccept(card.bookingId)}
-                            className="bg-primary text-on-primary py-2.5 px-4 rounded-lg text-xs font-bold transition-all hover:bg-primary-container active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                          >
-                            {acceptingId === card.bookingId && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                            {t("Accept / 承認", "承認 / Accept")}
-                          </button>
-                          <button
-                            disabled={isProcessing}
-                            onClick={() => setDeclineModalId(card.bookingId)}
-                            className="bg-surface-container text-secondary py-2.5 px-4 rounded-lg text-xs font-bold border border-outline-variant/20 transition-all hover:bg-surface-variant active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {t("Decline / 辞退", "辞退 / Decline")}
-                          </button>
-                        </div>
-                      )}
-                      {isConfirmed && (
-                        <div className="pt-3">
-                          {card.meetingUrl ? (
-                            <a href={card.meetingUrl} target="_blank" rel="noopener noreferrer" className="w-full py-2.5 bg-green-500 text-white rounded-lg text-xs font-bold transition-all hover:bg-green-600 flex items-center justify-center gap-1.5 no-underline">
-                              <span className="material-symbols-outlined text-[16px]">videocam</span>
-                              {t("Tham gia lớp học / クラスに参加", "クラスに参加 / Tham gia lớp học")}
-                            </a>
-                          ) : (
-                            <div className="flex items-center gap-2 text-emerald-600">
-                              <span className="material-symbols-outlined text-lg">check_circle</span>
-                              <span className="text-xs font-bold">{t("Đã xác nhận - chờ link lớp học", "承認済み - 授業リンク待ち")}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
 
-          {/* Message Input Area — textarea for Shift+Enter newlines */}
-          <div className="px-8 py-6 bg-surface border-t border-outline-variant/10">
-            <div className="relative flex items-end">
+          {/* Message Input Area */}
+          <div className="px-8 py-6 bg-surface border-t border-outline-variant/10 shrink-0">
+            <div className="relative flex items-center">
               <textarea
-                className="w-full bg-surface-container-low border-none rounded-2xl px-6 py-4 pr-14 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/60 resize-none min-h-[52px] max-h-[120px]"
+                className="w-full bg-surface-container-low border-none rounded-full px-6 py-4 pr-14 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/60 resize-none overflow-hidden"
                 placeholder={t(
                   "Viết tin nhắn... / メッセージを入力...",
                   "メッセージを入力... / Viết tin nhắn..."
@@ -658,41 +682,18 @@ export default function LearnerMessagesPage() {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
+                style={{ height: '52px' }}
               />
               <button
                 onClick={handleSend}
                 disabled={!inputText.trim()}
-                className={`absolute right-3 bottom-2 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg cursor-pointer ${
+                className={`absolute right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg cursor-pointer ${
                   inputText.trim()
                     ? "bg-primary text-on-primary hover:scale-105 active:scale-95 shadow-primary/20"
                     : "bg-outline/30 text-outline cursor-not-allowed"
                 }`}
               >
                 <span className="material-symbols-outlined text-lg">send</span>
-              </button>
-            </div>
-            <div className="flex space-x-6 mt-4 ml-4">
-              <button className="flex items-center space-x-1 text-outline hover:text-primary transition-colors cursor-pointer">
-                <span className="material-symbols-outlined text-xl">
-                  image
-                </span>
-                <span className="text-[10px] font-medium uppercase tracking-widest">
-                  Photo
-                </span>
-              </button>
-              <button className="flex items-center space-x-1 text-outline hover:text-primary transition-colors cursor-pointer">
-                <span className="material-symbols-outlined text-xl">mic</span>
-                <span className="text-[10px] font-medium uppercase tracking-widest">
-                  Voice
-                </span>
-              </button>
-              <button className="flex items-center space-x-1 text-outline hover:text-primary transition-colors cursor-pointer">
-                <span className="material-symbols-outlined text-xl">
-                  attachment
-                </span>
-                <span className="text-[10px] font-medium uppercase tracking-widest">
-                  File
-                </span>
               </button>
             </div>
           </div>
@@ -714,8 +715,8 @@ export default function LearnerMessagesPage() {
 
       {/* Decline Confirmation Modal */}
       {declineModalId && (() => {
-        const card = bookingCards.find(b => b.bookingId === declineModalId);
-        if (!card) return null;
+        const msg = messages.find(m => m.lessonRequestId === declineModalId);
+        if (!msg) return null;
         return (
           <div className="fixed inset-0 z-[200] flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => !decliningId && setDeclineModalId(null)} />
@@ -725,23 +726,23 @@ export default function LearnerMessagesPage() {
                   <span className="material-symbols-outlined text-amber-600">help_outline</span>
                 </div>
                 <h3 className="font-bold text-primary font-headline">
-                  {t("Xác nhận từ chối / 辞退確認", "辞退確認 / Xác nhận từ chối")}
+                  {t("Xác nhận từ chối", "辞退確認")}
                 </h3>
               </div>
               <p className="text-sm text-secondary mb-2">
                 {t("Bạn có chắc muốn từ chối lịch hẹn này không?", "このレッスンを辞退しますか？")}
               </p>
               <div className="p-3 bg-surface-container rounded-xl mb-5 text-xs text-on-surface-variant space-y-1">
-                <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">calendar_today</span>{formatBookingDate(card.startTime)}</div>
-                <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">schedule</span>{formatBookingTime(card.startTime)} - {formatBookingTime(card.endTime)} ({card.durationMinutes}m)</div>
+                <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">calendar_today</span>{msg.lessonDate ? formatDateDisplay(msg.lessonDate) : ""}</div>
+                <div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">schedule</span>{msg.lessonStartTime} - {msg.lessonEndTime} ({msg.lessonDuration}m)</div>
               </div>
               <div className="flex gap-3">
                 <button disabled={!!decliningId} onClick={() => setDeclineModalId(null)} className="flex-1 py-2.5 text-sm font-bold text-secondary border border-outline-variant/30 rounded-xl hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50">
-                  {t("Hủy bỏ / キャンセル", "キャンセル / Hủy bỏ")}
+                  {t("Hủy bỏ", "キャンセル")}
                 </button>
-                <button disabled={!!decliningId} onClick={() => confirmDecline(card.bookingId)} className="flex-1 py-2.5 text-sm font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
-                  {decliningId === card.bookingId && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                  {t("Xác nhận từ chối / 辞退する", "辞退する / Xác nhận từ chối")}
+                <button disabled={!!decliningId} onClick={() => confirmDecline(declineModalId)} className="flex-1 py-2.5 text-sm font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
+                  {decliningId === declineModalId && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                  {t("Xác nhận từ chối", "辞退する")}
                 </button>
               </div>
             </div>

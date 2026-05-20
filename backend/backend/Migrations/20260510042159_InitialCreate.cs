@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,14 +13,31 @@ namespace backend.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:Enum:account_status", "active,inactive,suspended,pending_verification")
-                .Annotation("Npgsql:Enum:booking_status", "pending,confirmed,completed,cancelled,no_show")
-                .Annotation("Npgsql:Enum:content_category_type", "shopping,taxi,dining,greeting,work,culture,grammar,pronunciation,daily_life")
-                .Annotation("Npgsql:Enum:learner_level", "basic,intermediate,advanced")
-                .Annotation("Npgsql:Enum:notification_type", "system,booking_reminder,new_message,review_received,progress_milestone")
-                .Annotation("Npgsql:Enum:partner_profile_status", "draft,pending_review,approved,rejected")
-                .Annotation("Npgsql:Enum:user_role", "admin,learner,partner,guest");
+            // Idempotent enum creation: PostgreSQL doesn't support CREATE TYPE IF NOT EXISTS,
+            // so we use PL/pgSQL exception handling to skip if already exists.
+            // This handles Supabase databases where enums may exist from previous partial migrations.
+            var enumTypes = new Dictionary<string, string>
+            {
+                ["account_status"] = "'active','inactive','suspended','pending_verification'",
+                ["booking_status"] = "'pending','confirmed','completed','cancelled','no_show'",
+                ["content_category_type"] = "'shopping','taxi','dining','greeting','work','culture','grammar','pronunciation','daily_life'",
+                ["learner_level"] = "'basic','intermediate','advanced'",
+                ["notification_type"] = "'system','booking_reminder','new_message','review_received','progress_milestone'",
+                ["partner_profile_status"] = "'draft','pending_review','approved','rejected'",
+                ["user_role"] = "'admin','learner','partner','guest'"
+            };
+            foreach (var (name, values) in enumTypes)
+            {
+                migrationBuilder.Sql($@"
+                    DO $$ BEGIN
+                        CREATE TYPE {name} AS ENUM ({values});
+                    EXCEPTION
+                        WHEN duplicate_object THEN null;
+                    END $$;");
+            }
+
+            // AlterDatabase annotations removed — enum types are created by raw SQL above
+            // to ensure idempotency on Supabase databases with pre-existing types.
 
             migrationBuilder.CreateTable(
                 name: "content_categories",

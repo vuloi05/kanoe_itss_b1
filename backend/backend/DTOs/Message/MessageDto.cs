@@ -18,4 +18,5 @@ public class MessageDto
     public string? LessonEndTime { get; set; }
     public int? LessonDuration { get; set; }
     public string? LessonStatus { get; set; }
+    public string? MeetingUrl { get; set; }
 }
