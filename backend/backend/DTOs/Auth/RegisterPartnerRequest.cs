@@ -15,5 +15,11 @@ public record RegisterPartnerRequest(
     [Phone][StringLength(20)]
     string? Phone,
 
-    string? Bio
+    string? Bio,
+
+    [StringLength(10)]
+    string? AgeRange,
+
+    [StringLength(30)]
+    string? Job
 );

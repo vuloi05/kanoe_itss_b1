@@ -5,11 +5,13 @@ import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { bookingApi, BookingDto } from "@/lib/api";
 
 export default function LearnerHomePage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [upcomingBookings, setUpcomingBookings] = useState<BookingDto[]>([]);
 
   useEffect(() => {
@@ -44,7 +46,10 @@ export default function LearnerHomePage() {
         <section className="mb-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7">
             <h1 className="font-headline text-4xl md:text-5xl font-extrabold text-primary mb-2 tracking-tight">
-              {t("Chào mừng trở lại, Kenji!", "お帰りなさい、健二さん！")}
+              {t(
+                `Chào mừng trở lại, ${user?.displayName ?? "Learner"}!`,
+                `お帰りなさい、${user?.displayName ?? "学習者"}さん！`
+              )}
             </h1>
             <div className="bg-surface-container-low p-6 rounded-xl border-l-4 border-secondary italic mb-8 mt-6">
               {t("\"Ngôn ngữ là bản đồ văn hóa của một dân tộc. Nó cho bạn biết họ đến từ đâu và họ đang đi tới đâu.\"", "「言語は人々の文化の地図です。彼らがどこから来て、どこへ行くのかを教えてくれます。」")}

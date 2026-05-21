@@ -11,14 +11,18 @@ interface SelectPickerProps {
   value: string;
   onChange: (val: string) => void;
   options: SelectOption[];
+  placeholder?: string;
   hasError?: boolean;
+  disabled?: boolean;
 }
 
 export default function SelectPicker({
   value,
   onChange,
   options,
+  placeholder,
   hasError = false,
+  disabled = false,
 }: SelectPickerProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,21 +44,23 @@ export default function SelectPicker({
   const toggle = useCallback(() => setOpen((prev) => !prev), []);
 
   const selectedLabel =
-    options.find((o) => o.value === value)?.label ?? value;
+    options.find((o) => o.value === value)?.label;
 
   return (
     <div ref={containerRef} className="relative">
       {/* Trigger */}
       <button
         type="button"
-        onClick={toggle}
-        className={`w-full bg-[#f0f0ee] rounded-xl flex items-center justify-between px-4 py-3 text-sm text-on-surface transition-all cursor-pointer
+        onClick={disabled ? undefined : toggle}
+        className={`w-full bg-[#f0f0ee] rounded-xl flex items-center justify-between px-4 py-3 text-sm transition-all
+          ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-[#e8e8e6]"}
           ${open ? "ring-2 ring-primary/30" : "ring-0"}
           ${hasError ? "ring-2 ring-red-400" : ""}
-          hover:bg-[#e8e8e6]
         `}
       >
-        <span>{selectedLabel}</span>
+        <span className={selectedLabel ? "text-on-surface" : "text-outline"}>
+          {selectedLabel ?? placeholder ?? ""}
+        </span>
         <span
           className={`material-symbols-outlined text-lg text-outline transition-transform duration-200 ${
             open ? "rotate-180" : ""

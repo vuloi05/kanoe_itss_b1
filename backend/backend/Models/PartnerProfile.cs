@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -40,6 +40,14 @@ public partial class PartnerProfile
 
     [Column("intro_video_url")]
     public string? IntroVideoUrl { get; set; }
+
+    [Column("age_range")]
+    [StringLength(10)]
+    public string? AgeRange { get; set; }
+
+    [Column("job")]
+    [StringLength(30)]
+    public string? Job { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
