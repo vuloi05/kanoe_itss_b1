@@ -98,6 +98,8 @@ public class AuthService : IAuthService
         {
             UserId = user.UserId,
             Bio = request.Bio?.Trim(),
+            AgeRange = request.AgeRange?.Trim(),
+            Job = request.Job?.Trim(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -204,21 +206,20 @@ public class AuthService : IAuthService
 
     private static string BuildForgotPasswordEmail(string displayName, string tempPassword)
     {
-        return $"""
-        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#faf9f6;border-radius:12px">
-          <div style="text-align:center;margin-bottom:24px">
-            <h1 style="color:#1a6b4a;font-size:22px;margin:0">VietImmerse</h1>
-          </div>
-          <p style="color:#333;font-size:15px">Xin chào <strong>{displayName}</strong>,</p>
-          <p style="color:#333;font-size:15px">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Dưới đây là mật khẩu tạm thời:</p>
-          <div style="background:#e8f5e9;border:1px dashed #1a6b4a;border-radius:8px;text-align:center;padding:16px;margin:24px 0">
-            <span style="font-size:28px;font-weight:bold;letter-spacing:4px;color:#1a6b4a">{tempPassword}</span>
-          </div>
-          <p style="color:#333;font-size:15px">Vui lòng đăng nhập bằng mật khẩu này và <strong>đổi mật khẩu ngay</strong> sau khi đăng nhập để bảo mật tài khoản.</p>
-          <hr style="border:none;border-top:1px solid #e0e0e0;margin:24px 0" />
-          <p style="color:#999;font-size:12px;text-align:center">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.<br/>© 2024 VietImmerse</p>
-        </div>
-        """;
+        return
+            "<div style=\"font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#faf9f6;border-radius:12px\">" +
+            "<div style=\"text-align:center;margin-bottom:24px\">" +
+            "<h1 style=\"color:#1a6b4a;font-size:22px;margin:0\">VietImmerse</h1>" +
+            "</div>" +
+            $"<p style=\"color:#333;font-size:15px\">Xin chào <strong>{displayName}</strong>,</p>" +
+            "<p style=\"color:#333;font-size:15px\">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Dưới đây là mật khẩu tạm thời:</p>" +
+            "<div style=\"background:#e8f5e9;border:1px dashed #1a6b4a;border-radius:8px;text-align:center;padding:16px;margin:24px 0\">" +
+            $"<span style=\"font-size:28px;font-weight:bold;letter-spacing:4px;color:#1a6b4a\">{tempPassword}</span>" +
+            "</div>" +
+            "<p style=\"color:#333;font-size:15px\">Vui lòng đăng nhập bằng mật khẩu này và <strong>đổi mật khẩu ngay</strong> sau khi đăng nhập để bảo mật tài khoản.</p>" +
+            "<hr style=\"border:none;border-top:1px solid #e0e0e0;margin:24px 0\" />" +
+            "<p style=\"color:#999;font-size:12px;text-align:center\">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.<br/>\u00a9 2024 VietImmerse</p>" +
+            "</div>";
     }
 
     public Task ResetPasswordAsync(ResetPasswordRequest request)

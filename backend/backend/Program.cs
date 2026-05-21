@@ -69,6 +69,8 @@ builder.Services.AddSingleton<IPhotoService, CloudinaryPhotoService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
+builder.Services.AddScoped<ITtsService, FptTtsService>();
+builder.Services.AddScoped<ILessonService, LessonService>();
 
 // SignalR (Realtime Messaging — replaces Supabase Realtime)
 builder.Services.AddSignalR();
@@ -143,82 +145,8 @@ using (var scope = app.Services.CreateScope())
             Console.WriteLine($"📦 Migrations: {applied.Count} applied, {pending.Count} newly applied.");
             Console.WriteLine("==================================================");
 
-            // Seed sample learner account (idempotent – skips if already exists)
-            const string sampleLearnerEmail = "abc@gmail.com";
-            if (!context.Users.Any(u => u.Email == sampleLearnerEmail))
-            {
-                var user = new backend.Models.User
-                {
-                    Email = sampleLearnerEmail,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
-                    DisplayName = "Học viên Demo",
-                    Role = "learner",
-                    AccountStatus = "active",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                };
-                context.Users.Add(user);
-                context.SaveChanges();
-
-                var learnerProfile = new backend.Models.LearnerProfile
-                {
-                    UserId = user.UserId,
-                    NativeLanguage = "ja",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                };
-                context.LearnerProfiles.Add(learnerProfile);
-                context.SaveChanges();
-
-                Console.WriteLine($"🌱 Seeded learner account: {sampleLearnerEmail}");
-            }
-
-            // Seed sample partner account (idempotent – skips if already exists)
-            const string samplePartnerEmail = "doitac@gmail.com";
-            if (!context.Users.Any(u => u.Email == samplePartnerEmail))
-            {
-                var partnerUser = new backend.Models.User
-                {
-                    Email = samplePartnerEmail,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("1234567890"),
-                    DisplayName = "Đối tác Demo",
-                    Role = "partner",
-                    AccountStatus = "active",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                };
-                context.Users.Add(partnerUser);
-                context.SaveChanges();
-
-                var partnerProfile = new backend.Models.PartnerProfile
-                {
-                    UserId = partnerUser.UserId,
-                    Bio = "Tài khoản đối tác demo",
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                };
-                context.PartnerProfiles.Add(partnerProfile);
-                context.SaveChanges();
-
-                Console.WriteLine($"🌱 Seeded partner account: {samplePartnerEmail}");
-            }
-
-            // Seed sample conversation between learner and partner
-            var learner = context.Users.FirstOrDefault(u => u.Email == "abc@gmail.com");
-            var partner = context.Users.FirstOrDefault(u => u.Email == "doitac@gmail.com");
-            
-            if (learner != null && partner != null && !context.Conversations.Any(c => c.LearnerId == learner.UserId && c.PartnerId == partner.UserId))
-            {
-                var conversation = new backend.Models.Conversation
-                {
-                    LearnerId = learner.UserId,
-                    PartnerId = partner.UserId,
-                    CreatedAt = DateTime.UtcNow
-                };
-                context.Conversations.Add(conversation);
-                context.SaveChanges();
-                Console.WriteLine($"🌱 Seeded conversation between {learner.Email} and {partner.Email} (ID: {conversation.ConversationId})");
-            }
+            // ── Seed data from SQL file (idempotent UPSERT — safe for existing data) ──
+            await DatabaseSeeder.SeedAsync(context, logger);
 
             // Migration succeeded — break out of retry loop
             break;

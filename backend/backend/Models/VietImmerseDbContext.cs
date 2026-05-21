@@ -17,6 +17,14 @@ public partial class VietImmerseDbContext : DbContext
 
     public virtual DbSet<Booking> Bookings { get; set; }
 
+    public virtual DbSet<Chapter> Chapters { get; set; }
+
+    public virtual DbSet<Lesson> Lessons { get; set; }
+
+    public virtual DbSet<LessonDialogue> LessonDialogues { get; set; }
+
+    public virtual DbSet<LessonToneNote> LessonToneNotes { get; set; }
+
     public virtual DbSet<ContentCategory> ContentCategories { get; set; }
 
     public virtual DbSet<ContentLevel> ContentLevels { get; set; }
@@ -90,6 +98,48 @@ public partial class VietImmerseDbContext : DbContext
             entity.HasOne(d => d.Learner).WithMany(p => p.BookingLearners).HasConstraintName("bookings_learner_id_fkey");
 
             entity.HasOne(d => d.Partner).WithMany(p => p.BookingPartners).HasConstraintName("bookings_partner_id_fkey");
+        });
+
+        modelBuilder.Entity<Chapter>(entity =>
+        {
+            entity.HasKey(e => e.ChapterId).HasName("chapters_pkey");
+
+            entity.HasOne(d => d.Level).WithMany(p => p.Chapters)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("chapters_level_id_fkey");
+        });
+
+        modelBuilder.Entity<Lesson>(entity =>
+        {
+            entity.HasKey(e => e.LessonId).HasName("lessons_pkey");
+
+            entity.Property(e => e.LessonId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+            entity.Property(e => e.IsLocked).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Chapter).WithMany(p => p.Lessons)
+                .HasConstraintName("lessons_chapter_id_fkey");
+        });
+
+        modelBuilder.Entity<LessonDialogue>(entity =>
+        {
+            entity.HasKey(e => e.DialogueId).HasName("lesson_dialogues_pkey");
+
+            entity.Property(e => e.DialogueId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.IsActive).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Lesson).WithMany(p => p.Dialogues)
+                .HasConstraintName("lesson_dialogues_lesson_id_fkey");
+        });
+
+        modelBuilder.Entity<LessonToneNote>(entity =>
+        {
+            entity.HasKey(e => e.NoteId).HasName("lesson_tone_notes_pkey");
+
+            entity.Property(e => e.NoteId).HasDefaultValueSql("gen_random_uuid()");
+
+            entity.HasOne(d => d.Lesson).WithMany(p => p.ToneNotes)
+                .HasConstraintName("lesson_tone_notes_lesson_id_fkey");
         });
 
         modelBuilder.Entity<ContentCategory>(entity =>

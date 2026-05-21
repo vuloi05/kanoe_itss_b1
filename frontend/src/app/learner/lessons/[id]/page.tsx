@@ -5,59 +5,160 @@ import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LESSONS, type Dialogue } from "./lessonData";
+import { lessonApi, ttsApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
+
+// In-memory cache to avoid redundant API calls for the same text
+const ttsCache = new Map<string, string>();
+
+// Parsed highlight data from JSON string
+interface HighlightWord {
+  index: number;
+  color: string;
+}
+
+function parseHighlightWords(json: string | null): HighlightWord[] {
+  if (!json) return [];
+  try {
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
 
 // ─── TTS Shadowing Hook ────────────────────────────────────────────────────────
 function useTTSShadowing(text: string) {
   const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const uttRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const intervalRef = useRef<number | null>(null);
   const words = text.split(/\s+/);
 
-  const play = useCallback(() => {
-    if (typeof window === "undefined") return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = "vi-VN";
-    utt.rate = 0.85;
-
-    // Try to find a Vietnamese voice
-    const voices = window.speechSynthesis.getVoices();
-    const viVoice = voices.find((v) => v.lang.startsWith("vi"));
-    if (viVoice) utt.voice = viVoice;
-
-    let wordIndex = 0;
-    utt.onboundary = (e) => {
-      if (e.name === "word") {
-        setActiveWordIdx(wordIndex);
-        wordIndex++;
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
       }
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-    utt.onstart = () => setIsPlaying(true);
-    utt.onend = () => { setIsPlaying(false); setActiveWordIdx(-1); };
-    utt.onerror = () => { setIsPlaying(false); setActiveWordIdx(-1); };
-    uttRef.current = utt;
-    window.speechSynthesis.speak(utt);
-  }, [text]);
+  }, []);
+
+  const play = useCallback(async () => {
+    if (typeof window === "undefined" || isLoading) return;
+
+    // Stop any current playback first
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    let audioUrl = ttsCache.get(text);
+
+    if (!audioUrl) {
+      setIsLoading(true);
+      try {
+        const result = await ttsApi.synthesize(text);
+        audioUrl = result.audioUrl;
+        ttsCache.set(text, audioUrl);
+      } catch (err) {
+        console.error("TTS synthesis failed:", err);
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(false);
+    }
+
+    const audio = new Audio(audioUrl);
+    audioRef.current = audio;
+
+    // Retry wrapper — FPT CDN may still be processing even after backend poll
+    const tryPlay = (retriesLeft: number) => {
+      audio.onplay = () => {
+        setIsPlaying(true);
+        const estimatedDuration = audio.duration || words.length * 0.35;
+        const interval = (estimatedDuration / words.length) * 1000;
+        let idx = 0;
+        setActiveWordIdx(0);
+        intervalRef.current = window.setInterval(() => {
+          idx++;
+          if (idx < words.length) {
+            setActiveWordIdx(idx);
+          } else {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+          }
+        }, interval);
+      };
+
+      audio.onended = () => {
+        setIsPlaying(false);
+        setActiveWordIdx(-1);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      };
+
+      audio.onerror = () => {
+        if (retriesLeft > 0) {
+          setTimeout(() => {
+            audio.load();
+            tryPlay(retriesLeft - 1);
+          }, 800);
+          return;
+        }
+        console.error("Audio playback failed after retries");
+        setIsPlaying(false);
+        setActiveWordIdx(-1);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        // Evict stale cache entry so next click fetches a fresh URL
+        ttsCache.delete(text);
+      };
+
+      audio.play().catch((err) => {
+        if (retriesLeft > 0) {
+          setTimeout(() => {
+            audio.load();
+            tryPlay(retriesLeft - 1);
+          }, 800);
+          return;
+        }
+        console.error("Audio playback failed:", err);
+        setIsPlaying(false);
+        ttsCache.delete(text);
+      });
+    };
+
+    tryPlay(3);
+  }, [text, words.length, isLoading]);
 
   const stop = useCallback(() => {
-    window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     setIsPlaying(false);
     setActiveWordIdx(-1);
   }, []);
 
-  useEffect(() => () => { window.speechSynthesis.cancel(); }, []);
-
-  return { words, activeWordIdx, isPlaying, play, stop };
+  return { words, activeWordIdx, isPlaying, isLoading, play, stop };
 }
 
 // ─── Dialogue Line Component ───────────────────────────────────────────────────
-function DialogueLine({ dlg, isLast, lang }: {
-  dlg: Dialogue;
+function DialogueLine({ dlg, isLast, lang, showSubtitle }: {
+  dlg: DialogueDto;
   isLast: boolean;
   lang: string;
+  showSubtitle: boolean;
 }) {
-  const { words, activeWordIdx, isPlaying, play, stop } = useTTSShadowing(dlg.lineVi);
+  const { words, activeWordIdx, isPlaying, isLoading, play, stop } = useTTSShadowing(dlg.lineVi);
+  const highlightWords = parseHighlightWords(dlg.highlightWordsJson);
 
   if (dlg.isActive) {
     return (
@@ -68,24 +169,29 @@ function DialogueLine({ dlg, isLast, lang }: {
           </span>
           <button
             onClick={isPlaying ? stop : play}
+            disabled={isLoading}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-              isPlaying
+              isLoading
+                ? "bg-surface-container text-on-surface-variant opacity-70 cursor-wait"
+                : isPlaying
                 ? "bg-error text-on-error animate-pulse"
                 : "bg-primary text-on-primary hover:opacity-90"
             }`}
-            aria-label={isPlaying ? "Dừng" : "Nghe & Shadowing"}
+            aria-label={isLoading ? "Đang tải" : isPlaying ? "Dừng" : "Nghe & Shadowing"}
           >
             <span className="material-symbols-outlined text-sm">
-              {isPlaying ? "stop" : "record_voice_over"}
+              {isLoading ? "hourglass_empty" : isPlaying ? "stop" : "record_voice_over"}
             </span>
-            {isPlaying
+            {isLoading
+              ? (lang === "ja" ? "読込中" : "Đang tải...")
+              : isPlaying
               ? (lang === "ja" ? "停止" : "Dừng")
               : (lang === "ja" ? "再生" : "Nghe")}
           </button>
         </div>
         <div className="flex flex-wrap gap-x-2 gap-y-1 items-end mt-2">
           {words.map((w, i) => {
-            const highlight = dlg.highlightWords?.find((h) => h.index === i);
+            const highlight = highlightWords.find((h) => h.index === i);
             const isActive = activeWordIdx === i;
             return (
               <div key={i} className="group relative flex flex-col items-center">
@@ -114,7 +220,7 @@ function DialogueLine({ dlg, isLast, lang }: {
             );
           })}
         </div>
-        <p className="text-sm text-secondary mt-4 opacity-80">{dlg.lineJp}</p>
+        {showSubtitle && <p className="text-sm text-secondary mt-4 opacity-80">{dlg.lineJp}</p>}
       </div>
     );
   }
@@ -131,17 +237,22 @@ function DialogueLine({ dlg, isLast, lang }: {
         </span>
         <button
           onClick={isPlaying ? stop : play}
+          disabled={isLoading}
           className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-            isPlaying
+            isLoading
+              ? "bg-surface-container text-on-surface-variant opacity-70 cursor-wait"
+              : isPlaying
               ? "bg-error/20 text-error animate-pulse"
               : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
           }`}
-          aria-label="Nghe"
+          aria-label={isLoading ? "Đang tải" : "Nghe"}
         >
           <span className="material-symbols-outlined text-sm">
-            {isPlaying ? "stop" : "volume_up"}
+            {isLoading ? "hourglass_empty" : isPlaying ? "stop" : "volume_up"}
           </span>
-          {isPlaying ? (lang === "ja" ? "停止" : "Dừng") : (lang === "ja" ? "再生" : "Nghe")}
+          {isLoading
+            ? (lang === "ja" ? "読込中" : "Đang tải...")
+            : isPlaying ? (lang === "ja" ? "停止" : "Dừng") : (lang === "ja" ? "再生" : "Nghe")}
         </button>
       </div>
       {/* Word-by-word highlight for non-active lines too */}
@@ -162,7 +273,7 @@ function DialogueLine({ dlg, isLast, lang }: {
           </span>
         ))}
       </div>
-      <p className="text-sm text-secondary mt-2 opacity-80">{dlg.lineJp}</p>
+      {showSubtitle && <p className="text-sm text-secondary mt-2 opacity-80">{dlg.lineJp}</p>}
     </div>
   );
 }
@@ -180,12 +291,13 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
+  const recordedAudioUrlRef = useRef(recordedAudioUrl);
+  useEffect(() => { recordedAudioUrlRef.current = recordedAudioUrl; }, [recordedAudioUrl]);
 
   useEffect(() => () => {
-    window.speechSynthesis?.cancel();
     if (recRef.current?.state !== "inactive") recRef.current?.stop();
     if (timerRef.current) clearInterval(timerRef.current);
-    if (recordedAudioUrl) URL.revokeObjectURL(recordedAudioUrl);
+    if (recordedAudioUrlRef.current) URL.revokeObjectURL(recordedAudioUrlRef.current);
   }, []);
 
   useEffect(() => {
@@ -356,9 +468,21 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function LessonDetailPage() {
   const params = useParams();
-  const lessonId = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? "1");
-  const lesson = LESSONS[lessonId] ?? LESSONS["1"];
+  const lessonId = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? "");
   const { lang, t } = useLanguage();
+  const [lesson, setLesson] = useState<LessonDetailDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showSubtitle, setShowSubtitle] = useState(true);
+
+  useEffect(() => {
+    if (!lessonId) return;
+    lessonApi
+      .getLessonById(lessonId)
+      .then(setLesson)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [lessonId]);
 
   const L = {
     toggleSubtitle: t("Bật/Tắt phụ đề", "字幕 ON/OFF"),
@@ -370,10 +494,58 @@ export default function LessonDetailPage() {
     toneExamples: t("Ví dụ:", "例："),
   };
 
+  if (loading) {
+    return (
+      <div className="bg-background text-on-background font-body min-h-screen pb-24">
+        <LearnerNavbar />
+        <main className="pt-24 px-4 md:px-8 max-w-6xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-6 w-48 bg-surface-container rounded" />
+            <div className="bg-surface-container-lowest rounded-3xl p-8 space-y-4">
+              <div className="h-4 w-32 bg-surface-container rounded" />
+              <div className="h-8 w-3/4 bg-surface-container rounded" />
+              <div className="h-4 w-1/2 bg-surface-container rounded" />
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-surface-container-low rounded-xl p-6 space-y-3">
+                <div className="h-4 w-24 bg-surface-container rounded" />
+                <div className="h-6 w-full bg-surface-container rounded" />
+              </div>
+            ))}
+          </div>
+        </main>
+        <LearnerBottomNav />
+      </div>
+    );
+  }
+
+  if (error || !lesson) {
+    return (
+      <div className="bg-background text-on-background font-body min-h-screen pb-24">
+        <LearnerNavbar />
+        <main className="pt-24 px-4 md:px-8 max-w-6xl mx-auto text-center py-16">
+          <span className="material-symbols-outlined text-4xl text-error mb-4 block">error</span>
+          <p className="text-on-surface-variant">{t("Không tìm thấy bài học.", "レッスンが見つかりませんでした。")}</p>
+          <Link href="/learner/lessons" className="mt-4 inline-block px-6 py-2 bg-primary text-on-primary rounded-full text-sm font-bold">
+            {L.back}
+          </Link>
+        </main>
+        <LearnerBottomNav />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background text-on-background font-body min-h-screen pb-24">
       <LearnerNavbar />
-      <main className="pt-4 px-4 md:px-8 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="pt-24 px-4 md:px-8 max-w-6xl mx-auto">
+        <Link href="/learner/lessons"
+          className="inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors font-medium mb-6"
+        >
+          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          {L.back}
+        </Link>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* ── Left Column ── */}
         <div className="lg:col-span-7 space-y-6">
@@ -397,7 +569,7 @@ export default function LessonDetailPage() {
           </div>
 
           {/* Tone Notes */}
-          {lesson.toneNotes && (
+          {lesson.toneNotes.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {lesson.toneNotes.map((note) => (
                 <div key={note.tone} className="bg-surface-container-low rounded-2xl p-6 border-l-4"
@@ -406,7 +578,7 @@ export default function LessonDetailPage() {
                     {note.tone}
                   </p>
                   <p className="text-on-surface-variant text-sm leading-relaxed mb-3">
-                    {t(note.desc, note.descJp)}
+                    {t(note.descVi, note.descJp)}
                   </p>
                   <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">
                     {L.toneExamples}
@@ -419,8 +591,13 @@ export default function LessonDetailPage() {
 
           {/* Subtitle toggle */}
           <div className="flex justify-end">
-            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-full hover:opacity-90 transition-all shadow-sm active:scale-95">
-              <span className="material-symbols-outlined text-sm">visibility_off</span>
+            <button
+              onClick={() => setShowSubtitle((v) => !v)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-full hover:opacity-90 transition-all shadow-sm active:scale-95"
+            >
+              <span className="material-symbols-outlined text-sm">
+                {showSubtitle ? "visibility_off" : "visibility"}
+              </span>
               <span className="text-[10px] font-bold uppercase tracking-wider">{L.toggleSubtitle}</span>
             </button>
           </div>
@@ -433,20 +610,18 @@ export default function LessonDetailPage() {
                 dlg={dlg}
                 isLast={idx === lesson.dialogues.length - 1 && !dlg.isActive}
                 lang={lang}
+                showSubtitle={showSubtitle}
               />
             ))}
           </div>
 
-          <Link href="/learner/lessons"
-            className="inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors font-medium">
-            <span className="material-symbols-outlined text-sm">arrow_back</span>
-            {L.back}
-          </Link>
+
         </div>
 
         {/* ── Right Column ── */}
         <div className="lg:col-span-5">
           <VoiceLab titleJp={lesson.titleJp} subtitleJp={lesson.subtitleJp} lang={lang} />
+        </div>
         </div>
       </main>
       <LearnerBottomNav />

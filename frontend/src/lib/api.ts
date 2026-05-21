@@ -120,7 +120,7 @@ export const authApi = {
   registerLearner: (data: { email: string; password: string; displayName: string; level?: string }) =>
     api.post<AuthResponse>("/api/auth/register/learner", data),
 
-  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) =>
+  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string; ageRange?: string; job?: string }) =>
     api.post<AuthResponse>("/api/auth/register/partner", data),
 
   login: (data: { email: string; password: string }) =>
@@ -235,4 +235,75 @@ export const bookingApi = {
 
   getUpcomingBookings: () =>
     api.get<BookingDto[]>("/api/booking/upcoming"),
+};
+
+// ─── TTS (Text-to-Speech via FPT.AI) ─────────────────────────
+export const ttsApi = {
+  synthesize: (text: string) =>
+    api.post<{ audioUrl: string }>("/api/tts/synthesize", { text }),
+};
+
+// ─── Lesson / Curriculum ──────────────────────────────────────
+
+export interface LessonSummaryDto {
+  lessonId: string;
+  sceneLabel: string;
+  sceneLabelJp: string;
+  titleVi: string;
+  titleJp: string;
+  tag: string | null;
+  tagJp: string | null;
+  durationMinutes: number | null;
+  isLocked: boolean;
+  sortOrder: number;
+}
+
+export interface ChapterDto {
+  chapterId: number;
+  titleVi: string;
+  titleJp: string;
+  icon: string;
+  sortOrder: number;
+  lessons: LessonSummaryDto[];
+}
+
+export interface DialogueDto {
+  speaker: string;
+  speakerJp: string;
+  lineVi: string;
+  lineJp: string;
+  isActive: boolean;
+  highlightWordsJson: string | null;
+}
+
+export interface ToneNoteDto {
+  tone: string;
+  descVi: string;
+  descJp: string;
+  example: string;
+  color: string;
+}
+
+export interface LessonDetailDto {
+  lessonId: string;
+  sceneLabel: string;
+  sceneLabelJp: string;
+  titleVi: string;
+  titleJp: string;
+  subtitleVi: string;
+  subtitleJp: string;
+  tag: string | null;
+  tagJp: string | null;
+  durationMinutes: number | null;
+  isLocked: boolean;
+  dialogues: DialogueDto[];
+  toneNotes: ToneNoteDto[];
+}
+
+export const lessonApi = {
+  getChaptersByLevel: (levelId: number = 1) =>
+    api.get<ChapterDto[]>(`/api/lesson/chapters?levelId=${levelId}`),
+
+  getLessonById: (id: string) =>
+    api.get<LessonDetailDto>(`/api/lesson/${id}`),
 };

@@ -13,7 +13,7 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   loginAction: (email: string, password: string) => Promise<AuthResponse>;
   registerLearner: (data: { email: string; password: string; displayName: string; level?: string }) => Promise<AuthResponse>;
-  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) => Promise<AuthResponse>;
+  registerPartner: (data: { email: string; password: string; displayName: string; phone?: string; bio?: string; ageRange?: string; job?: string }) => Promise<AuthResponse>;
   logout: () => void;
   updateUser: (partial: Partial<UserProfile>) => void;
 }
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response;
   };
 
-  const registerPartner = async (data: { email: string; password: string; displayName: string; phone?: string; bio?: string }) => {
+  const registerPartner = async (data: { email: string; password: string; displayName: string; phone?: string; bio?: string; ageRange?: string; job?: string }) => {
     const response = await authApi.registerPartner(data);
     handleAuthSuccess(response);
     return response;

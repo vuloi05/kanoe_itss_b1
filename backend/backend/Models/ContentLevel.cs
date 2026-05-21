@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -25,4 +25,7 @@ public partial class ContentLevel
 
     [InverseProperty("Level")]
     public virtual ICollection<MediaContent> MediaContents { get; set; } = new List<MediaContent>();
+
+    [InverseProperty("Level")]
+    public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
 }
