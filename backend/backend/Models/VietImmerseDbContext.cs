@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace backend.Models;
 
@@ -61,6 +62,8 @@ public partial class VietImmerseDbContext : DbContext
 
     public virtual DbSet<ViewingHistory> ViewingHistories { get; set; }
 
+    public virtual DbSet<VoiceLabRecord> VoiceLabRecords { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -69,7 +72,8 @@ public partial class VietImmerseDbContext : DbContext
             var connStr = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
             if (!string.IsNullOrEmpty(connStr))
             {
-                optionsBuilder.UseNpgsql(connStr);
+                optionsBuilder.UseNpgsql(connStr)
+                    .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
             }
         }
     }
@@ -388,6 +392,17 @@ public partial class VietImmerseDbContext : DbContext
             entity.HasOne(d => d.Media).WithMany(p => p.ViewingHistories).HasConstraintName("viewing_history_media_id_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.ViewingHistories).HasConstraintName("viewing_history_user_id_fkey");
+        });
+
+        modelBuilder.Entity<VoiceLabRecord>(entity =>
+        {
+            entity.HasKey(e => e.RecordId).HasName("voice_lab_records_pkey");
+
+            entity.Property(e => e.RecordId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.User).WithMany(p => p.VoiceLabRecords)
+                .HasConstraintName("voice_lab_records_user_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

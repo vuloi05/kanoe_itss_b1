@@ -2,12 +2,14 @@ using System.Security.Cryptography;
 using System.Text;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace backend.Services;
 
 /// <summary>
-/// Reads SQL seed files from disk and executes them idempotently.
-/// Tracks file hashes in _seed_history to skip unchanged files.
+/// Executes schema.sql and seed_data.sql idempotently on startup.
+/// Tracks SHA-256 hashes in _seed_history — re-executes only when file content changes.
+/// Auto-recovers from missing-table errors (42P01) by force-running schema.sql.
 /// </summary>
 public static class DatabaseSeeder
 {
@@ -18,10 +20,24 @@ public static class DatabaseSeeder
         var sqlDir = ResolveSqlDirectory();
         if (sqlDir == null)
         {
-            logger.LogWarning("Database seed directory not found — skipping seed");
+            logger.LogWarning("Database seed directory not found — skipping");
             return;
         }
 
+        await EnsureHistoryTableAsync(context);
+
+        // ── Phase 1: Apply schema.sql (DDL — CREATE TABLE IF NOT EXISTS) ──
+        var schemaFile = Path.Combine(sqlDir, "schema.sql");
+        if (File.Exists(schemaFile))
+        {
+            await ApplyFileIfChangedAsync(context, logger, schemaFile, "schema.sql");
+        }
+        else
+        {
+            logger.LogWarning("schema.sql not found at {Path} — skipping DDL", schemaFile);
+        }
+
+        // ── Phase 2: Apply seed_data.sql (DML — INSERT ... ON CONFLICT) ──
         var seedFile = Path.Combine(sqlDir, "seed_data.sql");
         if (!File.Exists(seedFile))
         {
@@ -29,40 +45,94 @@ public static class DatabaseSeeder
             return;
         }
 
-        await EnsureHistoryTableAsync(context);
-
-        var sql = await File.ReadAllTextAsync(seedFile);
-        var hash = ComputeSha256(sql);
-
-        if (await IsAlreadyAppliedAsync(context, "seed_data.sql", hash))
-        {
-            logger.LogInformation("🌱 Seed data unchanged (hash match) — skipping");
-            return;
-        }
-
-        logger.LogInformation("🌱 Applying seed_data.sql (hash: {Hash})…", hash[..12]);
-
         try
         {
-            // Use raw ADO.NET to avoid EF Core parsing `{` in JSON as format placeholders
-            var connection = context.Database.GetDbConnection();
-            await connection.OpenAsync();
-            await using var command = connection.CreateCommand();
-            command.CommandText = sql;
-            command.CommandTimeout = 120;
-            await command.ExecuteNonQueryAsync();
-
-            await RecordAppliedAsync(context, "seed_data.sql", hash);
-            logger.LogInformation("✅ Seed data applied successfully");
+            await ApplyFileIfChangedAsync(context, logger, seedFile, "seed_data.sql");
         }
-        catch (Exception ex)
+        catch (PostgresException ex) when (ex.SqlState == "42P01")
         {
-            logger.LogError(ex, "❌ Failed to apply seed_data.sql");
-            throw;
+            // Missing table — schema.sql was likely not applied or is stale
+            logger.LogError(ex,
+                "❌ Phát hiện thiếu bảng (42P01: {Table}). Đang force-run lại schema.sql...",
+                ex.MessageText);
+
+            if (File.Exists(schemaFile))
+            {
+                await ForceApplyFileAsync(context, logger, schemaFile, "schema.sql");
+
+                // Retry seed_data.sql after schema recovery
+                logger.LogInformation("🔄 Retrying seed_data.sql after schema recovery...");
+                await ForceApplyFileAsync(context, logger, seedFile, "seed_data.sql");
+            }
+            else
+            {
+                logger.LogError("schema.sql not found — cannot auto-recover from missing tables");
+                throw;
+            }
         }
     }
 
-    // Walk up from working directory to find the database/ folder
+    /// <summary>
+    /// Compare current file hash against the latest recorded hash in _seed_history.
+    /// Only executes the SQL if the hash has changed (file was modified).
+    /// </summary>
+    private static async Task ApplyFileIfChangedAsync(
+        VietImmerseDbContext context, ILogger logger, string filePath, string fileName)
+    {
+        var sql = await File.ReadAllTextAsync(filePath);
+        var hash = ComputeSha256(sql);
+
+        if (await IsLatestHashMatchAsync(context, fileName, hash))
+        {
+            logger.LogInformation("🌱 {File} unchanged (hash match) — skipping", fileName);
+            return;
+        }
+
+        logger.LogInformation("🌱 Applying {File} (hash: {Hash})…", fileName, hash[..12]);
+        await ExecuteSqlAsync(context, sql);
+        await RecordAppliedAsync(context, fileName, hash);
+        logger.LogInformation("✅ {File} applied successfully", fileName);
+    }
+
+    /// <summary>
+    /// Force-execute a SQL file regardless of hash history.
+    /// Used for auto-recovery after missing-table errors.
+    /// </summary>
+    private static async Task ForceApplyFileAsync(
+        VietImmerseDbContext context, ILogger logger, string filePath, string fileName)
+    {
+        var sql = await File.ReadAllTextAsync(filePath);
+        var hash = ComputeSha256(sql);
+
+        logger.LogInformation("🔧 Force-applying {File} (hash: {Hash})…", fileName, hash[..12]);
+        await ExecuteSqlAsync(context, sql);
+        await RecordAppliedAsync(context, fileName, hash);
+        logger.LogInformation("✅ {File} force-applied successfully", fileName);
+    }
+
+    /// <summary>
+    /// Execute raw SQL via ADO.NET to avoid EF Core's format-string parsing
+    /// (which chokes on `{` characters inside JSON literals).
+    /// </summary>
+    private static async Task ExecuteSqlAsync(VietImmerseDbContext context, string sql)
+    {
+        var connection = context.Database.GetDbConnection();
+        if (connection.State != System.Data.ConnectionState.Open)
+            await connection.OpenAsync();
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.CommandTimeout = 120;
+        await command.ExecuteNonQueryAsync();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Infrastructure helpers
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Walk up from working directory / app base to find the database/ folder.
+    /// </summary>
     private static string? ResolveSqlDirectory()
     {
         // Published output: database/ sits next to the DLL
@@ -103,10 +173,13 @@ public static class DatabaseSeeder
         await context.Database.ExecuteSqlRawAsync(sql);
     }
 
-    private static async Task<bool> IsAlreadyAppliedAsync(
+    /// <summary>
+    /// Check if the LATEST history entry for this file matches the given hash.
+    /// Returns true only when the most recent record's hash equals the current file hash.
+    /// </summary>
+    private static async Task<bool> IsLatestHashMatchAsync(
         VietImmerseDbContext context, string fileName, string hash)
     {
-        // EF Core's SqlQueryRaw<int> expects column named "Value"
         var sql = "SELECT COUNT(*)::int AS \"Value\" FROM " + HistoryTable +
             " WHERE file_name = {0} AND hash = {1}" +
             " AND id = (SELECT MAX(id) FROM " + HistoryTable + " WHERE file_name = {0})";
