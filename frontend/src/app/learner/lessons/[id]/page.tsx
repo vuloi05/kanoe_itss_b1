@@ -5,7 +5,10 @@ import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { lessonApi, ttsApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
+import { lessonApi, ttsApi, voiceLabApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
+// Hàm chuyển đổi audio chunks (webm/opus) → WAV (PCM, 16kHz, Mono)
+// để tối ưu cho FPT.AI ASR API — xem chi tiết lý do kỹ thuật trong audio-utils.ts
+import { exportToWav } from "@/lib/audio-utils";
 
 // In-memory cache to avoid redundant API calls for the same text
 const ttsCache = new Map<string, string>();
@@ -278,8 +281,12 @@ function DialogueLine({ dlg, isLast, lang, showSubtitle }: {
   );
 }
 
-// ─── Voice Lab (Mic Recorder) ─────────────────────────────────────────────────
-function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: string; lang: string }) {
+// ─── Voice Lab (Mic Recorder + Real Scoring) ─────────────────────────────────
+// Pipeline: Thu âm (MediaRecorder) → Chuyển đổi WAV 16kHz Mono (Web Audio API)
+//           → Gửi lên backend → FPT ASR chấm điểm phát âm
+// MediaRecorder ghi ở codec mặc định của trình duyệt (thường là webm/opus),
+// nên bắt buộc phải chuyển đổi sang WAV trước khi gửi API.
+function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string; subtitleJp: string; lang: string; expectedText: string }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
   const [statusLabel, setStatusLabel] = useState("Ready to record");
@@ -287,10 +294,15 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
   const [isPlayingRec, setIsPlayingRec] = useState(false);
   const [duration, setDuration] = useState(0);
   const [curTime, setCurTime] = useState(0);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [scores, setScores] = useState<{ actualText: string | null; completeness: number; accuracy: number; fluency: number; prosody: number } | null>(null);
+  const [evalError, setEvalError] = useState<string | null>(null);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const audioBlobRef = useRef<Blob | null>(null);
   const recordedAudioUrlRef = useRef(recordedAudioUrl);
   useEffect(() => { recordedAudioUrlRef.current = recordedAudioUrl; }, [recordedAudioUrl]);
 
@@ -325,22 +337,76 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
   const fmt = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, "0")}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
 
+  const evaluateRecording = async (blob: Blob, durationSec: number) => {
+    if (!expectedText.trim()) return;
+    setIsEvaluating(true);
+    setEvalError(null);
+    setStatusLabel(lang === "ja" ? "AI採点中..." : "AI đang chấm điểm...");
+    try {
+      const formData = new FormData();
+      formData.append("AudioFile", blob, "recording.wav");
+      formData.append("ExpectedText", expectedText);
+      formData.append("DurationSeconds", durationSec.toFixed(3));
+
+      const result = await voiceLabApi.evaluate(formData);
+      setScores(result);
+      setStatusLabel(lang === "ja" ? "採点完了" : "Đã chấm điểm xong");
+    } catch (err) {
+      console.error("Voice Lab evaluation failed:", err);
+      setEvalError(lang === "ja" ? "採点に失敗しました" : "Chấm điểm thất bại");
+      setStatusLabel("Error");
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
   const startRec = async () => {
     try {
       if (recordedAudioUrl) { URL.revokeObjectURL(recordedAudioUrl); setRecordedAudioUrl(null); }
+      setScores(null);
+      setEvalError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const rec = new MediaRecorder(stream);
       chunksRef.current = [];
       rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      rec.onstop = () => {
-        const url = URL.createObjectURL(new Blob(chunksRef.current, { type: "audio/webm" }));
-        setRecordedAudioUrl(url);
-        setIsPlayingRec(false);
-        setCurTime(0);
+      rec.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        setStatusLabel("Ready to play");
+
+        // Calculate actual duration before async conversion
+        const durationSec = (Date.now() - startTimeRef.current) / 1000;
+        setStatusLabel(lang === "ja" ? "WAV変換中..." : "Đang chuyển đổi WAV...");
+
+        try {
+          // Chuyển đổi webm/opus chunks → PCM 16kHz Mono WAV.
+          // Bắt buộc phải ép chuẩn vì FPT ASR cho kết quả kém hoặc lỗi
+          // nếu nhận file webm hoặc WAV có sampleRate khác 16kHz.
+          const wavBlob = await exportToWav(chunksRef.current);
+          audioBlobRef.current = wavBlob;
+          const url = URL.createObjectURL(wavBlob);
+          setRecordedAudioUrl(url);
+          setIsPlayingRec(false);
+          setCurTime(0);
+          setStatusLabel("Ready to play");
+
+          // Auto-evaluate after stopping
+          evaluateRecording(wavBlob, durationSec);
+        } catch (err) {
+          console.error("WAV conversion failed:", err);
+          // Fallback: nếu chuyển đổi WAV thất bại (trình duyệt cũ, codec không hỗ trợ),
+          // vẫn gửi raw webm để UI không crash. Chất lượng ASR có thể giảm nhưng
+          // trải nghiệm người dùng không bị gián đoạn.
+          const fallbackBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+          audioBlobRef.current = fallbackBlob;
+          const url = URL.createObjectURL(fallbackBlob);
+          setRecordedAudioUrl(url);
+          setIsPlayingRec(false);
+          setCurTime(0);
+          setStatusLabel("Ready to play");
+          evaluateRecording(fallbackBlob, durationSec);
+        }
       };
       recRef.current = rec;
+      startTimeRef.current = Date.now();
       rec.start();
       setElapsed(0);
       timerRef.current = window.setInterval(() => setElapsed((v) => v + 1), 1000);
@@ -360,6 +426,8 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
     if (isPlayingRec) audioRef.current?.pause();
     if (recordedAudioUrl) { URL.revokeObjectURL(recordedAudioUrl); setRecordedAudioUrl(null); }
     setElapsed(0); setIsPlayingRec(false); setDuration(0); setCurTime(0);
+    setScores(null); setEvalError(null);
+    audioBlobRef.current = null;
     setStatusLabel("Ready to record");
   };
 
@@ -370,7 +438,7 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
   };
 
   const bars = [30, 60, 45, 80, 20, 55, 75, 40, 65, 30, 90, 50, 35];
-  const statusIcon = isRecording ? "fiber_manual_record" : isPlayingRec ? "pause_circle" : recordedAudioUrl ? "play_circle" : "mic_none";
+  const statusIcon = isEvaluating ? "hourglass_empty" : isRecording ? "fiber_manual_record" : isPlayingRec ? "pause_circle" : recordedAudioUrl ? "play_circle" : "mic_none";
 
   const L = {
     voiceLab: lang === "ja" ? "ボイスラボ" : "Voice Lab",
@@ -380,7 +448,22 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
     fluency: lang === "ja" ? "流暢さ" : "Fluency",
     complete: lang === "ja" ? "完成度" : "Completeness",
     prosody: lang === "ja" ? "韻律" : "Prosody",
+    recognized: lang === "ja" ? "認識されたテキスト" : "Hệ thống nghe được",
   };
+
+  const scoreData = scores
+    ? [
+        { val: `${Math.round(scores.accuracy)}%`, label: "Accuracy", jp: L.accuracy },
+        { val: `${Math.round(scores.fluency)}%`, label: "Fluency", jp: L.fluency },
+        { val: `${Math.round(scores.completeness)}%`, label: "Completeness", jp: L.complete },
+        { val: `${Math.round(scores.prosody)}%`, label: "Prosody", jp: L.prosody },
+      ]
+    : [
+        { val: "—", label: "Accuracy", jp: L.accuracy },
+        { val: "—", label: "Fluency", jp: L.fluency },
+        { val: "—", label: "Completeness", jp: L.complete },
+        { val: "—", label: "Prosody", jp: L.prosody },
+      ];
 
   return (
     <div className="space-y-6">
@@ -408,24 +491,33 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
               />
             ))}
           </div>
-          <p className="mt-6 text-center text-sm text-on-primary-container/90">{L.analyzing}</p>
+          {isEvaluating ? (
+            <p className="mt-6 text-center text-sm text-on-primary-container/90 animate-pulse">{L.analyzing}</p>
+          ) : scores?.actualText ? (
+            <div className="mt-6 text-center">
+              <p className="text-[10px] uppercase tracking-widest text-on-primary-container/60 mb-1">{L.recognized}</p>
+              <p className="text-sm text-on-primary-container/90 font-medium italic">&ldquo;{scores.actualText}&rdquo;</p>
+            </div>
+          ) : (
+            <p className="mt-6 text-center text-sm text-on-primary-container/90">{L.analyzing}</p>
+          )}
           <p className="text-center text-xs text-on-primary-container/60 mt-1">{titleJp} — {subtitleJp}</p>
         </div>
         <div className="relative z-10 flex flex-col items-center gap-4 mt-4">
           <div className="flex items-center justify-center gap-8">
-            <button onClick={reset} disabled={!recordedAudioUrl && !isRecording}
+            <button onClick={reset} disabled={(!recordedAudioUrl && !isRecording) || isEvaluating}
               className="w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Reset">
               <span className="material-symbols-outlined text-on-primary-container">replay</span>
             </button>
-            <button onClick={isRecording ? stopRec : startRec}
-              className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${isRecording ? "bg-error text-on-error" : "bg-secondary text-on-secondary hover:scale-105"}`}
+            <button onClick={isRecording ? stopRec : startRec} disabled={isEvaluating}
+              className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${isRecording ? "bg-error text-on-error" : isEvaluating ? "bg-surface-container text-on-surface-variant cursor-wait" : "bg-secondary text-on-secondary hover:scale-105"}`}
               aria-label={isRecording ? "Stop" : "Record"}>
               <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                {isRecording ? "stop" : "mic"}
+                {isEvaluating ? "hourglass_empty" : isRecording ? "stop" : "mic"}
               </span>
             </button>
-            <button onClick={togglePlay} disabled={!recordedAudioUrl}
+            <button onClick={togglePlay} disabled={!recordedAudioUrl || isEvaluating}
               className="w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Play">
               <span className="material-symbols-outlined text-on-primary-container">
@@ -448,15 +540,18 @@ function VoiceLab({ titleJp, subtitleJp, lang }: { titleJp: string; subtitleJp: 
           <audio ref={audioRef} src={recordedAudioUrl ?? undefined} hidden />
         </div>
       </div>
+
+      {evalError && (
+        <div className="bg-error/10 border border-error/30 text-error rounded-2xl px-5 py-3 text-sm text-center">
+          <span className="material-symbols-outlined text-sm align-middle mr-1">error</span>
+          {evalError}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
-        {[
-          { val: "82%", label: "Accuracy", jp: L.accuracy },
-          { val: "7.5", label: "Fluency", jp: L.fluency },
-          { val: "90%", label: "Completeness", jp: L.complete },
-          { val: "68%", label: "Prosody", jp: L.prosody },
-        ].map((s) => (
-          <div key={s.label} className="bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm">
-            <span className="block text-2xl font-headline font-extrabold text-primary">{s.val}</span>
+        {scoreData.map((s) => (
+          <div key={s.label} className={`bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm transition-all duration-300 ${scores ? "ring-2 ring-primary/20" : ""}`}>
+            <span className={`block text-2xl font-headline font-extrabold ${scores ? "text-primary" : "text-on-surface-variant/40"}`}>{s.val}</span>
             <span className="block text-[10px] font-bold text-primary uppercase tracking-wider">{s.jp}</span>
           </div>
         ))}
@@ -620,7 +715,7 @@ export default function LessonDetailPage() {
 
         {/* ── Right Column ── */}
         <div className="lg:col-span-5">
-          <VoiceLab titleJp={lesson.titleJp} subtitleJp={lesson.subtitleJp} lang={lang} />
+          <VoiceLab titleJp={lesson.titleJp} subtitleJp={lesson.subtitleJp} lang={lang} expectedText={lesson.dialogues.find(d => d.isActive)?.lineVi ?? lesson.dialogues[0]?.lineVi ?? ""} />
         </div>
         </div>
       </main>
