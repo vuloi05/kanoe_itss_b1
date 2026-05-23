@@ -672,4 +672,19 @@ ON CONFLICT (dialogue_id) DO UPDATE SET
     highlight_words_json = EXCLUDED.highlight_words_json,
     sort_order           = EXCLUDED.sort_order;
 
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- 7. VOICE LAB RECORDS (sample pronunciation scoring data)
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+INSERT INTO voice_lab_records (record_id, user_id, expected_text, actual_text, completeness_score, accuracy_score, fluency_score, prosody_score, audio_duration, created_at) VALUES
+    ('e0000000-0000-0000-0000-000000000001',
+     NULL,
+     'Cá má bé', 'cá ma bé',
+     100.00, 88.89, 92.50, 66.67, 1.200, NOW()),
+    ('e0000000-0000-0000-0000-000000000002',
+     NULL,
+     'Cho em một suất bún chả nhé', 'cho em một suất bún chả nhé',
+     100.00, 96.43, 85.00, 100.00, 3.500, NOW())
+ON CONFLICT (record_id) DO NOTHING;
+
 COMMIT;

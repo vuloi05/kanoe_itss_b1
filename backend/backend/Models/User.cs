@@ -123,4 +123,7 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<ViewingHistory> ViewingHistories { get; set; } = new List<ViewingHistory>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<VoiceLabRecord> VoiceLabRecords { get; set; } = new List<VoiceLabRecord>();
 }

@@ -4,6 +4,7 @@ using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 
 // Load .env from project root (shared config for all services)
@@ -20,7 +21,8 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<VietImmerseDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString)
+           .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // JWT Authentication
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
@@ -71,6 +73,8 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
 builder.Services.AddScoped<ITtsService, FptTtsService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
+builder.Services.AddScoped<IAsrService, FptAsrService>();
+builder.Services.AddSingleton<IVoiceScoringService, VoiceScoringService>();
 
 // SignalR (Realtime Messaging — replaces Supabase Realtime)
 builder.Services.AddSignalR();
@@ -108,7 +112,8 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ---- AUTO-MIGRATE & DATABASE HEALTH CHECK ----
+// ---- DATABASE HEALTH CHECK & SEED ----
+// Schema is managed by schema.sql (applied by Supabase/Docker), NOT by EF Core Migrations.
 const int maxRetries = 5;
 const int retryDelayMs = 3000;
 
@@ -123,32 +128,18 @@ using (var scope = app.Services.CreateScope())
         {
             var context = services.GetRequiredService<VietImmerseDbContext>();
 
-            // Log pending migrations before applying
-            var pending = (await context.Database.GetPendingMigrationsAsync()).ToList();
-            var applied = (await context.Database.GetAppliedMigrationsAsync()).ToList();
-
-            logger.LogInformation("Database migration check: {Applied} applied, {Pending} pending",
-                applied.Count, pending.Count);
-
-            if (pending.Count > 0)
-            {
-                logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
-                    pending.Count, string.Join(", ", pending));
-            }
-
-            // Apply pending migrations (creates tables for fresh DB, adds columns for existing DB)
-            // Safe: EF Core only runs new migrations — never drops tables or deletes data
-            await context.Database.MigrateAsync();
+            // Verify database connectivity (no migration — schema.sql handles DDL)
+            var canConnect = await context.Database.CanConnectAsync();
+            if (!canConnect)
+                throw new InvalidOperationException("Database is not reachable");
 
             Console.WriteLine("==================================================");
             Console.WriteLine("🎉 KẾT NỐI DATABASE POSTGRESQL THÀNH CÔNG! 🎉");
-            Console.WriteLine($"📦 Migrations: {applied.Count} applied, {pending.Count} newly applied.");
             Console.WriteLine("==================================================");
 
             // ── Seed data from SQL file (idempotent UPSERT — safe for existing data) ──
             await DatabaseSeeder.SeedAsync(context, logger);
 
-            // Migration succeeded — break out of retry loop
             break;
         }
         catch (Exception ex) when (attempt < maxRetries)

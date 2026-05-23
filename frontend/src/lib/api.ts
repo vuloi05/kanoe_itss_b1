@@ -48,7 +48,6 @@ async function request<T>(endpoint: string, options: ApiOptions = {}): Promise<T
   return res.json();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function uploadRequest<T>(endpoint: string, formData: FormData): Promise<T> {
   const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
@@ -307,3 +306,18 @@ export const lessonApi = {
   getLessonById: (id: string) =>
     api.get<LessonDetailDto>(`/api/lesson/${id}`),
 };
+
+// ─── Voice Lab (Pronunciation Scoring) ────────────────────────
+export interface VoiceLabEvaluateResponse {
+  actualText: string | null;
+  completeness: number;
+  accuracy: number;
+  fluency: number;
+  prosody: number;
+}
+
+export const voiceLabApi = {
+  evaluate: (formData: FormData) =>
+    uploadRequest<VoiceLabEvaluateResponse>("/api/voicelab/evaluate", formData),
+};
+

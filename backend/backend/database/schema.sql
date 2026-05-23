@@ -1,11 +1,11 @@
 -- =============================================================================
--- VietImmerse — Schema Snapshot (Reference Only)
+-- VietImmerse — Database Schema (Source of Truth)
 -- =============================================================================
--- This file is a REFERENCE snapshot of the database schema.
--- DO NOT use this file to create tables — EF Core Migrations handle that.
+-- This file is the AUTHORITATIVE DDL for all tables.
+-- DatabaseSeeder.cs auto-applies this file on startup when content changes.
+-- All statements use CREATE TABLE IF NOT EXISTS for idempotent re-execution.
 --
--- Purpose: Quick review of table structure without opening C# model files.
--- Generated from: EF Core migration snapshot (2026-05-21)
+-- ⚠️  EF Core Migrations are NOT used — schema is managed here.
 -- =============================================================================
 
 -- Custom ENUM types (managed by Npgsql)
@@ -351,3 +351,23 @@ CREATE TABLE IF NOT EXISTS listening_errors (
     CONSTRAINT listening_errors_media_id_fkey   FOREIGN KEY (media_id)   REFERENCES media_content(media_id),
     CONSTRAINT listening_errors_segment_id_fkey FOREIGN KEY (segment_id) REFERENCES transcript_segments(segment_id)
 );
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- VOICE LAB (Pronunciation Scoring)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS voice_lab_records (
+    record_id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    -- Nullable during dev (AllowAnonymous); set NOT NULL before production
+    user_id             UUID,
+    expected_text       TEXT NOT NULL,
+    actual_text         TEXT,
+    completeness_score  NUMERIC(5,2),
+    accuracy_score      NUMERIC(5,2),
+    fluency_score       NUMERIC(5,2),
+    prosody_score       NUMERIC(5,2),
+    audio_duration      NUMERIC(8,3),
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT voice_lab_records_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_voice_lab_records_user ON voice_lab_records (user_id);
