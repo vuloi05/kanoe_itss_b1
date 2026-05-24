@@ -56,8 +56,8 @@ public class VoiceLabController : ControllerBase
             "Voice Lab: received {Size} bytes, expectedText='{Expected}', duration={Duration}s",
             audioBytes.Length, request.ExpectedText, request.DurationSeconds);
 
-        // 2. Call FPT ASR to get recognized text
-        var actualText = await _asrService.RecognizeAsync(audioBytes);
+        // 2. Call ASR service to get recognized text (pass expected text as a prompt to guide Whisper)
+        var actualText = await _asrService.RecognizeAsync(audioBytes, request.ExpectedText);
 
         if (string.IsNullOrWhiteSpace(actualText))
         {

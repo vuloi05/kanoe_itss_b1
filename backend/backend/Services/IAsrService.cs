@@ -3,8 +3,7 @@ namespace backend.Services;
 public interface IAsrService
 {
     /// <summary>
-    /// Send audio bytes to FPT ASR and return the recognized Vietnamese text.
-    /// Returns null if recognition fails.
+    /// Send audio bytes to ASR service and return the recognized Vietnamese text.
     /// </summary>
-    Task<string?> RecognizeAsync(byte[] audioData);
+    Task<string?> RecognizeAsync(byte[] audioData, string? prompt = null);
 }
