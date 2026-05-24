@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
       </section>
       <section className="w-full md:w-1/2 lg:w-2/5 bg-surface-container-lowest flex items-center justify-center p-8 md:p-12 lg:p-20">
         <div className="w-full max-w-md">
-          <Link href="/login" className="inline-flex items-center text-secondary hover:text-primary transition-colors mb-12 font-medium group"><span className="material-symbols-outlined mr-2 group-hover:-translate-x-1 transition-transform">arrow_back</span><span className="text-sm">← {t("Quay lại Đăng nhập", "ログインに戻る")}</span></Link>
+          <Link href="/login" className="inline-flex items-center text-secondary hover:text-primary transition-colors mb-12 font-medium group"><span className="material-symbols-outlined mr-2 group-hover:-translate-x-1 transition-transform">arrow_back</span><span className="text-sm">{t("Quay lại Đăng nhập", "ログインに戻る")}</span></Link>
           <div className="mb-10">
             <h2 className="font-headline text-3xl font-bold text-primary mb-4">{t("Quên mật khẩu?", "パスワードをお忘れですか？")}</h2>
             <p className="text-on-surface-variant leading-relaxed">{t("Nhập email của bạn để nhận hướng dẫn đặt lại mật khẩu.", "パスワード再設定用のメールをお送りします。")}</p>

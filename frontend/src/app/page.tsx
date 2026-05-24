@@ -42,11 +42,6 @@ export default function Home() {
             <span className="text-xl font-bold text-primary dark:text-blue-200 font-headline tracking-wide">
               VietImmerse
             </span>
-            <div className="hidden md:flex gap-6 items-center">
-              <a className="text-secondary dark:text-stone-400 hover:bg-surface-container-low dark:hover:bg-slate-800 transition-colors duration-300 px-3 py-1 rounded-xl text-sm font-medium" href="#">{t("Học tập", "学ぶ")}</a>
-              <a className="text-secondary dark:text-stone-400 hover:bg-surface-container-low dark:hover:bg-slate-800 transition-colors duration-300 px-3 py-1 rounded-xl text-sm font-medium" href="#">{t("Giá cả", "料金")}</a>
-              <a className="text-secondary dark:text-stone-400 hover:bg-surface-container-low dark:hover:bg-slate-800 transition-colors duration-300 px-3 py-1 rounded-xl text-sm font-medium" href="#">{t("Giới thiệu", "について")}</a>
-            </div>
           </div>
           <div className="flex items-center gap-4">
             <LanguageSwitcher />
