@@ -25,7 +25,7 @@ public class FptAsrService : IAsrService
         _logger = logger;
     }
 
-    public async Task<string?> RecognizeAsync(byte[] audioData)
+    public async Task<string?> RecognizeAsync(byte[] audioData, string? prompt = null)
     {
         if (audioData.Length == 0)
             return null;

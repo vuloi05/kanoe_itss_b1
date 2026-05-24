@@ -73,7 +73,7 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
 builder.Services.AddScoped<ITtsService, FptTtsService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
-builder.Services.AddScoped<IAsrService, FptAsrService>();
+builder.Services.AddScoped<IAsrService, OpenAiWhisperService>();
 builder.Services.AddSingleton<IVoiceScoringService, VoiceScoringService>();
 
 // SignalR (Realtime Messaging — replaces Supabase Realtime)

@@ -365,7 +365,13 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
       if (recordedAudioUrl) { URL.revokeObjectURL(recordedAudioUrl); setRecordedAudioUrl(null); }
       setScores(null);
       setEvalError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
       const rec = new MediaRecorder(stream);
       chunksRef.current = [];
       rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
@@ -437,13 +443,49 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
     else { audioRef.current.currentTime = 0; audioRef.current.play(); }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    reset();
+    setScores(null);
+    setEvalError(null);
+    setStatusLabel(lang === "ja" ? "ファイル処理中..." : "Đang xử lý file...");
+
+    try {
+      // 1. Decode audio using browser's AudioContext to get duration
+      const arrayBuffer = await file.arrayBuffer();
+      const tempCtx = new AudioContext();
+      const decoded = await tempCtx.decodeAudioData(arrayBuffer);
+      const durationSec = decoded.duration;
+      await tempCtx.close();
+
+      setStatusLabel(lang === "ja" ? "WAV変換中..." : "Đang chuyển đổi WAV...");
+
+      // 2. Convert raw file buffer using exportToWav
+      const wavBlob = await exportToWav([file]);
+      audioBlobRef.current = wavBlob;
+      const url = URL.createObjectURL(wavBlob);
+      setRecordedAudioUrl(url);
+      setIsPlayingRec(false);
+      setCurTime(0);
+
+      // 3. Trigger evaluation
+      evaluateRecording(wavBlob, durationSec);
+    } catch (err) {
+      console.error("File processing failed:", err);
+      setEvalError(lang === "ja" ? "ファイルの処理に失敗しました" : "Lỗi xử lý file âm thanh.");
+      setStatusLabel("Error");
+    }
+  };
+
   const bars = [30, 60, 45, 80, 20, 55, 75, 40, 65, 30, 90, 50, 35];
   const statusIcon = isEvaluating ? "hourglass_empty" : isRecording ? "fiber_manual_record" : isPlayingRec ? "pause_circle" : recordedAudioUrl ? "play_circle" : "mic_none";
 
   const L = {
     voiceLab: lang === "ja" ? "ボイスラボ" : "Voice Lab",
     shadowing: lang === "ja" ? "シャドーイング中" : "Shadowing Active",
-    analyzing: lang === "ja" ? "ピッチ分析中..." : "Analyzing Pitch...",
+    analyzing: lang === "ja" ? "ピッチ/音声分析..." : "Đang phân tích âm thanh...",
     accuracy: lang === "ja" ? "精度" : "Accuracy",
     fluency: lang === "ja" ? "流暢さ" : "Fluency",
     complete: lang === "ja" ? "完成度" : "Completeness",
@@ -504,7 +546,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
           <p className="text-center text-xs text-on-primary-container/60 mt-1">{titleJp} — {subtitleJp}</p>
         </div>
         <div className="relative z-10 flex flex-col items-center gap-4 mt-4">
-          <div className="flex items-center justify-center gap-8">
+          <div className="flex items-center justify-center gap-6">
             <button onClick={reset} disabled={(!recordedAudioUrl && !isRecording) || isEvaluating}
               className="w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Reset">
@@ -524,6 +566,11 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
                 {isPlayingRec ? "pause" : "play_arrow"}
               </span>
             </button>
+            <label className={`w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors cursor-pointer ${isEvaluating ? "opacity-40 cursor-not-allowed" : ""}`}
+              title="Upload file to test">
+              <span className="material-symbols-outlined text-on-primary-container">upload_file</span>
+              <input type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" disabled={isEvaluating} />
+            </label>
           </div>
           <div className="flex flex-col items-center gap-2">
             <div className="inline-flex items-center gap-2 rounded-full bg-on-primary-container/10 px-3 py-1 text-xs text-on-primary-container">
