@@ -6,6 +6,7 @@ public record UserProfileResponse(
     string DisplayName,
     string Role,
     string? AvatarUrl,
+    string? Level,
     string? Phone,
     string? LanguagePref,
     DateTime CreatedAt,

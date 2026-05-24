@@ -6,5 +6,6 @@ public record AuthResponse(
     string Email,
     string DisplayName,
     string Role,
-    string? AvatarUrl
+    string? AvatarUrl,
+    string? Level
 );

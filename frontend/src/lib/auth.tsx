@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         displayName: response.displayName,
         role: response.role,
         avatarUrl: response.avatarUrl,
+        level: response.level ?? null,
         phone: null,
         languagePref: null,
         createdAt: new Date().toISOString(),

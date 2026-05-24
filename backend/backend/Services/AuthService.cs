@@ -65,6 +65,7 @@ public class AuthService : IAuthService
 
             learnerProfile.UserId = user.UserId;
             _db.LearnerProfiles.Add(learnerProfile);
+            user.LearnerProfile = learnerProfile;
             await _db.SaveChangesAsync();
 
             await transaction.CommitAsync();
@@ -128,7 +129,9 @@ public class AuthService : IAuthService
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
+        var user = await _db.Users
+            .Include(u => u.LearnerProfile)
+            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Email hoặc mật khẩu không chính xác.");
@@ -245,7 +248,9 @@ public class AuthService : IAuthService
 
     public async Task<UserProfileResponse> GetProfileAsync(Guid userId)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId && u.DeletedAt == null)
+        var user = await _db.Users
+            .Include(u => u.LearnerProfile)
+            .FirstOrDefaultAsync(u => u.UserId == userId && u.DeletedAt == null)
             ?? throw new KeyNotFoundException("Không tìm thấy tài khoản.");
 
         return new UserProfileResponse(
@@ -254,6 +259,7 @@ public class AuthService : IAuthService
             DisplayName: user.DisplayName,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl,
+            Level: user.LearnerProfile?.Goals,
             Phone: user.Phone,
             LanguagePref: user.LanguagePref,
             CreatedAt: user.CreatedAt,
@@ -279,6 +285,7 @@ public class AuthService : IAuthService
             DisplayName: user.DisplayName,
             Role: user.Role,
             AvatarUrl: user.AvatarUrl
+            , Level: user.LearnerProfile?.Goals
         );
     }
 }

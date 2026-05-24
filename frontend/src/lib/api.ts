@@ -18,9 +18,12 @@ async function request<T>(endpoint: string, options: ApiOptions = {}): Promise<T
   const { token, headers: customHeaders, ...fetchOptions } = options;
 
   const headers: HeadersInit = {
-    "Content-Type": "application/json",
     ...customHeaders,
   };
+
+  if (!(fetchOptions.body instanceof FormData)) {
+    (headers as Record<string, string>)["Content-Type"] = "application/json";
+  }
 
   const storedToken = token || (typeof window !== "undefined" ? localStorage.getItem("auth_token") : null);
   if (storedToken) {
@@ -100,6 +103,7 @@ export interface AuthResponse {
   displayName: string;
   role: string;
   avatarUrl: string | null;
+  level?: string | null;
 }
 
 export interface UserProfile {
@@ -108,6 +112,7 @@ export interface UserProfile {
   displayName: string;
   role: string;
   avatarUrl: string | null;
+  level?: string | null;
   phone: string | null;
   languagePref: string | null;
   createdAt: string;
@@ -142,11 +147,7 @@ export const userApi = {
   uploadAvatar: (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return api.post<{ avatarUrl: string }>("/api/users/avatar", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    return uploadRequest<{ avatarUrl: string }>("/api/users/avatar", formData);
   },
   updatePresence: (isOnline: boolean) =>
     api.post<{ isOnline: boolean; lastSeen: string }>("/api/users/presence", { isOnline }),

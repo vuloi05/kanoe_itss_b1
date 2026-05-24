@@ -43,6 +43,8 @@ export default function LearnerSettingsPage() {
   const { logout, user, updateUser } = useAuth();
   const [showAvatarModal, setShowAvatarModal] = useState(false);
 
+  const currentLevel = user?.level ?? "v3";
+
   const [passwordChangedLabel, setPasswordChangedLabel] = useState<{ vi: string; ja: string } | null>(null);
 
   useEffect(() => {
@@ -130,18 +132,31 @@ export default function LearnerSettingsPage() {
               </h3>
               
               <div className="grid grid-cols-3 gap-3 mb-8">
-                <button className="py-3 px-2 bg-white dark:bg-slate-800 rounded-xl flex flex-col items-center justify-center border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-colors shadow-sm">
-                  <span className="font-bold text-[#112340] dark:text-white text-[15px]">V1</span>
-                  <span className="text-[11px] text-[#94A3B8]">Basic</span>
-                </button>
-                <button className="py-3 px-2 bg-[#112340] text-white rounded-xl flex flex-col items-center justify-center shadow-md">
-                  <span className="font-bold text-[15px]">V2</span>
-                  <span className="text-[11px] text-blue-200">Inter</span>
-                </button>
-                <button className="py-3 px-2 bg-white dark:bg-slate-800 rounded-xl flex flex-col items-center justify-center border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-colors shadow-sm">
-                  <span className="font-bold text-[#112340] dark:text-white text-[15px]">V3</span>
-                  <span className="text-[11px] text-[#94A3B8]">Adv</span>
-                </button>
+                {[
+                  { id: "v1", label: "V1", subtitle: t("Basic", "ビギナー") },
+                  { id: "v2", label: "V2", subtitle: t("Inter", "中級") },
+                  { id: "v3", label: "V3", subtitle: t("Adv", "上級") },
+                ].map((levelOption) => {
+                  const isActive = currentLevel.toLowerCase() === levelOption.id;
+                  return (
+                    <button
+                      key={levelOption.id}
+                      type="button"
+                      className={`py-3 px-2 rounded-xl flex flex-col items-center justify-center transition-colors shadow-sm ${
+                        isActive
+                          ? "bg-[#112340] text-white shadow-md"
+                          : "bg-white dark:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 text-[#112340] dark:text-white"
+                      }`}
+                    >
+                      <span className={`font-bold text-[15px] ${isActive ? "" : "text-[#112340] dark:text-white"}`}>
+                        {levelOption.label}
+                      </span>
+                      <span className={`text-[11px] ${isActive ? "text-blue-200" : "text-[#94A3B8]"}`}>
+                        {levelOption.subtitle}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
