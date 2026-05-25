@@ -100,14 +100,16 @@ END $$;
 -- 2. CONTENT LEVELS
 -- ═══════════════════════════════════════════════════════════════════════════════
 
-INSERT INTO content_levels (level_id, display_name, description, sort_order)
-VALUES (1, 'V1', 'Trình độ V1 — Sơ cấp', 1)
+INSERT INTO content_levels (level_id, display_name, description, sort_order) VALUES
+    (1, 'V1', 'Trình độ V1 — Sơ cấp', 1),
+    (2, 'V2', 'Trình độ V2 — Trung cấp', 2),
+    (3, 'V3', 'Trình độ V3 — Cao cấp', 3)
 ON CONFLICT (level_id) DO UPDATE SET
     display_name = EXCLUDED.display_name,
     description  = EXCLUDED.description,
     sort_order   = EXCLUDED.sort_order;
 
-SELECT setval(pg_get_serial_sequence('content_levels', 'level_id'), GREATEST(1, (SELECT MAX(level_id) FROM content_levels)));
+SELECT setval(pg_get_serial_sequence('content_levels', 'level_id'), GREATEST(3, (SELECT MAX(level_id) FROM content_levels)));
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 3. CHAPTERS
@@ -121,7 +123,25 @@ INSERT INTO chapters (chapter_id, level_id, title_vi, title_jp, icon, sort_order
     (5, 1, 'Chương 5: Di chuyển & Phương tiện',        '第5章：移動と交通',          'directions_car',    5),
     (6, 1, 'Chương 6: Nguyên âm & Phụ âm đặc biệt',   '第6章：特殊な母音と子音',     'record_voice_over', 6),
     (7, 1, 'Chương 7: Sinh hoạt hàng ngày',            '第7章：日常生活',            'calendar_today',    7),
-    (8, 1, 'Chương 8: Tình huống khẩn cấp',            '第8章：緊急事態',            'emergency',         8)
+    (8, 1, 'Chương 8: Tình huống khẩn cấp',            '第8章：緊急事態',            'emergency',         8),
+    -- ── V2 Chapters ──
+    ( 9, 2, 'Chương 1: Giao tiếp công sở',              '第1章：オフィスでの会話',      'business_center',   1),
+    (10, 2, 'Chương 2: Văn hóa & Lễ hội Việt Nam',      '第2章：ベトナムの文化と祭り',   'festival',          2),
+    (11, 2, 'Chương 3: Sức khỏe & Chăm sóc bản thân',   '第3章：健康とセルフケア',       'health_and_safety', 3),
+    (12, 2, 'Chương 4: Du lịch & Khám phá',              '第4章：旅行と探検',           'travel_explore',    4),
+    (13, 2, 'Chương 5: Ẩm thực nâng cao',                '第5章：グルメ上級編',          'ramen_dining',      5),
+    (14, 2, 'Chương 6: Gia đình & Các mối quan hệ',      '第6章：家族と人間関係',        'family_restroom',   6),
+    (15, 2, 'Chương 7: Tin tức & Truyền thông',           '第7章：ニュースとメディア',     'newspaper',         7),
+    (16, 2, 'Chương 8: Đời sống xã hội',                  '第8章：社会生活',             'groups',            8),
+    -- ── V3 Chapters ──
+    (17, 3, 'Chương 1: Thành ngữ & Tục ngữ',             '第1章：慣用句とことわざ',        'auto_stories',      1),
+    (18, 3, 'Chương 2: Đàm phán & Thương lượng',          '第2章：交渉と商談',             'handshake',         2),
+    (19, 3, 'Chương 3: Môi trường & Phát triển',           '第3章：環境と開発',             'eco',               3),
+    (20, 3, 'Chương 4: Văn học & Nghệ thuật',              '第4章：文学と芸術',             'palette',           4),
+    (21, 3, 'Chương 5: Kinh tế & Khởi nghiệp',            '第5章：経済と起業',             'trending_up',       5),
+    (22, 3, 'Chương 6: Phương ngữ & Giọng vùng miền',     '第6章：方言と地方のアクセント',    'map',               6),
+    (23, 3, 'Chương 7: Thuyết trình & Diễn thuyết',       '第7章：プレゼンと演説',          'podium',            7),
+    (24, 3, 'Chương 8: Triết lý & Giá trị sống',          '第8章：哲学と人生の価値観',       'psychology',        8)
 ON CONFLICT (chapter_id) DO UPDATE SET
     level_id   = EXCLUDED.level_id,
     title_vi   = EXCLUDED.title_vi,
@@ -129,7 +149,7 @@ ON CONFLICT (chapter_id) DO UPDATE SET
     icon       = EXCLUDED.icon,
     sort_order = EXCLUDED.sort_order;
 
-SELECT setval(pg_get_serial_sequence('chapters', 'chapter_id'), GREATEST(8, (SELECT MAX(chapter_id) FROM chapters)));
+SELECT setval(pg_get_serial_sequence('chapters', 'chapter_id'), GREATEST(24, (SELECT MAX(chapter_id) FROM chapters)));
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- 4. LESSONS
@@ -139,12 +159,12 @@ SELECT setval(pg_get_serial_sequence('chapters', 'chapter_id'), GREATEST(8, (SEL
 
 INSERT INTO lessons (lesson_id, chapter_id, scene_label, scene_label_jp, title_vi, title_jp, subtitle_vi, subtitle_jp, tag, tag_jp, duration_minutes, sort_order, is_locked, created_at) VALUES
     -- Chapter 1
-    ('d0000000-0000-0000-0100-000000000001', 1, 'Bài 01 • Chương 1', 'レッスン01 • 第1章', 'Thanh sắc & Thanh huyền', '昇り声調と降り声調', 'Nền tảng âm điệu — học cách lên và xuống giọng đúng chuẩn Hà Nội', '声調の基礎 — ハノイ式の上がり・下がりを正しく習得しよう', 'Sơ cấp', '初級', NULL, 1, false, NOW()),
-    ('d0000000-0000-0000-0100-000000000002', 1, 'Bài 02 • Chương 1', 'レッスン02 • 第1章', 'Thanh hỏi & Thanh ngã', '疑問声調と転がり声調', 'Luyện tập hai thanh điệu khó nhất của tiếng Bắc', '北部ベトナム語の最難関声調をマスターしよう', 'Trung cấp', '中級', NULL, 2, false, NOW()),
+    ('d0000000-0000-0000-0100-000000000001', 1, 'Bài 01 • Chương 1', 'レッスン01 • 第1章', 'Thanh sắc & Thanh huyền', '昇り声調と降り声調', 'Nền tảng âm điệu — học cách lên và xuống giọng đúng chuẩn Hà Nội', '声調の基礎 — ハノイ式の上がり・下がりを正しく習得しよう', 'Sơ cấp', '初級', 10, 1, false, NOW()),
+    ('d0000000-0000-0000-0100-000000000002', 1, 'Bài 02 • Chương 1', 'レッスン02 • 第1章', 'Thanh hỏi & Thanh ngã', '疑問声調と転がり声調', 'Luyện tập hai thanh điệu khó nhất của tiếng Bắc', '北部ベトナム語の最難関声調をマスターしよう', 'Trung cấp', '中級', 10, 2, false, NOW()),
     ('d0000000-0000-0000-0100-000000000003', 1, 'Bài 03 • Chương 1', 'レッスン03 • 第1章', 'Thanh nặng & Thanh ngang', '重声調と平声調', 'Hoàn thiện hệ thống 6 thanh điệu tiếng Bắc', '北部ベトナム語6声調の体系を完成させよう', 'Sơ cấp', '初級', 10, 3, false, NOW()),
     -- Chapter 2
     ('d0000000-0000-0000-0200-000000000001', 2, 'Bài 01 • Chương 2', 'レッスン01 • 第2章', 'Gọi món tại quán Bún Chả', 'ブンチャー屋での注文', 'Hội thoại thực tế tại quán ăn Hà Nội', 'ハノイの食堂での実践会話', 'Thực tế', '実践', 12, 1, false, NOW()),
-    ('d0000000-0000-0000-0200-000000000002', 2, 'Bài 02 • Chương 2', 'レッスン02 • 第2章', 'Yêu cầu thanh toán', 'お会計をお願いする', 'Học cách xin thanh toán lịch sự tại quán ăn', '飲食店で丁寧にお会計をお願いする方法', NULL, NULL, NULL, 2, true, NOW()),
+    ('d0000000-0000-0000-0200-000000000002', 2, 'Bài 02 • Chương 2', 'レッスン02 • 第2章', 'Yêu cầu thanh toán', 'お会計をお願いする', 'Học cách xin thanh toán lịch sự tại quán ăn', '飲食店で丁寧にお会計をお願いする方法', 'Thực tế', '実践', 10, 2, false, NOW()),
     ('d0000000-0000-0000-0200-000000000003', 2, 'Bài 03 • Chương 2', 'レッスン03 • 第2章', 'Khen ngon & Hỏi thêm', '美味しいと褒める・追加注文', 'Cách khen món ăn và gọi thêm bằng tiếng Bắc', '北部の言い回しで料理を褒めたり追加注文しよう', 'Thực tế', '実践', 10, 3, false, NOW()),
     -- Chapter 3
     ('d0000000-0000-0000-0300-000000000001', 3, 'Bài 01 • Chương 3', 'レッスン01 • 第3章', 'Xin chào — Cách chào theo tuổi', 'こんにちは — 年齢に応じた挨拶', 'Chào người lớn tuổi, bạn bè và trẻ nhỏ khác nhau thế nào?', '年上・友達・子供、それぞれの挨拶の違いを学ぼう', 'Sơ cấp', '初級', 8, 1, false, NOW()),
@@ -163,13 +183,13 @@ INSERT INTO lessons (lesson_id, chapter_id, scene_label, scene_label_jp, title_v
     ('d0000000-0000-0000-0600-000000000002', 6, 'Bài 02 • Chương 6', 'レッスン02 • 第6章', 'Phụ âm đầu: gi, d, r miền Bắc', '頭子音：北部の gi, d, r', 'Ba phụ âm phát giống nhau ở miền Bắc: đều đọc là /z/', '北部で同じ発音になる3つの子音：すべて /z/', 'Trung cấp', '中級', 10, 2, false, NOW()),
     ('d0000000-0000-0000-0600-000000000003', 6, 'Bài 03 • Chương 6', 'レッスン03 • 第6章', 'Vần cuối: -ng, -nh, -ch, -t', '末尾子音：-ng, -nh, -ch, -t', 'Cách đọc phụ âm cuối — điểm khác biệt lớn với tiếng Nhật', '末尾子音の読み方 — 日本語との大きな違い', 'Trung cấp', '中級', 12, 3, false, NOW()),
     -- Chapter 7
-    ('d0000000-0000-0000-0700-000000000001', 7, 'Bài 01 • Chương 7', 'レッスン01 • 第7章', 'Thời gian — Hôm nay, ngày mai', '時間 — 今日・明日', 'Ngày, tháng, tuần — cách diễn đạt thời gian', '日・月・週 — 時間の表現方法', 'Sơ cấp', '初級', 10, 1, true, NOW()),
-    ('d0000000-0000-0000-0700-000000000002', 7, 'Bài 02 • Chương 7', 'レッスン02 • 第7章', 'Thời tiết Hà Nội', 'ハノイの天気', 'Nóng, lạnh, mưa — nói về thời tiết hàng ngày', '暑い・寒い・雨 — 毎日の天気を話す', 'Sơ cấp', '初級', 8, 2, true, NOW()),
-    ('d0000000-0000-0000-0700-000000000003', 7, 'Bài 03 • Chương 7', 'レッスン03 • 第7章', 'Sở thích & Hoạt động cuối tuần', '趣味と週末の活動', '"Bạn thích làm gì?" — hội thoại về sở thích', '"何が好き？" — 趣味についての会話', 'Trung cấp', '中級', 12, 3, true, NOW()),
+    ('d0000000-0000-0000-0700-000000000001', 7, 'Bài 01 • Chương 7', 'レッスン01 • 第7章', 'Thời gian — Hôm nay, ngày mai', '時間 — 今日・明日', 'Ngày, tháng, tuần — cách diễn đạt thời gian', '日・月・週 — 時間の表現方法', 'Sơ cấp', '初級', 10, 1, false, NOW()),
+    ('d0000000-0000-0000-0700-000000000002', 7, 'Bài 02 • Chương 7', 'レッスン02 • 第7章', 'Thời tiết Hà Nội', 'ハノイの天気', 'Nóng, lạnh, mưa — nói về thời tiết hàng ngày', '暑い・寒い・雨 — 毎日の天気を話す', 'Sơ cấp', '初級', 8, 2, false, NOW()),
+    ('d0000000-0000-0000-0700-000000000003', 7, 'Bài 03 • Chương 7', 'レッスン03 • 第7章', 'Sở thích & Hoạt động cuối tuần', '趣味と週末の活動', '"Bạn thích làm gì?" — hội thoại về sở thích', '"何が好き？" — 趣味についての会話', 'Trung cấp', '中級', 12, 3, false, NOW()),
     -- Chapter 8
-    ('d0000000-0000-0000-0800-000000000001', 8, 'Bài 01 • Chương 8', 'レッスン01 • 第8章', '"Tôi không hiểu" — Cầu cứu ngôn ngữ', '"わかりません" — 言葉のSOS', 'Những câu cứu mạng khi bạn không hiểu người Việt nói gì', 'ベトナム人の言葉がわからない時の救命フレーズ', 'Sơ cấp', '初級', 8, 1, true, NOW()),
-    ('d0000000-0000-0000-0800-000000000002', 8, 'Bài 02 • Chương 8', 'レッスン02 • 第8章', 'Tại bệnh viện & Nhà thuốc', '病院と薬局にて', 'Mô tả triệu chứng và mua thuốc bằng tiếng Việt', 'ベトナム語で症状を説明し、薬を買う', 'Thực tế', '実践', 15, 2, true, NOW()),
-    ('d0000000-0000-0000-0800-000000000003', 8, 'Bài 03 • Chương 8', 'レッスン03 • 第8章', 'Gọi điện thoại khẩn cấp', '緊急電話をかける', 'Số 113, 114, 115 — biết cách gọi cứu hộ khi cần', '113・114・115 — 必要な時に助けを呼べるようになろう', 'Thực tế', '実践', 10, 3, true, NOW())
+    ('d0000000-0000-0000-0800-000000000001', 8, 'Bài 01 • Chương 8', 'レッスン01 • 第8章', '"Tôi không hiểu" — Cầu cứu ngôn ngữ', '"わかりません" — 言葉のSOS', 'Những câu cứu mạng khi bạn không hiểu người Việt nói gì', 'ベトナム人の言葉がわからない時の救命フレーズ', 'Sơ cấp', '初級', 8, 1, false, NOW()),
+    ('d0000000-0000-0000-0800-000000000002', 8, 'Bài 02 • Chương 8', 'レッスン02 • 第8章', 'Tại bệnh viện & Nhà thuốc', '病院と薬局にて', 'Mô tả triệu chứng và mua thuốc bằng tiếng Việt', 'ベトナム語で症状を説明し、薬を買う', 'Thực tế', '実践', 15, 2, false, NOW()),
+    ('d0000000-0000-0000-0800-000000000003', 8, 'Bài 03 • Chương 8', 'レッスン03 • 第8章', 'Gọi điện thoại khẩn cấp', '緊急電話をかける', 'Số 113, 114, 115 — biết cách gọi cứu hộ khi cần', '113・114・115 — 必要な時に助けを呼べるようになろう', 'Thực tế', '実践', 10, 3, false, NOW())
 ON CONFLICT (lesson_id) DO UPDATE SET
     chapter_id       = EXCLUDED.chapter_id,
     scene_label      = EXCLUDED.scene_label,
@@ -331,6 +351,25 @@ INSERT INTO lesson_dialogues (dialogue_id, lesson_id, speaker, speaker_jp, line_
      'Có ngay! Đợi chị một chút.',
      'すぐ行きます！ちょっと待ってね。',
      false, NULL, 3),
+
+    -- ── Chapter 2, Lesson 2: Yêu cầu thanh toán ──
+    ('f1000000-0000-0000-0201-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BẠN', 'あなた',
+     'Chị ơi, tính tiền cho em ạ!',
+     'すみません、お会計お願いします！',
+     true, '[{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"}]', 1),
+
+    ('f1000000-0000-0000-0202-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BÁN HÀNG', '店員',
+     'Của em hết bảy mươi nghìn nhé.',
+     '全部で7万ドンですよ。',
+     false, NULL, 2),
+
+    ('f1000000-0000-0000-0203-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BẠN', 'あなた',
+     'Dạ, em trả bằng tiền mặt ạ. Cảm ơn chị!',
+     'はい、現金で払います。ありがとうございます！',
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"}]', 3),
 
     -- ── Chapter 2, Lesson 3: Khen ngon & Hỏi thêm ──
     ('f1000000-0000-0000-0301-000000000002', 'd0000000-0000-0000-0200-000000000003',
@@ -687,4 +726,81 @@ INSERT INTO voice_lab_records (record_id, user_id, expected_text, actual_text, c
      100.00, 96.43, 85.00, 100.00, 3.500, NOW())
 ON CONFLICT (record_id) DO NOTHING;
 
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- 8. LESSON PROGRESS (mock progress data for demo learner)
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- Demo learner (abc@gmail.com) has V1 level:
+--   Ch1 L1: completed (100%), Ch1 L2: completed (100%), Ch1 L3: in-progress (50%)
+--   Ch2 L1: completed (100%), Ch2 L2: in-progress (30%)
+--   Ch3 L1: completed (100%)
+
+DO $$
+DECLARE
+    v_learner_id UUID;
+BEGIN
+    SELECT user_id INTO v_learner_id FROM users WHERE email = 'abc@gmail.com';
+
+    -- Chapter 1, Lesson 1: completed
+    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+    VALUES (
+        'f0000000-0000-0000-0100-000000000001',
+        v_learner_id, 'd0000000-0000-0000-0100-000000000001',
+        true, 100, NOW(), NOW()
+    )
+    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+
+    -- Chapter 1, Lesson 2: completed
+    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+    VALUES (
+        'f0000000-0000-0000-0100-000000000002',
+        v_learner_id, 'd0000000-0000-0000-0100-000000000002',
+        true, 100, NOW(), NOW()
+    )
+    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+
+    -- Chapter 1, Lesson 3: in-progress (50%)
+    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+    VALUES (
+        'f0000000-0000-0000-0100-000000000003',
+        v_learner_id, 'd0000000-0000-0000-0100-000000000003',
+        false, 50, NULL, NOW()
+    )
+    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+
+    -- Chapter 2, Lesson 1: completed
+    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+    VALUES (
+        'f0000000-0000-0000-0200-000000000001',
+        v_learner_id, 'd0000000-0000-0000-0200-000000000001',
+        true, 100, NOW(), NOW()
+    )
+    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+
+    -- Chapter 2, Lesson 2: in-progress (30%)
+    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+    VALUES (
+        'f0000000-0000-0000-0200-000000000002',
+        v_learner_id, 'd0000000-0000-0000-0200-000000000002',
+        false, 30, NULL, NOW()
+    )
+    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+
+    -- Chapter 3, Lesson 1: completed
+    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+    VALUES (
+        'f0000000-0000-0000-0300-000000000001',
+        v_learner_id, 'd0000000-0000-0000-0300-000000000001',
+        true, 100, NOW(), NOW()
+    )
+    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+END $$;
+
+
 COMMIT;
+

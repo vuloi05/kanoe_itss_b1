@@ -255,6 +255,8 @@ export interface LessonSummaryDto {
   tagJp: string | null;
   durationMinutes: number | null;
   isLocked: boolean;
+  isCompleted: boolean;
+  progress: number;
   sortOrder: number;
 }
 
@@ -306,6 +308,9 @@ export const lessonApi = {
 
   getLessonById: (id: string) =>
     api.get<LessonDetailDto>(`/api/lesson/${id}`),
+
+  completeLesson: (id: string) =>
+    api.post<{ message: string }>(`/api/lesson/${id}/complete`),
 };
 
 // ─── Voice Lab (Pronunciation Scoring) ────────────────────────

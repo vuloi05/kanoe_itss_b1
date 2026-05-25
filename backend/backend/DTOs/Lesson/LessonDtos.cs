@@ -21,6 +21,8 @@ public record LessonSummaryDto(
     string? TagJp,
     int? DurationMinutes,
     bool IsLocked,
+    bool IsCompleted,
+    int Progress,
     int SortOrder
 );
 

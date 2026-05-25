@@ -20,47 +20,108 @@ const CHAPTER_ICON_COLORS: Record<number, string> = {
 };
 
 function LessonCard({ lesson, t }: { lesson: LessonSummaryDto; t: (vi: string, jp: string) => string }) {
+  // Completed state
+  if (lesson.isCompleted) {
+    return (
+      <Link
+        href={`/learner/lessons/${lesson.lessonId}`}
+        className="block group bg-surface-container-lowest rounded-xl transition-all duration-300 hover:bg-primary-container/30 hover:-translate-y-1 border-l-4 border-[#2e7d32] relative overflow-hidden"
+      >
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex gap-2 items-center">
+              {lesson.tag && (
+                <span className="px-3 py-1 bg-[#e8f5e9] text-[#2e7d32] text-[10px] font-bold uppercase rounded-md">
+                  {t(lesson.tag, lesson.tagJp || lesson.tag)}
+                </span>
+              )}
+            </div>
+            {/* Show check icon + "Completed" instead of time when lesson is done */}
+            <div className="flex items-center gap-1.5 text-[#2e7d32] font-bold text-xs">
+              <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: '"FILL" 1' }}>check_circle</span>
+              {t("Hoàn thành", "完了")}
+            </div>
+          </div>
+          <h3 className="font-headline font-bold text-xl text-[#2e7d32] mb-1">
+            {t(lesson.titleVi, lesson.titleJp)}
+          </h3>
+        </div>
+        {/* Progress bar — full width for completed lessons */}
+        <div className="h-1 w-full bg-[#c8e6c9]">
+          <div className="h-full bg-[#2e7d32] rounded-r-full transition-all duration-700 ease-out" style={{ width: "100%" }} />
+        </div>
+      </Link>
+    );
+  }
+
+  // Locked state
   if (lesson.isLocked) {
     return (
-      <div className="group bg-surface-container-low/50 p-6 rounded-xl border border-dashed border-outline-variant flex items-center justify-between opacity-80">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-headline font-bold text-lg text-on-surface-variant/70">
-              {t(lesson.titleVi, lesson.titleJp)}
-            </h3>
-            <span className="material-symbols-outlined text-sm text-on-surface-variant/50 ml-2">lock</span>
+      <div className="group bg-surface-container-low/50 rounded-xl border border-dashed border-outline-variant opacity-60 cursor-not-allowed select-none overflow-hidden">
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-headline font-bold text-lg text-on-surface-variant/70">
+                {t(lesson.titleVi, lesson.titleJp)}
+              </h3>
+              <span className="material-symbols-outlined text-sm text-on-surface-variant/50 ml-2">lock</span>
+            </div>
+            <p className="text-[10px] text-on-surface-variant/50 mt-1">
+              {t("Hoàn thành bài trước để mở khóa", "前のレッスンを完了してロック解除")}
+            </p>
+          </div>
+          <div className="text-[10px] font-bold uppercase text-on-surface-variant/40 tracking-widest">
+            {t("Khóa", "ロック")}
           </div>
         </div>
-        <div className="text-[10px] font-bold uppercase text-on-surface-variant/40 tracking-widest">
-          {t("Khóa", "ロック")}
-        </div>
+        {/* Progress bar — empty for locked lessons */}
+        <div className="h-1 w-full bg-surface-container" />
       </div>
     );
   }
 
+  // Available (unlocked, not completed) state — shows actual progress from DB
   return (
     <Link
       href={`/learner/lessons/${lesson.lessonId}`}
-      className="block group bg-surface-container-lowest p-6 rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1"
+      className="block group bg-surface-container-lowest rounded-xl transition-all duration-300 hover:bg-primary-container hover:-translate-y-1 shadow-sm hover:shadow-md overflow-hidden"
     >
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex gap-2">
-          {lesson.tag && (
-            <span className="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase rounded-md group-hover:bg-primary group-hover:text-white">
-              {t(lesson.tag, lesson.tagJp || lesson.tag)}
-            </span>
-          )}
-        </div>
-        {lesson.durationMinutes && (
-          <div className="flex items-center gap-1 text-secondary font-bold text-xs uppercase group-hover:text-on-primary-container">
-            <span className="material-symbols-outlined text-sm mr-1">schedule</span>
-            {t(`${lesson.durationMinutes} phút`, `${lesson.durationMinutes} 分`)}
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex gap-2">
+            {lesson.tag && (
+              <span className="px-3 py-1 bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase rounded-md group-hover:bg-primary group-hover:text-white">
+                {t(lesson.tag, lesson.tagJp || lesson.tag)}
+              </span>
+            )}
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            {/* Show duration + clock icon for in-progress lessons */}
+            {lesson.durationMinutes && (
+              <div className="flex items-center gap-1 text-secondary font-bold text-xs uppercase group-hover:text-on-primary-container">
+                <span className="material-symbols-outlined text-sm mr-1">schedule</span>
+                {t(`${lesson.durationMinutes} phút`, `${lesson.durationMinutes} 分`)}
+              </div>
+            )}
+            {/* Inline progress percentage badge */}
+            {lesson.progress > 0 && (
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full group-hover:bg-white/20 group-hover:text-white">
+                {lesson.progress}%
+              </span>
+            )}
+          </div>
+        </div>
+        <h3 className="font-headline font-bold text-xl text-primary group-hover:text-white mb-1">
+          {t(lesson.titleVi, lesson.titleJp)}
+        </h3>
       </div>
-      <h3 className="font-headline font-bold text-xl text-primary group-hover:text-white mb-1">
-        {t(lesson.titleVi, lesson.titleJp)}
-      </h3>
+      {/* Progress bar — width reflects actual progress percentage */}
+      <div className="h-1 w-full bg-surface-container group-hover:bg-white/20">
+        <div
+          className="h-full bg-primary rounded-r-full transition-all duration-700 ease-out group-hover:bg-white/80"
+          style={{ width: `${lesson.progress}%` }}
+        />
+      </div>
     </Link>
   );
 }
@@ -87,12 +148,21 @@ function LoadingSkeleton() {
   );
 }
 
+/** Compute chapter completion stats */
+function getChapterStats(lessons: LessonSummaryDto[]) {
+  const total = lessons.length;
+  const completed = lessons.filter((l) => l.isCompleted).length;
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+  return { total, completed, percent };
+}
+
 export default function LessonsPage() {
   const { t } = useLanguage();
   const [chapters, setChapters] = useState<ChapterDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<number>>(new Set());
+  const [selectedLevel, setSelectedLevel] = useState(1);
 
   const toggleChapter = (chapterId: number) => {
     setExpandedChapters((prev) => {
@@ -106,17 +176,42 @@ export default function LessonsPage() {
     });
   };
 
+  const fetchChapters = (level: number) => {
+    setLoading(true);
+    setError(null);
+    lessonApi
+      .getChaptersByLevel(level)
+      .then((data) => {
+        setChapters(data);
+        setExpandedChapters(new Set(data.map((c) => c.chapterId)));
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
+
+  const handleLevelChange = (level: number) => {
+    setSelectedLevel(level);
+    fetchChapters(level);
+  };
+
+  // Initial fetch on mount — loading/error already have correct initial values,
+  // so only the async API call is needed here (async callbacks are fine in effects)
   useEffect(() => {
     lessonApi
       .getChaptersByLevel(1)
       .then((data) => {
         setChapters(data);
-        // Expand all chapters by default on initial load
         setExpandedChapters(new Set(data.map((c) => c.chapterId)));
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  // Overall level progress
+  const allLessons = chapters.flatMap((c) => c.lessons);
+  const totalLessons = allLessons.length;
+  const completedLessons = allLessons.filter((l) => l.isCompleted).length;
+  const levelPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen pb-20 md:pb-0">
@@ -134,9 +229,19 @@ export default function LessonsPage() {
           </div>
           {/* Filter / Tab Bar */}
           <div className="flex bg-surface-container-low p-1.5 rounded-full overflow-hidden">
-            <button className="px-6 py-2 bg-primary text-on-primary rounded-full text-sm font-bold shadow-sm">{t("Trình độ V1", "レベル V1")}</button>
-            <button className="px-6 py-2 text-on-surface-variant hover:text-primary text-sm font-medium transition-colors">V2</button>
-            <button className="px-6 py-2 text-on-surface-variant hover:text-primary text-sm font-medium transition-colors">V3</button>
+            {[1, 2, 3].map((level) => (
+              <button
+                key={level}
+                onClick={() => handleLevelChange(level)}
+                className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-200 ${
+                  selectedLevel === level
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "text-on-surface-variant hover:text-primary font-medium"
+                }`}
+              >
+                {level === selectedLevel ? t(`Trình độ V${level}`, `レベル V${level}`) : `V${level}`}
+              </button>
+            ))}
           </div>
         </header>
 
@@ -158,6 +263,7 @@ export default function LessonsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
               {chapters.map((chapter, chapterIdx) => {
                 const isExpanded = expandedChapters.has(chapter.chapterId);
+                const stats = getChapterStats(chapter.lessons);
                 return (
                   <section key={chapter.chapterId} className="lg:col-span-6 space-y-4">
                     {/* Clickable chapter header */}
@@ -173,9 +279,16 @@ export default function LessonsPage() {
                         <h2 className="font-headline font-bold text-xl text-primary">
                           {t(chapter.titleVi, chapter.titleJp)}
                         </h2>
-                        <p className="text-xs text-on-surface-variant mt-0.5">
-                          {t(`${chapter.lessons.length} bài học`, `${chapter.lessons.length} レッスン`)}
-                        </p>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <p className="text-xs text-on-surface-variant">
+                            {t(`${chapter.lessons.length} bài học`, `${chapter.lessons.length} レッスン`)}
+                          </p>
+                          {stats.completed > 0 && (
+                            <span className="text-xs font-bold text-[#2e7d32]">
+                              {stats.completed}/{stats.total} ✓
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <span
                         className="material-symbols-outlined text-on-surface-variant transition-transform duration-300"
@@ -184,6 +297,16 @@ export default function LessonsPage() {
                         expand_more
                       </span>
                     </button>
+
+                    {/* Chapter progress bar */}
+                    {stats.completed > 0 && (
+                      <div className="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#2e7d32] rounded-full transition-all duration-500"
+                          style={{ width: `${stats.percent}%` }}
+                        />
+                      </div>
+                    )}
 
                     {/* Collapsible lesson list */}
                     <div
@@ -222,11 +345,25 @@ export default function LessonsPage() {
                     <div className="w-24 h-24 flex items-center justify-center">
                       <span className="material-symbols-outlined text-primary text-6xl" style={{ fontVariationSettings: '"FILL" 1' }}>potted_plant</span>
                     </div>
-                    <div className="absolute -top-2 -right-2 bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{t("CẤP ĐỘ 4", "レベル 4")}</div>
+                    <div className="absolute -top-2 -right-2 bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {t(`V${selectedLevel}`, `V${selectedLevel}`)}
+                    </div>
                   </div>
                   <h4 className="font-headline font-bold text-primary mb-2">{t("Tiến độ học tập", "学習進捗")}</h4>
-                  <p className="text-sm text-on-surface-variant mb-6">{t("Đã hoàn thành 12/45 bài học trình độ V1", "V1レベルの45レッスン中12レッスンを完了")}</p>
-                  <button className="w-full py-3 bg-white text-primary font-bold rounded-xl shadow-sm hover:shadow-md transition-shadow">{t("Tiếp tục học", "学習を続ける")}</button>
+                  <p className="text-sm text-on-surface-variant mb-4">
+                    {t(
+                      `Đã hoàn thành ${completedLessons}/${totalLessons} bài học trình độ V${selectedLevel}`,
+                      `V${selectedLevel}レベルの${totalLessons}レッスン中${completedLessons}レッスンを完了`
+                    )}
+                  </p>
+                  {/* Progress ring */}
+                  <div className="w-full bg-surface-container rounded-full h-3 mb-4 overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all duration-700 ease-out"
+                      style={{ width: `${levelPercent}%` }}
+                    />
+                  </div>
+                  <span className="text-2xl font-extrabold text-primary">{levelPercent}%</span>
                   <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
                 </div>
 

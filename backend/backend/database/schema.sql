@@ -371,3 +371,21 @@ CREATE TABLE IF NOT EXISTS voice_lab_records (
     CONSTRAINT voice_lab_records_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_voice_lab_records_user ON voice_lab_records (user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- LESSON PROGRESS (Per-user lesson completion tracking)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS lesson_progress (
+    progress_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id      UUID NOT NULL,
+    lesson_id    UUID NOT NULL,
+    is_completed BOOLEAN NOT NULL DEFAULT false,
+    progress     INT NOT NULL DEFAULT 0,
+    completed_at TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT lesson_progress_user_id_fkey   FOREIGN KEY (user_id)   REFERENCES users(user_id),
+    CONSTRAINT lesson_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id),
+    CONSTRAINT lesson_progress_unique         UNIQUE (user_id, lesson_id)
+);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress (user_id);
