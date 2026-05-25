@@ -1,4 +1,5 @@
 # VietImmerse — Workflow Chi Tiết: Tính Năng Tin Nhắn
+
 > Tài liệu này mô tả workflow đầy đủ cho chức năng **Tin nhắn / メッセージ** giữa hai đối tượng: **Người học (Learner)** và **Đối tác (Partner)**, bao gồm tất cả các tính năng con.
 
 ---
@@ -26,14 +27,14 @@
 ### 1.1 Các đối tượng tham gia
 
 | Đối tượng | Role ID | Mô tả |
-|---|---|---|
+| --- | --- | --- |
 | Người học | 1.0 | Học tiếng Việt miền Bắc, muốn luyện nói với Partner |
 | Đối tác (Partner) | 3.0 | Người Việt bản xứ, hỗ trợ người học luyện hội thoại |
 
 ### 1.2 Màn hình liên quan
 
 | Màn hình | ID | Role |
-|---|---|---|
+| --- | --- | --- |
 | Màn hình tin nhắn Người học | 11.0 | Learner |
 | Màn hình tin nhắn Partner | 15.0 | Partner |
 | Màn hình matching | 10.0 | Learner |
@@ -42,7 +43,7 @@
 
 ### 1.3 Các tính năng con của module Tin nhắn
 
-```
+```text
 Tin nhắn (Messaging Module)
 ├── 3.1  Gửi / nhận tin nhắn văn bản (WebSocket real-time)
 ├── 3.2  Xử lý offline & retry queue
@@ -56,7 +57,7 @@ Tin nhắn (Messaging Module)
 ### 1.4 Công nghệ sử dụng
 
 | Thành phần | Công nghệ |
-|---|---|
+| --- | --- |
 | Real-time messaging | WebSocket |
 | Dịch thuật tự động | Google Translate API hoặc Local LLM |
 | Google Meet link | Pattern validation `https://meet.google.com/xxx-xxx-xxx` |
@@ -69,7 +70,7 @@ Tin nhắn (Messaging Module)
 
 ### 2.1 Người học bắt đầu chat với Partner
 
-```
+```text
 [Người học]
     │
     ▼
@@ -99,7 +100,7 @@ Tin nhắn (Messaging Module)
 
 ### 2.2 Partner mở tin nhắn từ Trang chủ
 
-```
+```text
 [Partner]
     │
     ▼
@@ -126,7 +127,7 @@ Tin nhắn (Messaging Module)
 
 ### 3.1 Luồng gửi tin nhắn (Sender side)
 
-```
+```text
 [Người dùng nhập nội dung vào ô nhập tin nhắn]
     │  Placeholder: "Viết tin nhắn... / メッセージを入力..."
     │
@@ -166,7 +167,7 @@ Tin nhắn (Messaging Module)
 
 ### 3.2 Luồng nhận tin nhắn (Receiver side)
 
-```
+```text
 [Server broadcast message tới room]
     │
     ▼
@@ -209,7 +210,7 @@ Tin nhắn (Messaging Module)
 
 ## 4. Workflow: Xử Lý Offline & Retry
 
-```
+```text
 [Người dùng gửi tin nhắn khi mất mạng]
     │
     ▼
@@ -267,7 +268,7 @@ Tin nhắn (Messaging Module)
 
 ## 5. Workflow: Tải Lịch Sử Chat (Lazy Load)
 
-```
+```text
 [Người dùng mở màn hình tin nhắn]
     │
     ▼
@@ -314,7 +315,7 @@ Tin nhắn (Messaging Module)
 
 ## 6. Workflow: Dịch Tự Động Hai Ngôn Ngữ
 
-```
+```text
 [Message mới được gửi / nhận]
     │
     ▼
@@ -359,7 +360,7 @@ Tin nhắn (Messaging Module)
 
 ## 7. Workflow: Gửi Google Meet Link
 
-```
+```text
 [Partner muốn gửi link Google Meet cho Learner]
     │
     ▼
@@ -420,7 +421,7 @@ Tin nhắn (Messaging Module)
 
 ### 8.1 Partner tạo Lesson Request
 
-```
+```text
 [Partner — Màn hình Tin nhắn ID 15]
     │
     ├─── Nhấn nút "Đặt buổi học / 予約" (góc dưới phải)
@@ -512,12 +513,13 @@ Tin nhắn (Messaging Module)
 ## 9. Workflow: Xác Nhận / Từ Chối Lịch Hẹn
 
 > Tương ứng với **2 màn hình khác nhau**:
+>
 > - Learner nhận và phản hồi → Màn hình ID 11 (Learner)
 > - Partner gửi và theo dõi → Màn hình ID 15 (Partner)
 
 ### 9.1 Luồng từ phía Learner (màn hình ID 11)
 
-```
+```text
 [Learner thấy Lesson Request Card trong chat]
     │
     │  ┌─────────────────────────────────────────────────┐
@@ -580,7 +582,7 @@ Tin nhắn (Messaging Module)
 
 ### 9.2 Luồng Partner theo dõi phản hồi (màn hình ID 15)
 
-```
+```text
 [Partner nhận WebSocket event từ Learner]
     │
     ├─── Event: "LESSON_ACCEPTED"
@@ -599,7 +601,7 @@ Tin nhắn (Messaging Module)
 
 ### 9.3 Partner Hủy Lesson Request (trước khi Learner phản hồi)
 
-```
+```text
 [Lesson Request ở trạng thái PENDING]
     │
     ▼
@@ -624,7 +626,7 @@ Tin nhắn (Messaging Module)
 ### 10.1 Quy tắc xác định trạng thái
 
 | Điều kiện | Trạng thái | Hiển thị |
-|---|---|---|
+| --- | --- | --- |
 | `end_datetime < now` và status=ACCEPTED | Hoàn thành / 完了 | Màu xanh lá |
 | `start_datetime > now` và status=ACCEPTED | Sắp tới / 予定 | Màu xanh dương |
 | `start_datetime ≤ now ≤ end_datetime` | Đang diễn ra / 進行中 | Màu cam |
@@ -632,7 +634,7 @@ Tin nhắn (Messaging Module)
 
 ### 10.2 Hiển thị trong lịch sử (Partner — ID 15)
 
-```
+```text
 [Partner xem Lịch sử — Panel Lịch sử]
     │
     ▼
@@ -651,7 +653,7 @@ Tin nhắn (Messaging Module)
 
 ### 10.3 Hiển thị trên Trang chủ Learner (ID 7) — "Lịch hẹn sắp tới"
 
-```
+```text
 [API GET /lessons/upcoming?learner_id={id}]
     │  Filter: status=ACCEPTED AND start_datetime > now
     │  Sort: start_datetime ASC (buổi gần nhất lên trên)
@@ -676,7 +678,7 @@ Tin nhắn (Messaging Module)
 
 ### 11.1 Phát hiện và cập nhật trạng thái
 
-```
+```text
 [User đăng nhập thành công]
     │
     ▼
@@ -711,7 +713,7 @@ Tin nhắn (Messaging Module)
 
 ### 11.2 Hiển thị trong chat (ID 11 và ID 15)
 
-```
+```text
 [Màn hình Tin nhắn đang mở]
     │
     ├─── Header chat hiển thị trạng thái Partner:
@@ -725,7 +727,7 @@ Tin nhắn (Messaging Module)
 
 ## 12. Sơ Đồ Màn Hình Liên Quan
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        LUỒNG TỔNG QUAN                          │
 └─────────────────────────────────────────────────────────────────┘
@@ -759,6 +761,7 @@ Tin nhắn (Messaging Module)
 ## 13. Điều Kiện Tiếp Nhận Tổng Hợp (Acceptance Criteria)
 
 ### AC-MSG-01: Gửi / nhận tin nhắn real-time
+
 - [ ] Tin nhắn hiển thị trên màn hình đối phương với latency **≤ 1 giây**
 - [ ] Tin nhắn gửi hiển thị căn phải (nền xanh đậm, chữ trắng)
 - [ ] Tin nhắn nhận hiển thị căn trái (nền trắng, viền xám)
@@ -767,29 +770,34 @@ Tin nhắn (Messaging Module)
 - [ ] Ô trống → nút gửi không active, không gửi được
 
 ### AC-MSG-02: Xử lý offline
+
 - [ ] Khi mất mạng, icon "⏳ đang chờ gửi" hiển thị trên tin nhắn
 - [ ] Khi có mạng trở lại, tự động gửi lại theo thứ tự
 - [ ] Sau 3 lần retry thất bại → hiển thị "❌ Gửi thất bại" + nút retry thủ công
 - [ ] Banner "Mất kết nối" hiển thị khi offline
 
 ### AC-MSG-03: Lịch sử chat
+
 - [ ] Khi mở lại đoạn hội thoại: toàn bộ lịch sử hiển thị chính xác
 - [ ] Lazy load 50 tin nhắn/lần
 - [ ] Scroll lên top → tự động tải thêm 50 tin cũ hơn
 - [ ] Vị trí scroll không bị nhảy khi prepend tin cũ hơn
 
 ### AC-MSG-04: Dịch tự động
+
 - [ ] Mỗi tin nhắn hiển thị 2 ngôn ngữ (gốc + dịch)
 - [ ] Bản dịch được lưu DB, không gọi API lại khi load lịch sử
 - [ ] Khi API dịch thất bại: ẩn dòng dịch, không hiện lỗi
 
 ### AC-MSG-05: Google Meet link
+
 - [ ] URL validate đúng pattern `https://meet.google.com/xxx-xxx-xxx`
 - [ ] URL hợp lệ → hiển thị Custom Dialog "Join Classroom"
 - [ ] Nhấn vào → mở tab mới với Meet URL
 - [ ] URL không hợp lệ → gửi như text thường
 
 ### AC-MSG-06: Đặt lịch (Lesson Request)
+
 - [ ] Ngày/giờ quá khứ bị grey out / disabled trong picker
 - [ ] Thời lượng dropdown: 30, 45, 60, 75, 90, 105, 120 phút
 - [ ] Thời gian hiển thị đúng timezone người dùng (auto-detect)
@@ -797,6 +805,7 @@ Tin nhắn (Messaging Module)
 - [ ] Status badge PENDING màu vàng, ACCEPTED màu xanh lá, DECLINED màu đỏ
 
 ### AC-MSG-07: Xác nhận / Từ chối lịch
+
 - [ ] Nút Accept/Decline chỉ active khi status = PENDING
 - [ ] Nhấn Decline → hiển thị confirmation dialog trước
 - [ ] Sau khi Accept/Decline → vô hiệu hóa cả 2 nút
@@ -804,6 +813,7 @@ Tin nhắn (Messaging Module)
 - [ ] DECLINED/CANCELLED → xóa khỏi DB, không hiển thị trong lịch sử
 
 ### AC-MSG-08: Trạng thái online
+
 - [ ] Chấm xanh (online) / xám (offline) cập nhật real-time
 - [ ] Hiển thị đúng trên danh sách Matching (ID 10) và header chat (ID 11, 15)
 
@@ -814,7 +824,7 @@ Tin nhắn (Messaging Module)
 ### API Endpoints tham khảo
 
 | Method | Endpoint | Mô tả |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/conversations` | Lấy danh sách hội thoại |
 | GET | `/conversations/{id}/messages` | Lấy lịch sử chat (lazy load) |
 | POST | `/conversations/{id}/messages` | Gửi tin nhắn mới |
@@ -828,7 +838,7 @@ Tin nhắn (Messaging Module)
 ### WebSocket Events
 
 | Event | Chiều | Mô tả |
-|---|---|---|
+| --- | --- | --- |
 | `MESSAGE` | Server → Client | Tin nhắn mới |
 | `LESSON_REQUEST` | Server → Learner | Partner đặt lịch |
 | `LESSON_ACCEPTED` | Server → Partner | Learner xác nhận |
@@ -838,6 +848,7 @@ Tin nhắn (Messaging Module)
 | `USER_OFFLINE` | Server → All | User mất kết nối |
 
 ### Timezone Rules
+
 - Toàn bộ lưu trữ trong DB theo **UTC**
 - Hiển thị tự động convert sang timezone người dùng (browser `Intl.DateTimeFormat`)
 - Lesson Request hiển thị **Hanoi Time (GMT+7)** làm chuẩn chính
@@ -845,4 +856,4 @@ Tin nhắn (Messaging Module)
 
 ---
 
-*Document version: 1.0 | Dự án: VietImmerse | Module: Messaging*
+Document version: 1.0 | Dự án: VietImmerse | Module: Messaging

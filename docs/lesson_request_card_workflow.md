@@ -1,4 +1,5 @@
 # VietImmerse — Workflow Kiểm Tra & Hoàn Thiện: Chức Năng "Đặt Buổi Học"
+
 > **Phạm vi:** Tính năng Lesson Request Card trong màn hình Tin nhắn  
 > **Áp dụng cho:** Màn hình Partner (ID 15) và Màn hình Learner (ID 11)  
 > **Vấn đề chính:** Card đặt buổi học bị hiển thị sai vị trí trong luồng chat
@@ -24,7 +25,7 @@
 
 **Màn hình Partner (localhost:3000/partner/messages):**
 
-```
+```text
 [Trạng thái hiện tại — SAI]
 
 ─── Top of chat ───────────────────────────────────
@@ -47,7 +48,7 @@
 
 ### 1.2 Mô tả chi tiết vòng đời hiện tại (lỗi)
 
-```
+```text
 Timeline thực tế (SAI):
 
 T1  Partner gửi Lesson Request
@@ -72,7 +73,7 @@ Kết quả: Card nằm mãi ở T1 (đầu), không phải cuối
 
 ### 2.2 Trạng thái đúng — Partner side (ID 15)
 
-```
+```text
 [Hành vi mong muốn — ĐÚNG]
 
 ─── Top of chat ────────────────────────────────────
@@ -103,7 +104,7 @@ Kết quả: Card nằm mãi ở T1 (đầu), không phải cuối
 
 ### 2.3 Trạng thái đúng — Learner side (ID 11)
 
-```
+```text
 ─── Bottom of chat ──────────────────────────────────
 │
 │  ... các tin nhắn trước ...
@@ -128,7 +129,7 @@ Kết quả: Card nằm mãi ở T1 (đầu), không phải cuối
 
 Lesson Request Card hiện tại **không được lưu trữ như một message** trong bảng `messages`, mà được xử lý riêng biệt và chỉ được "gắn" vào chat UI bằng cách khác (component riêng, inject vào đầu/cuối, hoặc overlay).
 
-```
+```text
 Cấu trúc DB hiện tại (SAI):
 
 Table: messages
@@ -168,7 +169,7 @@ function ChatView({ conversationId }) {
 
 Cốt lõi của giải pháp là **gộp toàn bộ nội dung chat** (tin nhắn text, Meet link card, Lesson Request card) vào **một luồng duy nhất**, sắp xếp theo `timestamp`.
 
-```
+```text
 Luồng xử lý đúng:
 
 [API Response]
@@ -396,14 +397,16 @@ ALTER TABLE messages
 
 ### 5.2 Thay đổi API
 
-#### Endpoint cũ (cần xóa hoặc giữ lại nội bộ):
-```
+#### Endpoint cũ (cần xóa hoặc giữ lại nội bộ)
+
+```text
 GET /conversations/{id}/messages
 GET /lessons/pending?conversation_id={id}
 ```
 
-#### Endpoint mới (unified):
-```
+#### Endpoint mới (unified)
+
+```text
 GET /conversations/{id}/items?limit=50&offset=0
 
 Response:
@@ -443,7 +446,7 @@ Response:
 
 ### 5.3 Flow tạo Lesson Request (Backend)
 
-```
+```text
 [Partner POST /lessons/request]
     │
     ▼
@@ -483,7 +486,7 @@ Response:
 
 ### 6.1 Kiểm tra vị trí hiển thị Card
 
-```
+```text
 SCENARIO A: Card hiển thị đúng vị trí khi chat còn ít tin
 
 Điều kiện:
@@ -504,7 +507,7 @@ Kết quả mong muốn:
   → Scroll tự động xuống card
 ```
 
-```
+```text
 SCENARIO B: Card hiển thị đúng vị trí SAU khi chat đã dài
 
 Điều kiện:
@@ -521,7 +524,7 @@ Kết quả mong muốn:
   - Scroll tự động xuống card mới
 ```
 
-```
+```text
 SCENARIO C: Card hiển thị đúng trên LEARNER side
 
 Điều kiện:
@@ -541,7 +544,7 @@ Kết quả mong muốn:
 
 ### 6.2 Kiểm tra sau khi nhắn tin tiếp tục
 
-```
+```text
 SCENARIO D: Tin nhắn mới không đẩy Card lên trên
 
 Điều kiện:
@@ -562,7 +565,7 @@ Kết quả mong muốn:
 
 ### 6.3 Kiểm tra cập nhật trạng thái Card
 
-```
+```text
 SCENARIO E: Learner Accept → Card cập nhật tại chỗ
 
 Điều kiện:
@@ -582,7 +585,7 @@ Kết quả mong muốn:
     · Toast: "Học viên đã xác nhận lịch hẹn!"
 ```
 
-```
+```text
 SCENARIO F: Learner Decline → Card cập nhật và lịch bị xóa
 
 Bước:
@@ -601,7 +604,7 @@ Kết quả mong muốn:
 
 ### 6.4 Kiểm tra Lazy Load với Card
 
-```
+```text
 SCENARIO G: Load lịch sử cũ có chứa Card
 
 Điều kiện:
@@ -625,7 +628,7 @@ Kết quả mong muốn:
 ### TC-LR-01: Vị trí Card khi tạo mới
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-01 |
 | **Tên** | Card hiển thị đúng vị trí khi Partner tạo Lesson Request |
 | **Điều kiện** | Đã có 5 tin nhắn trong chat |
@@ -637,7 +640,7 @@ Kết quả mong muốn:
 ### TC-LR-02: Card không dịch chuyển sau khi nhắn tiếp
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-02 |
 | **Tên** | Tin nhắn mới không đẩy Card lên trên |
 | **Điều kiện** | Lesson Request Card đang hiển thị cuối chat (PENDING) |
@@ -648,7 +651,7 @@ Kết quả mong muốn:
 ### TC-LR-03: Card hiển thị đúng phía Learner
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-03 |
 | **Tên** | Learner nhận Card đúng vị trí qua WebSocket |
 | **Điều kiện** | Learner đang mở chat, có 10 tin nhắn |
@@ -659,7 +662,7 @@ Kết quả mong muốn:
 ### TC-LR-04: Accept → Card cập nhật tại chỗ
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-04 |
 | **Tên** | Accept không làm thay đổi vị trí Card |
 | **Điều kiện** | Card đang PENDING, có 3 tin nhắn sau card |
@@ -671,7 +674,7 @@ Kết quả mong muốn:
 ### TC-LR-05: Decline → Card cập nhật, lịch sử sạch
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-05 |
 | **Tên** | Decline Card — lịch hẹn bị xóa khỏi trang chủ |
 | **Điều kiện** | Card đang PENDING |
@@ -683,7 +686,7 @@ Kết quả mong muốn:
 ### TC-LR-06: Hủy Card (Partner side)
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-06 |
 | **Tên** | Partner hủy Lesson Request đang PENDING |
 | **Điều kiện** | Card đang PENDING, Learner chưa phản hồi |
@@ -695,7 +698,7 @@ Kết quả mong muốn:
 ### TC-LR-07: Lazy load có chứa Card
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-07 |
 | **Tên** | Card tải đúng khi lazy load lịch sử cũ |
 | **Điều kiện** | Conversation có > 50 items, Card nằm ở batch 2 |
@@ -706,7 +709,7 @@ Kết quả mong muốn:
 ### TC-LR-08: Nhiều Card trong một cuộc hội thoại
 
 | Mục | Nội dung |
-|---|---|
+| --- | --- |
 | **ID** | TC-LR-08 |
 | **Tên** | Nhiều Lesson Request trong cùng một conversation |
 | **Điều kiện** | Buổi học đầu đã ACCEPTED, Partner tạo thêm buổi thứ 2 |
@@ -719,27 +722,32 @@ Kết quả mong muốn:
 ## 8. Acceptance Criteria
 
 ### AC-LR-POS-01: Vị trí theo timestamp
+
 - [ ] Lesson Request Card **luôn xuất hiện tại đúng vị trí** theo thứ tự thời gian trong luồng chat
 - [ ] Card KHÔNG bao giờ hiển thị ở đầu trang trừ khi đó là tin đầu tiên trong conversation
 - [ ] Card KHÔNG bị các tin nhắn mới hơn đẩy lên trên
 
 ### AC-LR-POS-02: Auto-scroll
+
 - [ ] Sau khi Partner tạo thành công Lesson Request → chat **tự động scroll** xuống Card
 - [ ] Sau khi Learner nhận WebSocket event LESSON_REQUEST_CREATED:
   - Nếu đang ở bottom → tự động scroll xuống Card
   - Nếu đang scroll lên đọc tin cũ → KHÔNG auto-scroll, chỉ hiện badge "1 tin mới"
 
 ### AC-LR-POS-03: Cập nhật trạng thái tại chỗ
+
 - [ ] Khi Accept/Decline/Cancel → Card cập nhật badge màu sắc **tại đúng vị trí** trong chat
 - [ ] KHÔNG render lại toàn bộ chat, KHÔNG thay đổi vị trí Card
 - [ ] Cả 2 phía (Partner và Learner) đều thấy cập nhật qua WebSocket trong vòng ≤ 1 giây
 
 ### AC-LR-POS-04: Tương thích Lazy Load
+
 - [ ] Card được bao gồm trong `GET /conversations/{id}/items` response
 - [ ] Khi lazy load batch mới có chứa Card → Card render đúng vị trí trong batch
 - [ ] Vị trí scroll container KHÔNG bị thay đổi sau khi prepend batch cũ hơn
 
 ### AC-LR-POS-05: Đồng bộ 2 phía
+
 - [ ] Partner tạo Card → Learner thấy Card đúng vị trí trong ≤ 1 giây
 - [ ] Learner Accept → Partner thấy Card cập nhật trong ≤ 1 giây
 - [ ] Kết quả hiển thị giống nhau trên cả màn hình Partner (ID 15) và Learner (ID 11)
@@ -749,7 +757,7 @@ Kết quả mong muốn:
 ## Tóm Tắt Thay Đổi Cần Thực Hiện
 
 | # | Layer | Thay đổi | Ưu tiên |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | **DB** | Thêm cột `message_id` vào `lesson_requests` | 🔴 Cao |
 | 2 | **DB** | `messages.type` hỗ trợ `'LESSON_REQUEST'` và `'MEET_LINK'` | 🔴 Cao |
 | 3 | **BE** | Khi tạo Lesson Request: INSERT vào cả `lesson_requests` lẫn `messages` trong 1 transaction | 🔴 Cao |
@@ -763,4 +771,4 @@ Kết quả mong muốn:
 
 ---
 
-*Document version: 1.0 | Module: Messaging > Lesson Request | Bug: Card position incorrect*
+Document version: 1.0 | Module: Messaging > Lesson Request | Bug: Card position incorrect

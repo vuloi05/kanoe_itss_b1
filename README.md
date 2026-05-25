@@ -169,7 +169,7 @@ FPT_TTS_API_KEY=<your_fpt_tts_key>
 FPT_ASR_API_KEY=<your_fpt_asr_key>
 
 # ===================================
-# OpenAI (Whisper Fallback ASR)
+# OpenAI (Whisper Primary ASR)
 # ===================================
 OPENAI_API_KEY=<your_openai_key>
 ```
@@ -259,11 +259,11 @@ These services power the **Voice Lab** feature -- learners can listen to native 
 
 ### OpenAI Whisper
 
-| Variable         | Description                                                 |
-| ---------------- | ----------------------------------------------------------- |
-| `OPENAI_API_KEY` | API key for OpenAI Whisper -- used as fallback ASR provider |
+| Variable         | Description                                                    |
+| ---------------- | -------------------------------------------------------------- |
+| `OPENAI_API_KEY` | API key for OpenAI Whisper -- used as **primary** ASR provider |
 
-The system uses a **fallback chain**: FPT ASR is attempted first; if it fails, OpenAI Whisper handles the transcription.
+The system uses a **fallback chain**: OpenAI Whisper is attempted first; if it fails, FPT ASR handles the transcription.
 
 ---
 
@@ -299,7 +299,7 @@ kanoe_itss_b1/
 |       |   |-- IBookingService / BookingService        # Booking state machine
 |       |   |-- ILessonService / LessonService         # Curriculum data access
 |       |   |-- ITtsService / FptTtsService             # FPT.AI TTS integration
-|       |   |-- IAsrService / FallbackAsrService       # ASR with FPT + OpenAI Whisper fallback
+|       |   |-- IAsrService / FallbackAsrService       # ASR with OpenAI Whisper + FPT fallback
 |       |   |-- IVoiceScoringService / VoiceScoringService  # Pronunciation scoring engine
 |       |   |-- ITranslationService / TranslationService    # Vi-Ja translation
 |       |   +-- DatabaseSeeder                         # SQL-based data seeding
@@ -403,7 +403,7 @@ Hubs (SignalR real-time events)
 **Key design decisions:**
 
 - **Interface-driven DI** -- Every service is registered through an interface (`IAuthService`, `IMessageService`, etc.), enabling testability and swappability.
-- **Fallback pattern for ASR** -- `FallbackAsrService` wraps `FptAsrService` and `OpenAiWhisperService`, attempting FPT first and falling back to Whisper on failure.
+- **Fallback pattern for ASR** -- `FallbackAsrService` wraps `OpenAiWhisperService` and `FptAsrService`, attempting OpenAI Whisper first and falling back to FPT ASR on failure.
 - **SignalR presence tracking** -- `ChatHub` uses `ConcurrentDictionary<Guid, HashSet<string>>` to track multiple connections per user, only marking a user offline when their last connection drops.
 - **SQL-based seeding** -- Schema and seed data are managed via raw SQL files (`schema.sql`, `seed_data*.sql`), not EF Core migrations. This provides full control over the DDL and curriculum data.
 
