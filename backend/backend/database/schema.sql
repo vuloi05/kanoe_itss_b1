@@ -7,6 +7,20 @@
 --
 -- ⚠️  EF Core Migrations are NOT used — schema is managed here.
 -- =============================================================================
+--
+-- ╔═══════════════════════════════════════════════════════════════════════════╗
+-- ║  CRITICAL RULE — READ BEFORE EDITING                                    ║
+-- ║                                                                         ║
+-- ║  When adding a NEW COLUMN to an EXISTING table, you MUST do BOTH:       ║
+-- ║                                                                         ║
+-- ║    1. Declare the column inside the CREATE TABLE block (for fresh DBs). ║
+-- ║    2. Add an ALTER TABLE … ADD COLUMN IF NOT EXISTS statement in the    ║
+-- ║       "IDEMPOTENT COLUMN PATCHES" section at the BOTTOM of this file    ║
+-- ║       (for existing DBs where CREATE TABLE IF NOT EXISTS is a no-op).   ║
+-- ║                                                                         ║
+-- ║  Failure to do BOTH will cause the Seeder to crash on environments      ║
+-- ║  that already have the table but lack the new column.                   ║
+-- ╚═══════════════════════════════════════════════════════════════════════════╝
 
 -- Custom ENUM types (managed by Npgsql)
 -- CREATE TYPE account_status   AS ENUM ('active','inactive','suspended','pending_verification');
@@ -389,3 +403,16 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
     CONSTRAINT lesson_progress_unique         UNIQUE (user_id, lesson_id)
 );
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress (user_id);
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- IDEMPOTENT COLUMN PATCHES
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- These ALTER statements ensure new columns are added to tables that already
+-- exist in the database. CREATE TABLE IF NOT EXISTS silently skips DDL when the
+-- table is present, so any columns added after initial creation would be missed.
+--
+-- Each statement uses ADD COLUMN IF NOT EXISTS to remain safe for re-execution.
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- lesson_progress.progress — tracks lesson completion percentage (0-100)
+ALTER TABLE lesson_progress ADD COLUMN IF NOT EXISTS progress INT DEFAULT 0;
