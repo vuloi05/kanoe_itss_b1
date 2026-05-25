@@ -6,6 +6,7 @@ import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { lessonApi, ttsApi, voiceLabApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 // Hàm chuyển đổi audio chunks (webm/opus) → WAV (PCM, 16kHz, Mono)
 // để tối ưu cho FPT.AI ASR API — xem chi tiết lý do kỹ thuật trong audio-utils.ts
 import { exportToWav } from "@/lib/audio-utils";
@@ -615,7 +616,10 @@ export default function LessonDetailPage() {
   const [lesson, setLesson] = useState<LessonDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useAuth();
   const [showSubtitle, setShowSubtitle] = useState(true);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     if (!lessonId) return;
@@ -756,6 +760,49 @@ export default function LessonDetailPage() {
               />
             ))}
           </div>
+
+          {/* Complete lesson button */}
+          {isAuthenticated && (
+            <div className="mt-8">
+              {isCompleted ? (
+                <div className="flex items-center justify-center gap-3 bg-[#e8f5e9] text-[#2e7d32] p-5 rounded-2xl">
+                  <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: '"FILL" 1' }}>check_circle</span>
+                  <span className="font-headline font-bold text-lg">
+                    {t("Đã hoàn thành bài học!", "レッスン完了！")}
+                  </span>
+                </div>
+              ) : (
+                <button
+                  onClick={async () => {
+                    setIsCompleting(true);
+                    try {
+                      await lessonApi.completeLesson(lessonId);
+                      setIsCompleted(true);
+                    } catch (err) {
+                      console.error("Failed to complete lesson:", err);
+                    } finally {
+                      setIsCompleting(false);
+                    }
+                  }}
+                  disabled={isCompleting}
+                  className="w-full group bg-primary text-on-primary py-4 rounded-2xl font-headline font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                >
+                  {isCompleting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
+                      {t("Đang lưu...", "保存中...")}
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-xl">task_alt</span>
+                      {t("Hoàn thành bài học", "レッスンを完了する")}
+                      <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
 
 
         </div>

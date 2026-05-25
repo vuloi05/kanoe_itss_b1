@@ -126,4 +126,7 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<VoiceLabRecord> VoiceLabRecords { get; set; } = new List<VoiceLabRecord>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<LessonProgress> LessonProgresses { get; set; } = new List<LessonProgress>();
 }

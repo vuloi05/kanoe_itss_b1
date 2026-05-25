@@ -69,4 +69,7 @@ public partial class Lesson
 
     [InverseProperty("Lesson")]
     public virtual ICollection<LessonToneNote> ToneNotes { get; set; } = new List<LessonToneNote>();
+
+    [InverseProperty("Lesson")]
+    public virtual ICollection<LessonProgress> LessonProgresses { get; set; } = new List<LessonProgress>();
 }
