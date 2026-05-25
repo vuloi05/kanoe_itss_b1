@@ -38,6 +38,26 @@ export interface LocalMessage {
   _retryCount?: number;
 }
 
+/**
+ * Normalize lesson status from backend (BookingDto lowercase) to frontend (MessageDto uppercase).
+ * Backend may send: "pending", "confirmed", "declined", "cancelled"
+ * Frontend expects: "PENDING", "ACCEPTED", "DECLINED", "CANCELLED"
+ */
+export function normalizeLessonStatus(status: string): LocalMessage["lessonStatus"] {
+  const map: Record<string, LocalMessage["lessonStatus"]> = {
+    pending: "PENDING",
+    confirmed: "ACCEPTED",
+    accepted: "ACCEPTED",
+    declined: "DECLINED",
+    cancelled: "CANCELLED",
+    PENDING: "PENDING",
+    ACCEPTED: "ACCEPTED",
+    DECLINED: "DECLINED",
+    CANCELLED: "CANCELLED",
+  };
+  return map[status] || (status.toUpperCase() as LocalMessage["lessonStatus"]);
+}
+
 /** An item in the offline send queue */
 interface QueueItem {
   tempId: string;
@@ -109,6 +129,68 @@ export function generateTempId(): string {
 export function isMeetLink(text: string): boolean {
   if (!text) return false;
   return /^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}$/.test(text.trim());
+}
+
+/**
+ * Strict validation for Google Meet URL used in the booking form.
+ * Pattern: https://meet.google.com/xxx-xxxx-xxx (spec §9.3)
+ * Returns true if valid, false otherwise.
+ */
+export function isMeetLinkStrict(url: string): boolean {
+  if (!url) return false;
+  return /^https:\/\/meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}$/.test(url.trim());
+}
+
+/**
+ * Auto-resize a textarea element to fit its content.
+ * Resets to base height first, then grows to scrollHeight.
+ * Attach to onChange/onInput event. (spec §9.1)
+ */
+export function autoResizeTextarea(el: HTMLTextAreaElement | null): void {
+  if (!el) return;
+  el.style.height = "52px"; // base height
+  el.style.height = `${Math.max(52, Math.min(el.scrollHeight, 160))}px`; // max ~4 lines
+}
+
+/**
+ * Detect the user's local timezone abbreviation and UTC offset.
+ * Returns e.g. { name: "JST", offset: "+09:00" }
+ */
+export function getUserTimezone(): { name: string; offset: string } {
+  const now = new Date();
+  const offsetMin = -now.getTimezoneOffset();
+  const sign = offsetMin >= 0 ? "+" : "-";
+  const h = String(Math.floor(Math.abs(offsetMin) / 60)).padStart(2, "0");
+  const m = String(Math.abs(offsetMin) % 60).padStart(2, "0");
+  const offset = `${sign}${h}:${m}`;
+
+  // Try to get short timezone name
+  let name: string;
+  try {
+    name = new Intl.DateTimeFormat("en", { timeZoneName: "short" })
+      .formatToParts(now)
+      .find((p) => p.type === "timeZoneName")?.value || `GMT${offset}`;
+  } catch {
+    name = `GMT${offset}`;
+  }
+
+  return { name, offset };
+}
+
+/**
+ * Convert a time string (HH:MM) from one UTC offset to another.
+ * Used for displaying dual-timezone slots.
+ */
+export function convertTime(
+  time: string,
+  date: string,
+  fromOffsetMinutes: number,
+  toOffsetMinutes: number
+): string {
+  const [h, min] = time.split(":").map(Number);
+  const totalMin = h * 60 + min + (toOffsetMinutes - fromOffsetMinutes);
+  const newH = ((totalMin % 1440) + 1440) % 1440;
+  return `${String(Math.floor(newH / 60)).padStart(2, "0")}:${String(newH % 60).padStart(2, "0")}`;
 }
 
 // ─── Offline Queue Hook ───────────────────────────────────────
