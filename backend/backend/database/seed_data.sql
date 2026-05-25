@@ -67,13 +67,14 @@ BEGIN
     SELECT user_id INTO v_learner_id FROM users WHERE email = 'abc@gmail.com';
     SELECT user_id INTO v_partner_id FROM users WHERE email = 'doitac@gmail.com';
 
-    -- Learner profile
-    INSERT INTO learner_profiles (profile_id, user_id, native_language, created_at, updated_at)
+    -- Learner profile (level V2)
+    INSERT INTO learner_profiles (profile_id, user_id, goals, native_language, created_at, updated_at)
     VALUES (
         'b0000000-0000-0000-0000-000000000001',
-        v_learner_id, 'ja', NOW(), NOW()
+        v_learner_id, 'v2', 'ja', NOW(), NOW()
     )
     ON CONFLICT (user_id) DO UPDATE SET
+        goals           = EXCLUDED.goals,
         native_language = EXCLUDED.native_language,
         updated_at      = NOW();
 
@@ -727,78 +728,66 @@ INSERT INTO voice_lab_records (record_id, user_id, expected_text, actual_text, c
 ON CONFLICT (record_id) DO NOTHING;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
--- 8. LESSON PROGRESS (mock progress data for demo learner)
+-- 8. LESSON PROGRESS (mock progress data for demo learner — level V2)
 -- ═══════════════════════════════════════════════════════════════════════════════
--- Demo learner (abc@gmail.com) has V1 level:
---   Ch1 L1: completed (100%), Ch1 L2: completed (100%), Ch1 L3: in-progress (50%)
---   Ch2 L1: completed (100%), Ch2 L2: in-progress (30%)
---   Ch3 L1: completed (100%)
+-- Demo learner (abc@gmail.com) has V2 level:
+--   All 24 V1 lessons (chapters 1-8, 3 lessons each): auto-completed (100%)
+--   V2 progress: Ch9 L1-L3 completed, Ch10 L1 completed, Ch10 L2 in-progress (60%)
 
 DO $$
 DECLARE
     v_learner_id UUID;
+    v_lesson_id  UUID;
 BEGIN
     SELECT user_id INTO v_learner_id FROM users WHERE email = 'abc@gmail.com';
 
-    -- Chapter 1, Lesson 1: completed
-    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
-    VALUES (
-        'f0000000-0000-0000-0100-000000000001',
-        v_learner_id, 'd0000000-0000-0000-0100-000000000001',
-        true, 100, NOW(), NOW()
-    )
-    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
-        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+    -- ─── V1: Auto-complete all 24 lessons (user level > lesson level) ───
+    -- Chapter 1 (3 lessons)
+    FOR v_lesson_id IN
+        SELECT lesson_id FROM lessons WHERE chapter_id IN (1,2,3,4,5,6,7,8)
+    LOOP
+        INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+        VALUES (gen_random_uuid(), v_learner_id, v_lesson_id, true, 100, NOW(), NOW())
+        ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+            is_completed = true, progress = 100, completed_at = NOW();
+    END LOOP;
 
-    -- Chapter 1, Lesson 2: completed
-    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
-    VALUES (
-        'f0000000-0000-0000-0100-000000000002',
-        v_learner_id, 'd0000000-0000-0000-0100-000000000002',
-        true, 100, NOW(), NOW()
-    )
-    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
-        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+    -- ─── V2: Actual study progress (user level == lesson level) ───
 
-    -- Chapter 1, Lesson 3: in-progress (50%)
+    -- Chapter 9 (V2 Ch1), Lesson 1: completed
     INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
-    VALUES (
-        'f0000000-0000-0000-0100-000000000003',
-        v_learner_id, 'd0000000-0000-0000-0100-000000000003',
-        false, 50, NULL, NOW()
-    )
+    SELECT gen_random_uuid(), v_learner_id, lesson_id, true, 100, NOW(), NOW()
+    FROM lessons WHERE chapter_id = 9 AND sort_order = 1
     ON CONFLICT (user_id, lesson_id) DO UPDATE SET
-        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+        is_completed = true, progress = 100, completed_at = NOW();
 
-    -- Chapter 2, Lesson 1: completed
+    -- Chapter 9 (V2 Ch1), Lesson 2: completed
     INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
-    VALUES (
-        'f0000000-0000-0000-0200-000000000001',
-        v_learner_id, 'd0000000-0000-0000-0200-000000000001',
-        true, 100, NOW(), NOW()
-    )
+    SELECT gen_random_uuid(), v_learner_id, lesson_id, true, 100, NOW(), NOW()
+    FROM lessons WHERE chapter_id = 9 AND sort_order = 2
     ON CONFLICT (user_id, lesson_id) DO UPDATE SET
-        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+        is_completed = true, progress = 100, completed_at = NOW();
 
-    -- Chapter 2, Lesson 2: in-progress (30%)
+    -- Chapter 9 (V2 Ch1), Lesson 3: completed
     INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
-    VALUES (
-        'f0000000-0000-0000-0200-000000000002',
-        v_learner_id, 'd0000000-0000-0000-0200-000000000002',
-        false, 30, NULL, NOW()
-    )
+    SELECT gen_random_uuid(), v_learner_id, lesson_id, true, 100, NOW(), NOW()
+    FROM lessons WHERE chapter_id = 9 AND sort_order = 3
     ON CONFLICT (user_id, lesson_id) DO UPDATE SET
-        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+        is_completed = true, progress = 100, completed_at = NOW();
 
-    -- Chapter 3, Lesson 1: completed
+    -- Chapter 10 (V2 Ch2), Lesson 1: completed
     INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
-    VALUES (
-        'f0000000-0000-0000-0300-000000000001',
-        v_learner_id, 'd0000000-0000-0000-0300-000000000001',
-        true, 100, NOW(), NOW()
-    )
+    SELECT gen_random_uuid(), v_learner_id, lesson_id, true, 100, NOW(), NOW()
+    FROM lessons WHERE chapter_id = 10 AND sort_order = 1
     ON CONFLICT (user_id, lesson_id) DO UPDATE SET
-        is_completed = EXCLUDED.is_completed, progress = EXCLUDED.progress, completed_at = EXCLUDED.completed_at;
+        is_completed = true, progress = 100, completed_at = NOW();
+
+    -- Chapter 10 (V2 Ch2), Lesson 2: in-progress (60%)
+    INSERT INTO lesson_progress (progress_id, user_id, lesson_id, is_completed, progress, completed_at, created_at)
+    SELECT gen_random_uuid(), v_learner_id, lesson_id, false, 60, NULL, NOW()
+    FROM lessons WHERE chapter_id = 10 AND sort_order = 2
+    ON CONFLICT (user_id, lesson_id) DO UPDATE SET
+        is_completed = false, progress = 60, completed_at = NULL;
 END $$;
 
 
