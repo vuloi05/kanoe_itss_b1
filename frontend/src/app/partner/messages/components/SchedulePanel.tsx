@@ -1,6 +1,7 @@
 "use client";
 
 import { type BookingDto } from "@/lib/api";
+import { getUserTimezone } from "@/lib/chatUtils";
 import DatePicker from "@/components/common/DatePicker";
 import TimePicker from "@/components/common/TimePicker";
 import SelectPicker from "@/components/common/SelectPicker";
@@ -83,6 +84,20 @@ export default function SchedulePanel({
     { value: "105", label: t("105 phút", "105分") },
     { value: "120", label: t("120 phút", "120分") },
   ];
+
+  // §7: Dual timezone display
+  const userTz = getUserTimezone();
+  const hanoiOffset = 7 * 60; // UTC+7 in minutes
+  const userOffsetMin = -new Date().getTimezoneOffset(); // user's local offset in minutes
+  const isDifferentTz = userOffsetMin !== hanoiOffset;
+
+  // Convert a HH:MM string from Hanoi (UTC+7) to user's local timezone
+  const toLocalTime = (timeStr: string) => {
+    const [h, m] = timeStr.split(":").map(Number);
+    const totalMin = h * 60 + m + (userOffsetMin - hanoiOffset);
+    const adjusted = ((totalMin % 1440) + 1440) % 1440;
+    return `${String(Math.floor(adjusted / 60)).padStart(2, "0")}:${String(adjusted % 60).padStart(2, "0")}`;
+  };
   return (
     <>
       {/* Scheduling Panel Overlay Backdrop */}
@@ -212,7 +227,15 @@ export default function SchedulePanel({
               <p className="text-xs text-secondary leading-relaxed">
                 {bookingDate ? formatDateDisplay(bookingDate) : t("Chưa chọn ngày", "日付未選択")}
                 <br />
-                {`${bookingHour.split(":")[0]}:${bookingMinute}`} - {calcEndTime(bookingHour, bookingMinute, bookingDuration)} ({bookingDuration}m)
+                {`${bookingHour.split(":")[0]}:${bookingMinute}`} - {calcEndTime(bookingHour, bookingMinute, bookingDuration)} ({bookingDuration}m) (GMT+7)
+                {isDifferentTz && (
+                  <>
+                    <br />
+                    <span className="text-primary/70">
+                      {toLocalTime(`${bookingHour.split(":")[0]}:${bookingMinute}`)} - {toLocalTime(calcEndTime(bookingHour, bookingMinute, bookingDuration))} ({userTz.name})
+                    </span>
+                  </>
+                )}
               </p>
               {bookingMeetingLink && (
                 <a
@@ -250,7 +273,7 @@ export default function SchedulePanel({
               </span>
             </div>
             <div className="space-y-3">
-              {bookingCards.filter(c => c.status === "confirmed").map(card => {
+              {bookingCards.filter(c => c.status !== "cancelled").map(card => {
                 const now = new Date();
                 const start = new Date(card.startTime);
                 const end = new Date(card.endTime);
@@ -292,7 +315,7 @@ export default function SchedulePanel({
                   </div>
                 );
               })}
-              {bookingCards.filter(c => c.status === "confirmed").length === 0 && (
+              {bookingCards.filter(c => c.status !== "cancelled").length === 0 && (
                 <p className="text-xs text-secondary text-center italic mt-2">
                   {t("Chưa có lịch sử", "履歴なし")}
                 </p>

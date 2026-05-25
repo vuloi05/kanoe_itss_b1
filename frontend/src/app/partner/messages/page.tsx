@@ -14,6 +14,8 @@ import {
   generateTempId,
   useOfflineQueue,
   useLazyLoadMessages,
+  isMeetLinkStrict,
+  normalizeLessonStatus,
 } from "@/lib/chatUtils";
 import ChatArea from "./components/ChatArea";
 import SchedulePanel from "./components/SchedulePanel";
@@ -51,6 +53,7 @@ export default function PartnerMessagesPage() {
   const { t } = useLanguage();
   const { isUserOnline } = usePresence();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Show toast helper (declared before useEffect that uses it)
   const showToast = (message: string, type: "success" | "error" | "warning") => {
@@ -82,7 +85,7 @@ export default function PartnerMessagesPage() {
     
     // Fetch initial messages (page 1)
     messageApi.getMessages(activeConv.conversationId, 1, 50).then(data => {
-      setMessages(data as LocalMessage[]);
+      setMessages((data as LocalMessage[]).map(m => m.lessonStatus ? { ...m, lessonStatus: normalizeLessonStatus(m.lessonStatus) } : m));
       if (activeConv.unreadCount > 0) {
         messageApi.markAsRead(activeConv.conversationId).catch(console.error);
         setConversations(prev => prev.map((c, i) => i === activeConvIdx ? { ...c, unreadCount: 0 } : c));
@@ -133,19 +136,22 @@ export default function PartnerMessagesPage() {
 
       conn.on("LessonAccepted", (data: { lesson_request_id: string; new_status: string }) => {
         if (!mounted) return;
-        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status as LocalMessage["lessonStatus"] } : m));
+        const status = normalizeLessonStatus(data.new_status);
+        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: status } : m));
         showToast(t("Học viên đã xác nhận lịch hẹn!", "学習者がレッスンを承認しました！"), "success");
       });
 
       conn.on("LessonDeclined", (data: { lesson_request_id: string; new_status: string }) => {
         if (!mounted) return;
-        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status as LocalMessage["lessonStatus"] } : m));
+        const status = normalizeLessonStatus(data.new_status);
+        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: status } : m));
         showToast(t("Học viên đã từ chối lịch hẹn.", "学習者がレッスンを辞退しました。"), "warning");
       });
 
       conn.on("LessonCancelled", (data: { lesson_request_id: string; new_status: string }) => {
         if (!mounted) return;
-        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status as LocalMessage["lessonStatus"] } : m));
+        const status = normalizeLessonStatus(data.new_status);
+        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: status } : m));
         showToast(t("Lịch hẹn đã bị hủy.", "レッスンがキャンセルされました。"), "warning");
       });
     };
@@ -173,6 +179,8 @@ export default function PartnerMessagesPage() {
     if (!inputText.trim() || !activeConv) return;
     const txt = inputText.trim();
     setInputText("");
+    // Reset textarea height after send
+    if (textareaRef.current) textareaRef.current.style.height = '52px';
 
     // Optimistic: show bubble immediately
     const tempId = generateTempId();
@@ -304,22 +312,34 @@ export default function PartnerMessagesPage() {
       hasError = true;
     } else {
       const today = new Date(); today.setHours(0,0,0,0);
-      if (new Date(bookingDate + "T00:00:00") < today) {
+      const selectedDate = new Date(bookingDate + "T00:00:00");
+      if (selectedDate < today) {
         setDateError(t("Ngày không được là ngày trong quá khứ", "過去の日付は選択できません"));
         hasError = true;
+      } else if (selectedDate.getTime() === today.getTime()) {
+        // §9.2: Validate past hours when date is today
+        const now = new Date();
+        const selectedHour = parseInt(bookingHour.split(":")[0]);
+        const selectedMinute = parseInt(bookingMinute);
+        const selectedTotalMin = selectedHour * 60 + selectedMinute;
+        const currentTotalMin = now.getHours() * 60 + now.getMinutes();
+        if (selectedTotalMin <= currentTotalMin) {
+          setDateError(t("Giờ bắt đầu phải sau giờ hiện tại", "開始時間は現在時刻より後にしてください"));
+          hasError = true;
+        }
       }
     }
     if (!bookingMeetingLink.trim()) {
       setMeetingLinkError(t("Vui lòng nhập link meeting", "ミーティングリンクを入力してください"));
       hasError = true;
-    } else {
-      // Basic URL validation
-      try {
-        new URL(bookingMeetingLink.trim());
-      } catch {
-        setMeetingLinkError(t("Link meeting không hợp lệ", "ミーティングリンクが無効です"));
-        hasError = true;
-      }
+    } else if (!isMeetLinkStrict(bookingMeetingLink)) {
+      // §9.3: Validate Google Meet URL pattern
+      setMeetingLinkError(t(
+        "Link phải đúng định dạng Google Meet (VD: https://meet.google.com/abc-defg-hij)",
+        "Google Meetの正しいURL形式を入力してください（例：https://meet.google.com/abc-defg-hij）"
+      ));
+      showToast(t("Link Google Meet không hợp lệ", "Google MeetのURLが無効です"), "error");
+      hasError = true;
     }
     if (hasError) return;
     if (!activeConv) return;
@@ -443,13 +463,20 @@ export default function PartnerMessagesPage() {
                         >
                           {conv.learnerName}
                         </span>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        {conv.unreadCount > 0 && (
+                          <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center">
+                            {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
+                          </span>
+                        )}
                         <span
-                          className={`text-[10px] shrink-0 ml-2 ${
+                          className={`text-[10px] shrink-0 ${
                             activeConvIdx === idx ? "text-secondary" : "text-outline"
                           }`}
                         >
                           {formatConversationTime(conv.lastMessageTime, t)}
                         </span>
+                        </div>
                       </div>
                       <p
                         className={`text-xs truncate ${
@@ -490,6 +517,7 @@ export default function PartnerMessagesPage() {
           setInputText={setInputText}
           handleKeyDown={handleKeyDown}
           handleSend={handleSend}
+          textareaRef={textareaRef}
         />
 
         {/* Right Column: Scheduling Panel & Modals */}
