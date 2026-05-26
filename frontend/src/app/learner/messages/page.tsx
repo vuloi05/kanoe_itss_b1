@@ -8,6 +8,7 @@ import { usePresence } from "@/contexts/PresenceContext";
 import { useAuth } from "@/lib/auth";
 import { messageApi, bookingApi, type ConversationDto } from "@/lib/api";
 import { ensureConnected, getSignalRConnection } from "@/lib/signalr";
+import { useSearchParams } from "next/navigation";
 import {
   type LocalMessage,
   formatMessageTime,
@@ -43,6 +44,8 @@ export default function LearnerMessagesPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const searchParams = useSearchParams();
+
   const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations);
 
   // Lazy load hook
@@ -53,8 +56,17 @@ export default function LearnerMessagesPage() {
   useEffect(() => {
     messageApi
       .getConversations()
-      .then((data) => setConversations(data))
+      .then((data) => {
+        setConversations(data);
+        // Auto-select conversation if redirected from matching page (spec §4.5)
+        const convParam = searchParams.get("conv");
+        if (convParam) {
+          const idx = data.findIndex((c: ConversationDto) => c.conversationId === convParam);
+          if (idx >= 0) setActiveConvIdx(idx);
+        }
+      })
       .catch(console.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activeConv = conversations[activeConvIdx];
