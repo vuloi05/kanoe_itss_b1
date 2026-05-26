@@ -29,34 +29,36 @@ INSERT INTO users (user_id, email, password_hash, display_name, role, account_st
 VALUES (
     'a0000000-0000-0000-0000-000000000001',
     'abc@gmail.com',
-    '$2a$11$K5Jq3qHm1QVhRxQ0B7Kuke8cU7rvS/VHVvJ2CEDqz3JXq2mHqVlSu',
+    '$2a$11$HxVg4DME3wu9J/9V7M5q7uVSm3AoQvKtvvokHgTavkCe1H/6na8Gi',
     'Học viên Demo',
     'learner',
     'active',
     NOW(), NOW()
 )
 ON CONFLICT (email) DO UPDATE SET
-    display_name = EXCLUDED.display_name,
-    role         = EXCLUDED.role,
+    password_hash  = EXCLUDED.password_hash,
+    display_name   = EXCLUDED.display_name,
+    role           = EXCLUDED.role,
     account_status = EXCLUDED.account_status,
-    updated_at   = NOW();
+    updated_at     = NOW();
 
 -- Partner demo account
 INSERT INTO users (user_id, email, password_hash, display_name, role, account_status, created_at, updated_at)
 VALUES (
     'a0000000-0000-0000-0000-000000000002',
     'doitac@gmail.com',
-    '$2a$11$K5Jq3qHm1QVhRxQ0B7Kuke8cU7rvS/VHVvJ2CEDqz3JXq2mHqVlSu',
+    '$2a$11$HxVg4DME3wu9J/9V7M5q7uVSm3AoQvKtvvokHgTavkCe1H/6na8Gi',
     'Đối tác Demo',
     'partner',
     'active',
     NOW(), NOW()
 )
 ON CONFLICT (email) DO UPDATE SET
-    display_name = EXCLUDED.display_name,
-    role         = EXCLUDED.role,
+    password_hash  = EXCLUDED.password_hash,
+    display_name   = EXCLUDED.display_name,
+    role           = EXCLUDED.role,
     account_status = EXCLUDED.account_status,
-    updated_at   = NOW();
+    updated_at     = NOW();
 
 -- Resolve actual user_ids (may differ from deterministic UUIDs if users already existed)
 DO $$
@@ -78,13 +80,15 @@ BEGIN
         updated_at      = NOW();
 
     -- Partner profile
-    INSERT INTO partner_profiles (profile_id, user_id, bio, created_at, updated_at)
+    INSERT INTO partner_profiles (profile_id, user_id, bio, age_range, job, created_at, updated_at)
     VALUES (
         'b0000000-0000-0000-0000-000000000002',
-        v_partner_id, 'Tài khoản đối tác demo', NOW(), NOW()
+        v_partner_id, 'Tài khoản đối tác demo', '25-30', 'Giáo viên', NOW(), NOW()
     )
     ON CONFLICT (user_id) DO UPDATE SET
         bio        = EXCLUDED.bio,
+        age_range  = EXCLUDED.age_range,
+        job        = EXCLUDED.job,
         updated_at = NOW();
 
     -- Conversation between learner and partner
@@ -97,7 +101,7 @@ BEGIN
 END $$;
 
 -- ─── Additional Demo Accounts ─────────────────────────────────────────────────
--- All passwords: 123456  (same bcrypt hash as above)
+-- All passwords: 1234567890  (same bcrypt hash as above)
 -- Learner = Japanese names | Partner = Vietnamese names (VietImmerse context)
 
 -- Learner 2: 田中太郎 (Tanaka Taro)
@@ -105,68 +109,72 @@ INSERT INTO users (user_id, email, password_hash, display_name, role, account_st
 VALUES (
     'a0000000-0000-0000-0000-000000000003',
     'tanaka@gmail.com',
-    '$2a$11$K5Jq3qHm1QVhRxQ0B7Kuke8cU7rvS/VHVvJ2CEDqz3JXq2mHqVlSu',
+    '$2a$11$HxVg4DME3wu9J/9V7M5q7uVSm3AoQvKtvvokHgTavkCe1H/6na8Gi',
     '田中太郎',
     'learner',
     'active',
     NOW(), NOW()
 )
 ON CONFLICT (email) DO UPDATE SET
-    display_name = EXCLUDED.display_name,
-    role         = EXCLUDED.role,
+    password_hash  = EXCLUDED.password_hash,
+    display_name   = EXCLUDED.display_name,
+    role           = EXCLUDED.role,
     account_status = EXCLUDED.account_status,
-    updated_at   = NOW();
+    updated_at     = NOW();
 
 -- Learner 3: 佐藤花子 (Sato Hanako)
 INSERT INTO users (user_id, email, password_hash, display_name, role, account_status, created_at, updated_at)
 VALUES (
     'a0000000-0000-0000-0000-000000000004',
     'sato@gmail.com',
-    '$2a$11$K5Jq3qHm1QVhRxQ0B7Kuke8cU7rvS/VHVvJ2CEDqz3JXq2mHqVlSu',
+    '$2a$11$HxVg4DME3wu9J/9V7M5q7uVSm3AoQvKtvvokHgTavkCe1H/6na8Gi',
     '佐藤花子',
     'learner',
     'active',
     NOW(), NOW()
 )
 ON CONFLICT (email) DO UPDATE SET
-    display_name = EXCLUDED.display_name,
-    role         = EXCLUDED.role,
+    password_hash  = EXCLUDED.password_hash,
+    display_name   = EXCLUDED.display_name,
+    role           = EXCLUDED.role,
     account_status = EXCLUDED.account_status,
-    updated_at   = NOW();
+    updated_at     = NOW();
 
 -- Partner 2: Trần Minh Tuấn
 INSERT INTO users (user_id, email, password_hash, display_name, role, account_status, created_at, updated_at)
 VALUES (
     'a0000000-0000-0000-0000-000000000005',
     'tuan.tran@gmail.com',
-    '$2a$11$K5Jq3qHm1QVhRxQ0B7Kuke8cU7rvS/VHVvJ2CEDqz3JXq2mHqVlSu',
+    '$2a$11$HxVg4DME3wu9J/9V7M5q7uVSm3AoQvKtvvokHgTavkCe1H/6na8Gi',
     'Trần Minh Tuấn',
     'partner',
     'active',
     NOW(), NOW()
 )
 ON CONFLICT (email) DO UPDATE SET
-    display_name = EXCLUDED.display_name,
-    role         = EXCLUDED.role,
+    password_hash  = EXCLUDED.password_hash,
+    display_name   = EXCLUDED.display_name,
+    role           = EXCLUDED.role,
     account_status = EXCLUDED.account_status,
-    updated_at   = NOW();
+    updated_at     = NOW();
 
 -- Partner 3: Nguyễn Thị Mai
 INSERT INTO users (user_id, email, password_hash, display_name, role, account_status, created_at, updated_at)
 VALUES (
     'a0000000-0000-0000-0000-000000000006',
     'mai.nguyen@gmail.com',
-    '$2a$11$K5Jq3qHm1QVhRxQ0B7Kuke8cU7rvS/VHVvJ2CEDqz3JXq2mHqVlSu',
+    '$2a$11$HxVg4DME3wu9J/9V7M5q7uVSm3AoQvKtvvokHgTavkCe1H/6na8Gi',
     'Nguyễn Thị Mai',
     'partner',
     'active',
     NOW(), NOW()
 )
 ON CONFLICT (email) DO UPDATE SET
-    display_name = EXCLUDED.display_name,
-    role         = EXCLUDED.role,
+    password_hash  = EXCLUDED.password_hash,
+    display_name   = EXCLUDED.display_name,
+    role           = EXCLUDED.role,
     account_status = EXCLUDED.account_status,
-    updated_at   = NOW();
+    updated_at     = NOW();
 
 -- Profiles & Conversations for new accounts
 DO $$
@@ -188,10 +196,10 @@ BEGIN
     ON CONFLICT (user_id) DO UPDATE SET native_language = EXCLUDED.native_language, updated_at = NOW();
 
     -- Partner profiles
-    INSERT INTO partner_profiles (profile_id, user_id, bio, created_at, updated_at) VALUES
-        ('b0000000-0000-0000-0000-000000000005', v_partner2, 'Giáo viên tiếng Việt, chuyên dạy giao tiếp cho người Nhật.', NOW(), NOW()),
-        ('b0000000-0000-0000-0000-000000000006', v_partner3, 'Sinh viên ngôn ngữ, yêu thích văn hóa Nhật Bản.', NOW(), NOW())
-    ON CONFLICT (user_id) DO UPDATE SET bio = EXCLUDED.bio, updated_at = NOW();
+    INSERT INTO partner_profiles (profile_id, user_id, bio, age_range, job, created_at, updated_at) VALUES
+        ('b0000000-0000-0000-0000-000000000005', v_partner2, 'Giáo viên tiếng Việt, chuyên dạy giao tiếp cho người Nhật.', '31-40', 'Giáo viên', NOW(), NOW()),
+        ('b0000000-0000-0000-0000-000000000006', v_partner3, 'Sinh viên ngôn ngữ, yêu thích văn hóa Nhật Bản.', '18-24', 'Dịch vụ', NOW(), NOW())
+    ON CONFLICT (user_id) DO UPDATE SET bio = EXCLUDED.bio, age_range = EXCLUDED.age_range, job = EXCLUDED.job, updated_at = NOW();
 
     -- Conversations: every Learner × every Partner (6 conversations total, 1 already exists)
     -- Learner1 × Partner2
