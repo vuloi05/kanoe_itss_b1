@@ -162,60 +162,108 @@ public class AuthService : IAuthService
         if (user is null)
             throw new KeyNotFoundException("Email không tồn tại trên hệ thống.");
 
-        var tempPassword = GenerateTemporaryPassword(8);
+        // Clean up any old requests for this email to be clean
+        var oldResets = await _db.PasswordResets.Where(r => r.Email == email).ToListAsync();
+        if (oldResets.Any())
+        {
+            _db.PasswordResets.RemoveRange(oldResets);
+        }
 
-        // Wrap in transaction so password is rolled back if email delivery fails
+        var otpCode = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+
+        var passwordReset = new PasswordReset
+        {
+            Email = email,
+            OtpCode = otpCode,
+            OtpExpiresAt = DateTime.UtcNow.AddMinutes(5), // 5 minutes expiration
+            CreatedAt = DateTime.UtcNow
+        };
+
         await using var transaction = await _db.Database.BeginTransactionAsync();
         try
         {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
-            user.PasswordChangedAt = DateTime.UtcNow;
-            user.UpdatedAt = DateTime.UtcNow;
+            _db.PasswordResets.Add(passwordReset);
             await _db.SaveChangesAsync();
 
-            var htmlBody = BuildForgotPasswordEmail(user.DisplayName, tempPassword);
-            await _email.SendEmailAsync(email, "VietImmerse - Mật khẩu tạm thời", htmlBody);
+            var htmlBody = BuildOtpForgotPasswordEmail(user.DisplayName, otpCode);
+            await _email.SendEmailAsync(email, "VietImmerse - Mã xác thực OTP đặt lại mật khẩu", htmlBody);
 
             await transaction.CommitAsync();
         }
         catch (Exception ex) when (ex is not KeyNotFoundException)
         {
             await transaction.RollbackAsync();
-            _logger.LogError(ex, "Failed to send password reset email to {Email}.", email);
-            throw new InvalidOperationException("Lỗi hệ thống: Không thể gửi email vào lúc này.", ex);
+            _logger.LogError(ex, "Failed to send OTP email to {Email}.", email);
+            throw new InvalidOperationException("Lỗi hệ thống: Không thể gửi email xác thực vào lúc này.", ex);
         }
     }
 
-    /// <summary>
-    /// Cryptographically secure random password with uppercase, lowercase, and digits.
-    /// </summary>
-    private static string GenerateTemporaryPassword(int length)
+    public async Task<string> VerifyOtpAsync(VerifyOtpRequest request)
     {
-        const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-        const string lower = "abcdefghjkmnpqrstuvwxyz";
-        const string digits = "23456789";
-        var all = upper + lower + digits;
+        var email = request.Email.Trim().ToLowerInvariant();
+        var otp = request.Otp.Trim();
 
-        // Guarantee at least one char from each category
-        Span<char> password = stackalloc char[length];
-        password[0] = upper[RandomNumberGenerator.GetInt32(upper.Length)];
-        password[1] = lower[RandomNumberGenerator.GetInt32(lower.Length)];
-        password[2] = digits[RandomNumberGenerator.GetInt32(digits.Length)];
+        var record = await _db.PasswordResets
+            .Where(r => r.Email == email && r.OtpCode == otp && r.ResetToken == null)
+            .OrderByDescending(r => r.CreatedAt)
+            .FirstOrDefaultAsync();
 
-        for (var i = 3; i < length; i++)
-            password[i] = all[RandomNumberGenerator.GetInt32(all.Length)];
+        if (record is null)
+            throw new UnauthorizedAccessException("Mã OTP không chính xác.");
 
-        // Shuffle to avoid predictable positions
-        for (var i = password.Length - 1; i > 0; i--)
+        if (record.OtpExpiresAt < DateTime.UtcNow)
         {
-            var j = RandomNumberGenerator.GetInt32(i + 1);
-            (password[i], password[j]) = (password[j], password[i]);
+            _db.PasswordResets.Remove(record);
+            await _db.SaveChangesAsync();
+            throw new UnauthorizedAccessException("Mã OTP đã hết hạn.");
         }
 
-        return new string(password);
+        // Generate reset token
+        var resetToken = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
+
+        record.ResetToken = resetToken;
+        record.TokenExpiresAt = DateTime.UtcNow.AddMinutes(10); // Token valid for 10 minutes
+        await _db.SaveChangesAsync();
+
+        return resetToken;
     }
 
-    private static string BuildForgotPasswordEmail(string displayName, string tempPassword)
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var token = request.Token.Trim();
+        var record = await _db.PasswordResets
+            .Where(r => r.ResetToken == token)
+            .FirstOrDefaultAsync();
+
+        if (record is null)
+            throw new UnauthorizedAccessException("Mã khôi phục không hợp lệ hoặc đã hết hạn.");
+
+        if (record.TokenExpiresAt < DateTime.UtcNow)
+        {
+            _db.PasswordResets.Remove(record);
+            await _db.SaveChangesAsync();
+            throw new UnauthorizedAccessException("Phiên khôi phục đã hết hạn. Vui lòng thực hiện lại từ đầu.");
+        }
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == record.Email && u.DeletedAt == null);
+        if (user is null)
+            throw new KeyNotFoundException("Không tìm thấy tài khoản tương ứng.");
+
+        // Validate that new password is not the same as the old password
+        if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            throw new InvalidOperationException("Mật khẩu mới không được trùng với mật khẩu hiện tại của tài khoản.");
+
+        // Hash and update password
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.PasswordChangedAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        // Remove the reset record
+        _db.PasswordResets.Remove(record);
+        await _db.SaveChangesAsync();
+    }
+
+    private static string BuildOtpForgotPasswordEmail(string displayName, string otpCode)
     {
         return
             "<div style=\"font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#faf9f6;border-radius:12px\">" +
@@ -223,21 +271,15 @@ public class AuthService : IAuthService
             "<h1 style=\"color:#1a6b4a;font-size:22px;margin:0\">VietImmerse</h1>" +
             "</div>" +
             $"<p style=\"color:#333;font-size:15px\">Xin chào <strong>{displayName}</strong>,</p>" +
-            "<p style=\"color:#333;font-size:15px\">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Dưới đây là mật khẩu tạm thời:</p>" +
+            "<p style=\"color:#333;font-size:15px\">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Dưới đây là mã xác thực OTP của bạn:</p>" +
             "<div style=\"background:#e8f5e9;border:1px dashed #1a6b4a;border-radius:8px;text-align:center;padding:16px;margin:24px 0\">" +
-            $"<span style=\"font-size:28px;font-weight:bold;letter-spacing:4px;color:#1a6b4a\">{tempPassword}</span>" +
+            $"<span style=\"font-size:32px;font-weight:bold;letter-spacing:6px;color:#1a6b4a\">{otpCode}</span>" +
             "</div>" +
-            "<p style=\"color:#333;font-size:15px\">Vui lòng đăng nhập bằng mật khẩu này và <strong>đổi mật khẩu ngay</strong> sau khi đăng nhập để bảo mật tài khoản.</p>" +
+            "<p style=\"color:#c62828;font-weight:bold;font-size:14px\">Lưu ý: Mã OTP này có hiệu lực trong vòng 5 phút và chỉ được sử dụng một lần.</p>" +
+            "<p style=\"color:#333;font-size:15px\">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này để giữ an toàn cho tài khoản.</p>" +
             "<hr style=\"border:none;border-top:1px solid #e0e0e0;margin:24px 0\" />" +
-            "<p style=\"color:#999;font-size:12px;text-align:center\">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.<br/>\u00a9 2024 VietImmerse</p>" +
+            "<p style=\"color:#999;font-size:12px;text-align:center\">Đây là email tự động, vui lòng không trả lời thư này.<br/>\u00a9 2026 VietImmerse</p>" +
             "</div>";
-    }
-
-    public Task ResetPasswordAsync(ResetPasswordRequest request)
-    {
-        // Placeholder: in production, validate token from DB and update password
-        Console.WriteLine($"⚠️ ResetPassword called with token: {request.Token} (not yet implemented with DB token storage)");
-        return Task.CompletedTask;
     }
 
     public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
@@ -247,6 +289,10 @@ public class AuthService : IAuthService
 
         if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
             throw new UnauthorizedAccessException("Mật khẩu hiện tại không chính xác.");
+
+        // Validate that new password is not the same as the old password
+        if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+            throw new InvalidOperationException("Mật khẩu mới không được trùng với mật khẩu hiện tại.");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         user.PasswordChangedAt = DateTime.UtcNow;

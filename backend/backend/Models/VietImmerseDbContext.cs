@@ -66,6 +66,8 @@ public partial class VietImmerseDbContext : DbContext
 
     public virtual DbSet<LessonProgress> LessonProgresses { get; set; }
 
+    public virtual DbSet<PasswordReset> PasswordResets { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -421,6 +423,14 @@ public partial class VietImmerseDbContext : DbContext
 
             entity.HasOne(d => d.Lesson).WithMany(p => p.LessonProgresses)
                 .HasConstraintName("lesson_progress_lesson_id_fkey");
+        });
+
+        modelBuilder.Entity<PasswordReset>(entity =>
+        {
+            entity.HasKey(e => e.ResetId).HasName("password_resets_pkey");
+
+            entity.Property(e => e.ResetId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
         });
 
         OnModelCreatingPartial(modelBuilder);

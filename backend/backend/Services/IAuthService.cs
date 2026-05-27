@@ -8,6 +8,7 @@ public interface IAuthService
     Task<AuthResponse> RegisterPartnerAsync(RegisterPartnerRequest request);
     Task<AuthResponse> LoginAsync(LoginRequest request);
     Task ForgotPasswordAsync(ForgotPasswordRequest request);
+    Task<string> VerifyOtpAsync(VerifyOtpRequest request);
     Task ResetPasswordAsync(ResetPasswordRequest request);
     Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
     Task<UserProfileResponse> GetProfileAsync(Guid userId);

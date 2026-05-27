@@ -1,12 +1,15 @@
--- =============================================================================
+-- ======================================================================
+-- -----------------------------------------------------------------------------
 -- VietImmerse — Database Schema (Source of Truth)
--- =============================================================================
+-- ======================================================================
+-- -----------------------------------------------------------------------------
 -- This file is the AUTHORITATIVE DDL for all tables.
 -- DatabaseSeeder.cs auto-applies this file on startup when content changes.
 -- All statements use CREATE TABLE IF NOT EXISTS for idempotent re-execution.
 --
 -- ⚠️  EF Core Migrations are NOT used — schema is managed here.
--- =============================================================================
+-- ======================================================================
+-- -----------------------------------------------------------------------------
 --
 -- ╔═══════════════════════════════════════════════════════════════════════════╗
 -- ║  CRITICAL RULE — READ BEFORE EDITING                                    ║
@@ -416,3 +419,20 @@ CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress (user_id)
 
 -- lesson_progress.progress — tracks lesson completion percentage (0-100)
 ALTER TABLE lesson_progress ADD COLUMN IF NOT EXISTS progress INT DEFAULT 0;
+
+-- -----------------------------------------------------------------------------
+-- PASSWORD RESETS (OTP / Reset Tokens)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS password_resets (
+    reset_id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email             VARCHAR(255) NOT NULL,
+    otp_code          VARCHAR(10) NOT NULL,
+    otp_expires_at    TIMESTAMPTZ NOT NULL,
+    reset_token       VARCHAR(255) DEFAULT NULL,
+    token_expires_at  TIMESTAMPTZ DEFAULT NULL,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_password_resets_email ON password_resets (email);
+CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets (reset_token);
+
