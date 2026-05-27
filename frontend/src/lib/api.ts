@@ -327,3 +327,30 @@ export const voiceLabApi = {
     uploadRequest<VoiceLabEvaluateResponse>("/api/voicelab/evaluate", formData),
 };
 
+// ─── Partner Matching ─────────────────────────────────────────
+export interface PartnerDto {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  isOnline: boolean;
+  lastSeen: string | null;
+  ageRange: string | null;
+  job: string | null;
+  specialties: string[] | null;
+  hasConversation: boolean;
+  conversationId: string | null;
+}
+
+export interface StartConversationResponse {
+  conversationId: string;
+  isNew: boolean;
+}
+
+export const partnerApi = {
+  getPartners: () =>
+    api.get<PartnerDto[]>("/api/partners"),
+
+  startConversation: (partnerId: string) =>
+    api.post<StartConversationResponse>(`/api/partners/${partnerId}/start-conversation`, {}),
+};

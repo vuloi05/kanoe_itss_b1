@@ -1,6 +1,6 @@
 "use client";
 
-import { type LocalMessage, formatMessageTime, isMeetLink } from "@/lib/chatUtils";
+import { type LocalMessage, formatMessageTime, isMeetLink, autoResizeTextarea } from "@/lib/chatUtils";
 import { type ConversationDto } from "@/lib/api";
 
 export interface ChatAreaProps {
@@ -27,6 +27,7 @@ export interface ChatAreaProps {
   setInputText: (text: string) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   handleSend: () => void;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 export default function ChatArea({
@@ -50,6 +51,7 @@ export default function ChatArea({
   setInputText,
   handleKeyDown,
   handleSend,
+  textareaRef,
 }: ChatAreaProps) {
   return (
     <section className="flex-1 flex flex-col bg-white relative overflow-hidden">
@@ -108,12 +110,15 @@ export default function ChatArea({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-bold text-primary text-base font-headline">
-                          {msg.lessonStatus === "ACCEPTED" ? t("Đã xác nhận", "確認済み") : t("Yêu cầu đã gửi", "リクエスト送信済み")}
+                          {t("Lesson Request", "レッスンリクエスト")}
                         </h4>
                         {statusBadge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadge.color}`}>{statusBadge.label}</span>}
                       </div>
                       <p className="text-xs text-secondary mb-3">
-                        {msg.lessonStatus === "ACCEPTED" ? t("Học viên đã xác nhận", "学習者が承認しました") : t("Chờ học viên xác nhận", "学習者の承認待ち")}
+                        {msg.lessonStatus === "ACCEPTED" ? t("Học viên đã xác nhận", "学習者が承認しました")
+                          : msg.lessonStatus === "DECLINED" ? t("Học viên đã từ chối", "学習者が辞退しました")
+                          : msg.lessonStatus === "CANCELLED" ? t("Đã hủy", "キャンセル済み")
+                          : t("Chờ học viên xác nhận", "学習者の承認待ち")}
                       </p>
                       <div className="space-y-1.5 mb-4">
                         <div className="flex items-center gap-2 text-xs text-on-surface-variant">
@@ -300,16 +305,20 @@ export default function ChatArea({
       <div className="px-8 py-6 bg-surface border-t border-outline-variant/10 shrink-0">
         <div className="relative flex items-center">
           <textarea
-            className="w-full bg-surface-container-low border-none rounded-full px-6 py-4 pr-14 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/60 resize-none overflow-hidden"
+            ref={textareaRef}
+            className="w-full bg-surface-container-low border-none rounded-2xl px-6 py-4 pr-14 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/60 resize-none overflow-hidden"
             placeholder={t(
               "Viết tin nhắn... / メッセージを入力...",
               "メッセージを入力... / Viết tin nhắn..."
             )}
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={(e) => {
+              setInputText(e.target.value);
+              autoResizeTextarea(e.target);
+            }}
             onKeyDown={handleKeyDown}
             rows={1}
-            style={{ height: '52px' }}
+            style={{ height: '52px', minHeight: '52px', maxHeight: '160px' }}
           />
           <div className="absolute right-3 flex items-center gap-2">
             <button

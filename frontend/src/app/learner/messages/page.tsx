@@ -8,6 +8,7 @@ import { usePresence } from "@/contexts/PresenceContext";
 import { useAuth } from "@/lib/auth";
 import { messageApi, bookingApi, type ConversationDto } from "@/lib/api";
 import { ensureConnected, getSignalRConnection } from "@/lib/signalr";
+import { useSearchParams } from "next/navigation";
 import {
   type LocalMessage,
   formatMessageTime,
@@ -16,6 +17,8 @@ import {
   useOfflineQueue,
   useLazyLoadMessages,
   isMeetLink,
+  autoResizeTextarea,
+  normalizeLessonStatus,
 } from "@/lib/chatUtils";
 
 export default function LearnerMessagesPage() {
@@ -28,6 +31,7 @@ export default function LearnerMessagesPage() {
   const { isUserOnline } = usePresence();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Booking state
   const [toast, setToast] = useState<{message:string; type:"success"|"error"|"warning"} | null>(null);
@@ -40,6 +44,8 @@ export default function LearnerMessagesPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const searchParams = useSearchParams();
+
   const { isOnline, enqueue } = useOfflineQueue(setMessages, setConversations);
 
   // Lazy load hook
@@ -50,8 +56,17 @@ export default function LearnerMessagesPage() {
   useEffect(() => {
     messageApi
       .getConversations()
-      .then((data) => setConversations(data))
+      .then((data) => {
+        setConversations(data);
+        // Auto-select conversation if redirected from matching page (spec §4.5)
+        const convParam = searchParams.get("conv");
+        if (convParam) {
+          const idx = data.findIndex((c: ConversationDto) => c.conversationId === convParam);
+          if (idx >= 0) setActiveConvIdx(idx);
+        }
+      })
       .catch(console.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activeConv = conversations[activeConvIdx];
@@ -67,7 +82,7 @@ export default function LearnerMessagesPage() {
     messageApi
       .getMessages(activeConv.conversationId, 1, 50)
       .then((data) => {
-        setMessages(data as LocalMessage[]);
+        setMessages((data as LocalMessage[]).map(m => m.lessonStatus ? { ...m, lessonStatus: normalizeLessonStatus(m.lessonStatus) } : m));
         if (activeConv.unreadCount > 0) {
           messageApi
             .markAsRead(activeConv.conversationId)
@@ -125,7 +140,8 @@ export default function LearnerMessagesPage() {
 
       conn.on("LessonCancelled", (data: { lesson_request_id: string; new_status: string }) => {
         if (!mounted) return;
-        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: data.new_status as LocalMessage["lessonStatus"] } : m));
+        const status = normalizeLessonStatus(data.new_status);
+        setMessages(prev => prev.map(m => m.lessonRequestId === data.lesson_request_id ? { ...m, lessonStatus: status } : m));
         showToast(t("Đối tác đã hủy buổi học.", "パートナーがレッスンをキャンセルしました。"), "warning");
       });
     };
@@ -155,6 +171,8 @@ export default function LearnerMessagesPage() {
 
     const txt = inputText.trim();
     setInputText("");
+    // Reset textarea height after send
+    if (textareaRef.current) textareaRef.current.style.height = '52px';
 
     // Optimistic: add bubble immediately
     const tempId = generateTempId();
@@ -420,6 +438,11 @@ export default function LearnerMessagesPage() {
                         <span className="text-[10px] text-outline shrink-0 ml-2">
                           {formatConversationTime(conv.lastMessageTime, t)}
                         </span>
+                        {conv.unreadCount > 0 && (
+                          <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center shrink-0 ml-1">
+                            {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
+                          </span>
+                        )}
                       </div>
                       <p
                         className={`text-xs mt-1 truncate ${
@@ -538,10 +561,32 @@ export default function LearnerMessagesPage() {
                               </button>
                             </div>
                           )}
+                          {!isPending && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                disabled
+                                className="py-2 text-xs font-bold text-white bg-primary/40 rounded-lg cursor-not-allowed opacity-50 flex items-center justify-center gap-1.5"
+                              >
+                                {t("Accept", "承認")}
+                              </button>
+                              <button
+                                disabled
+                                className="py-2 text-xs font-bold text-secondary/50 border border-outline-variant/10 rounded-lg cursor-not-allowed opacity-50"
+                              >
+                                {t("Decline", "辞退")}
+                              </button>
+                            </div>
+                          )}
                           {isAccepted && (
-                            <div className="flex items-center gap-2 text-emerald-600">
+                            <div className="flex items-center gap-2 text-emerald-600 mt-2">
                               <span className="material-symbols-outlined text-lg">check_circle</span>
                               <span className="text-xs font-bold">{t("Đã xác nhận", "承認済み")}</span>
+                            </div>
+                          )}
+                          {msg.lessonStatus === "DECLINED" && (
+                            <div className="flex items-center gap-2 text-red-500 mt-2">
+                              <span className="material-symbols-outlined text-lg">cancel</span>
+                              <span className="text-xs font-bold">{t("Đã từ chối", "辞退済み")}</span>
                             </div>
                           )}
                         </div>
@@ -673,16 +718,20 @@ export default function LearnerMessagesPage() {
           <div className="px-8 py-6 bg-surface border-t border-outline-variant/10 shrink-0">
             <div className="relative flex items-center">
               <textarea
-                className="w-full bg-surface-container-low border-none rounded-full px-6 py-4 pr-14 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/60 resize-none overflow-hidden"
+                ref={textareaRef}
+                className="w-full bg-surface-container-low border-none rounded-2xl px-6 py-4 pr-14 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/60 resize-none overflow-hidden"
                 placeholder={t(
                   "Viết tin nhắn... / メッセージを入力...",
                   "メッセージを入力... / Viết tin nhắn..."
                 )}
                 value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
+                onChange={(e) => {
+                  setInputText(e.target.value);
+                  autoResizeTextarea(e.target);
+                }}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                style={{ height: '52px' }}
+                style={{ height: '52px', minHeight: '52px', maxHeight: '160px' }}
               />
               <button
                 onClick={handleSend}
