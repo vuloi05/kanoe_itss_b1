@@ -71,11 +71,25 @@ public static class DatabaseSeeder
             }
         }
 
+        // ── Phase 2.1: Apply seed_data_part2.sql (V1 dialogues Ch4-8, voice lab, progress) ──
+        var seedPart2File = Path.Combine(sqlDir, "seed_data_part2.sql");
+        if (File.Exists(seedPart2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedPart2File, "seed_data_part2.sql");
+        }
+
         // ── Phase 2.5: Apply seed_data_v1_extra.sql (V1 extended lessons 4-7) ──
         var seedV1ExtraFile = Path.Combine(sqlDir, "seed_data_v1_extra.sql");
         if (File.Exists(seedV1ExtraFile))
         {
             await ApplyFileIfChangedAsync(context, logger, seedV1ExtraFile, "seed_data_v1_extra.sql");
+        }
+
+        // ── Phase 2.6: Apply seed_data_v1_extra_part2.sql (V1 extended L4-7, Ch5-8) ──
+        var seedV1ExtraPart2File = Path.Combine(sqlDir, "seed_data_v1_extra_part2.sql");
+        if (File.Exists(seedV1ExtraPart2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV1ExtraPart2File, "seed_data_v1_extra_part2.sql");
         }
 
         // ── Phase 3: Apply seed_data_v2.sql (V2 content — runs after V1) ──
