@@ -415,83 +415,213 @@ ON CONFLICT (note_id) DO UPDATE SET
 -- 6. LESSON DIALOGUES
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- UUID pattern: f1CCLLSS where CC=chapter, LL=lesson, SS=sort_order
+-- 8 dialogues per lesson (4 learner + 4 partner), alternating turns
 
 INSERT INTO lesson_dialogues (dialogue_id, lesson_id, speaker, speaker_jp, line_vi, line_jp, is_active, highlight_words_json, sort_order) VALUES
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 1: THANH ĐIỆU MIỀN BẮC
+    -- ══════════════════════════════════════════════════════════════════════
+
     -- ── Chapter 1, Lesson 1: Thanh sắc & Thanh huyền ──
     ('f1000000-0000-0000-0101-000000000001', 'd0000000-0000-0000-0100-000000000001',
      'GIÁO VIÊN', '先生',
-     'Chúng ta học thanh sắc trước. Đọc theo tôi: Cá má bé.',
-     'まず「thanh sắc（昇り声調）」を練習。私の後に：「Cá má bé」。',
+     'Hôm nay chúng ta bắt đầu với hai thanh cơ bản nhất: thanh sắc và thanh huyền. Em sẵn sàng chưa?',
+     '今日は最も基本的な2つの声調から始めます：thanh sắc（上昇調）とthanh huyền（下降調）。準備はいい？',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0102-000000000001', 'd0000000-0000-0000-0100-000000000001',
      'BẠN', 'あなた',
-     'Cá má bé.',
-     'カー、マー、ベー。',
-     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"}]', 2),
+     'Dạ, em sẵn sàng rồi ạ! Thanh sắc đọc như thế nào ạ?',
+     'はい、準備できました！thanh sắcはどう発音しますか？',
+     true, '[{"index":5,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"}]', 2),
 
     ('f1000000-0000-0000-0103-000000000001', 'd0000000-0000-0000-0100-000000000001',
      'GIÁO VIÊN', '先生',
-     'Tốt lắm! Bây giờ thanh huyền: Cà mà bè. Giọng xuống nhẹ nhé.',
-     'よかった！次は「thanh huyền」：「Cà mà bè」。優しく下げてね。',
+     'Thanh sắc giọng đi lên, mạnh và rõ ràng. Đọc theo tôi nhé: cá, má, bé, tớ.',
+     'thanh sắcは声が上がり、力強くはっきりしています。私の後に読んで：cá, má, bé, tớ。',
      false, NULL, 3),
+
+    ('f1000000-0000-0000-0104-000000000001', 'd0000000-0000-0000-0100-000000000001',
+     'BẠN', 'あなた',
+     'Cá, má, bé, tớ. Giọng lên cao phải không ạ?',
+     'カー、マー、ベー、トー。声を上げるんですよね？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"}]', 4),
+
+    ('f1000000-0000-0000-0105-000000000001', 'd0000000-0000-0000-0100-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Đúng rồi! Giờ đến thanh huyền — giọng đi xuống, nhẹ nhàng hơn: cà, mà, bè, tờ.',
+     'その通り！次はthanh huyền — 声が下がり、柔らかいです：cà, mà, bè, tờ。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0106-000000000001', 'd0000000-0000-0000-0100-000000000001',
+     'BẠN', 'あなた',
+     'Cà, mà, bè, tờ. Giọng xuống nhẹ, đúng không ạ?',
+     'カー、マー、ベー、トー。声を優しく下げるんですね？',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":1,"color":"var(--secondary)"},{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"}]', 6),
+
+    ('f1000000-0000-0000-0107-000000000001', 'd0000000-0000-0000-0100-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Rất tốt! Bây giờ so sánh nhé: "cá" là con cá, "cà" là quả cà. Thanh khác thì nghĩa khác hoàn toàn!',
+     'とても良い！比べて：「cá」は魚、「cà」はナス。声調が違えば意味が全く違います！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0108-000000000001', 'd0000000-0000-0000-0100-000000000001',
+     'BẠN', 'あなた',
+     'Cá là con cá, cà là quả cà. Em hiểu rồi ạ! Thanh điệu rất quan trọng!',
+     'cáは魚、càはナス。わかりました！声調はとても重要ですね！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":4,"color":"var(--secondary)"}]', 8),
 
     -- ── Chapter 1, Lesson 2: Thanh hỏi & Thanh ngã ──
     ('f1000000-0000-0000-0201-000000000001', 'd0000000-0000-0000-0100-000000000002',
      'GIÁO VIÊN', '先生',
-     'Bạn thử đọc: Ngỏ nhỏ và Ngõ nhỏ xem nào.',
-     '試しに読んでみて：「Ngỏ nhỏ」と「Ngõ nhỏ」。',
+     'Hôm nay ta học hai thanh khó nhất: thanh hỏi và thanh ngã. Người Nhật thường hay nhầm hai thanh này.',
+     '今日は最も難しい2つの声調を学びます：thanh hỏi と thanh ngã。日本人がよく混同する声調です。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0202-000000000001', 'd0000000-0000-0000-0100-000000000002',
      'BẠN', 'あなた',
-     'Ngỏ nhỏ... Ngõ nhỏ.',
-     'ンゴォ・ニョォ... ンゴォ・ニョォ。',
-     true, '[{"index":0,"color":"var(--secondary)"},{"index":2,"color":"var(--error)"}]', 2),
+     'Dạ, em nghe nói thanh hỏi giống như hỏi một câu hỏi, đúng không ạ?',
+     'はい、thanh hỏiは質問するような感じだと聞きましたが、合っていますか？',
+     true, '[{"index":5,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0203-000000000001', 'd0000000-0000-0000-0100-000000000002',
      'GIÁO VIÊN', '先生',
-     'Rất tốt! Thanh ngã cần bị gãy — hãy cảm nhận tiếng tắt.',
-     'よくできました！「ngã」は途中で切れます。声門閉鎖音を感じて。',
+     'Gần đúng! Thanh hỏi bắt đầu thấp, xuống rồi lên nhẹ. Đọc theo tôi: bể, ngỏ, để, mỉa.',
+     'ほぼ正解！thanh hỏiは低く始まり、下がってから少し上がります。読んで：bể, ngỏ, để, mỉa。',
      false, NULL, 3),
+
+    ('f1000000-0000-0000-0204-000000000001', 'd0000000-0000-0000-0100-000000000002',
+     'BẠN', 'あなた',
+     'Bể, ngỏ, để, mỉa. Giọng xuống rồi lên nhẹ, em cảm nhận được rồi!',
+     'ベー、ンゴォ、デー、ミア。下がってから少し上がる、感覚をつかめました！',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":1,"color":"var(--secondary)"},{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0205-000000000001', 'd0000000-0000-0000-0100-000000000002',
+     'GIÁO VIÊN', '先生',
+     'Tuyệt! Bây giờ thanh ngã — giọng bắt đầu cao rồi gãy giữa chừng. Nghe này: bẽ, ngõ, dễ, mãi.',
+     '素晴らしい！次はthanh ngã — 高く始まり途中で切れます。聞いて：bẽ, ngõ, dễ, mãi。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0206-000000000001', 'd0000000-0000-0000-0100-000000000002',
+     'BẠN', 'あなた',
+     'Bẽ, ngõ, dễ, mãi. Cái chỗ gãy ở giữa khó quá! Em cần luyện thêm.',
+     'ベー、ンゴー、ゼー、マーイ。途中の切れ目が難しい！もっと練習が必要です。',
+     true, '[{"index":0,"color":"var(--error)"},{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--error)"},{"index":3,"color":"var(--error)"}]', 6),
+
+    ('f1000000-0000-0000-0207-000000000001', 'd0000000-0000-0000-0100-000000000002',
+     'GIÁO VIÊN', '先生',
+     'Không sao! So sánh nhé: "ngỏ" là ngỏ lời, "ngõ" là con ngõ nhỏ. Nghe kỹ sự khác biệt nhé.',
+     '大丈夫！比べて：「ngỏ」は告白する、「ngõ」は路地。違いをよく聞いてね。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0208-000000000001', 'd0000000-0000-0000-0100-000000000002',
+     'BẠN', 'あなた',
+     'Ngỏ lời, con ngõ nhỏ. Thanh hỏi nhẹ nhàng, thanh ngã thì gãy mạnh. Em phân biệt được rồi ạ!',
+     '告白する、路地。thanh hỏiは優しく、thanh ngãは強く切れる。区別できるようになりました！',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":3,"color":"var(--error)"}]', 8),
 
     -- ── Chapter 1, Lesson 3: Thanh nặng & Thanh ngang ──
     ('f1000000-0000-0000-0301-000000000001', 'd0000000-0000-0000-0100-000000000003',
      'GIÁO VIÊN', '先生',
-     'Hôm nay ta học hai thanh cuối: thanh nặng và thanh ngang.',
-     '今日は残り2つの声調を学びます：thanh nặng と thanh ngang。',
+     'Hôm nay ta hoàn thiện hệ thống 6 thanh với hai thanh cuối cùng: thanh nặng và thanh ngang.',
+     '今日は残り2つの声調で6声調の体系を完成させます：thanh nặng と thanh ngang。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0302-000000000001', 'd0000000-0000-0000-0100-000000000003',
-     'GIÁO VIÊN', '先生',
-     'Thanh ngang thì đơn giản: giữ giọng bằng. Đọc: ma, ba, ca.',
-     'thanh ngang は簡単：平らに保ちます。読んで：ma, ba, ca。',
-     false, NULL, 2),
+     'BẠN', 'あなた',
+     'Dạ, thanh ngang là thanh không dấu, đúng không ạ?',
+     'はい、thanh ngangは声調記号なしのものですよね？',
+     true, '[{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"}]', 2),
 
     ('f1000000-0000-0000-0303-000000000001', 'd0000000-0000-0000-0100-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Đúng rồi! Thanh ngang giọng bằng phẳng, không lên không xuống. Đọc: ma, ba, ca, la.',
+     'その通り！thanh ngangは平坦で、上がりも下がりもしません。読んで：ma, ba, ca, la。',
+     false, NULL, 3),
+
+    ('f1000000-0000-0000-0304-000000000001', 'd0000000-0000-0000-0100-000000000003',
      'BẠN', 'あなた',
-     'Ma, ba, ca. Mạ, bạ, cạ.',
-     'マ、バ、カ。マッ、バッ、カッ。',
-     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--error)"},{"index":4,"color":"var(--error)"},{"index":5,"color":"var(--error)"}]', 3),
+     'Ma, ba, ca, la. Giữ giọng bằng phẳng thôi, không khó lắm!',
+     'マ、バ、カ、ラ。平坦に保つだけで、そんなに難しくないです！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"}]', 4),
+
+    ('f1000000-0000-0000-0305-000000000001', 'd0000000-0000-0000-0100-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Giờ đến thanh nặng — giọng rơi nhanh xuống thấp và tắt đột ngột. Nghe này: mạ, bạ, cạ, lạ.',
+     '次はthanh nặng — 声が急激に低く落ちて止まります。聞いて：mạ, bạ, cạ, lạ。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0306-000000000001', 'd0000000-0000-0000-0100-000000000003',
+     'BẠN', 'あなた',
+     'Mạ, bạ, cạ, lạ. Cảm giác giọng rơi xuống rồi dừng lại đột ngột!',
+     'マッ、バッ、カッ、ラッ。声が落ちて急に止まる感じですね！',
+     true, '[{"index":0,"color":"var(--error)"},{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--error)"},{"index":3,"color":"var(--error)"}]', 6),
+
+    ('f1000000-0000-0000-0307-000000000001', 'd0000000-0000-0000-0100-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Tuyệt vời! Bây giờ tổng kết cả 6 thanh bằng từ "ma" nhé: ma, má, mà, mả, mã, mạ.',
+     '素晴らしい！では「ma」で6つの声調を総復習：ma, má, mà, mả, mã, mạ。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0308-000000000001', 'd0000000-0000-0000-0100-000000000003',
+     'BẠN', 'あなた',
+     'Ma, má, mà, mả, mã, mạ. Sáu thanh hoàn chỉnh! Em tự tin hơn rồi ạ!',
+     'マ、マー、マー、マー、マー、マッ。6声調完成！自信がつきました！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"},{"index":4,"color":"var(--error)"},{"index":5,"color":"var(--error)"}]', 8),
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 2: GIAO TIẾP TẠI QUÁN ĂN
+    -- ══════════════════════════════════════════════════════════════════════
 
     -- ── Chapter 2, Lesson 1: Gọi món tại quán Bún Chả ──
     ('f1000000-0000-0000-0101-000000000002', 'd0000000-0000-0000-0200-000000000001',
      'BÁN HÀNG', '店員',
-     'Em ơi em dùng bún chả hay bún nem?',
-     'お姉さん、ブンチャーにしますか、それともブンネムにしますか？',
+     'Em ơi, em vào đây ngồi đi! Quán mình có bún chả và bún nem. Em dùng gì?',
+     'いらっしゃい、こちらに座って！うちはブンチャーとブンネムがありますよ。何にする？',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0102-000000000002', 'd0000000-0000-0000-0200-000000000001',
      'BẠN', 'あなた',
-     'Cho em một suất bún chả nhé.',
-     'ブンチャーを一つください。',
-     true, '[{"index":3,"color":"var(--secondary)"},{"index":5,"color":"var(--error)"}]', 2),
+     'Dạ, cho em một suất bún chả ạ. Bún chả Hà Nội ngon lắm phải không chị?',
+     'ブンチャーを一つください。ハノイのブンチャーはとても美味しいんですよね？',
+     true, '[{"index":4,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0103-000000000002', 'd0000000-0000-0000-0200-000000000001',
      'BÁN HÀNG', '店員',
-     'Có ngay! Đợi chị một chút.',
-     'すぐ行きます！ちょっと待ってね。',
+     'Ngon nhất Hà Nội luôn em! Em có ăn cay không? Chị cho thêm ớt nhé?',
+     'ハノイで一番美味しいよ！辛いの食べられる？唐辛子入れる？',
      false, NULL, 3),
+
+    ('f1000000-0000-0000-0104-000000000002', 'd0000000-0000-0000-0200-000000000001',
+     'BẠN', 'あなた',
+     'Dạ, em không ăn cay. Cho em ít gia vị thôi ạ.',
+     'いえ、辛いのは苦手です。調味料は少なめでお願いします。',
+     true, '[{"index":3,"color":"var(--error)"},{"index":4,"color":"var(--error)"},{"index":5,"color":"var(--error)"}]', 4),
+
+    ('f1000000-0000-0000-0105-000000000002', 'd0000000-0000-0000-0200-000000000001',
+     'BÁN HÀNG', '店員',
+     'Được rồi! Nước chấm để riêng hay chị chan luôn vào bát bún?',
+     'わかった！つけダレは別にする？それとも麺にかけちゃう？',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0106-000000000002', 'd0000000-0000-0000-0200-000000000001',
+     'BẠN', 'あなた',
+     'Dạ, để riêng cho em ạ. Em muốn tự chấm.',
+     'はい、別にしてください。自分でつけたいです。',
+     true, '[{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0107-000000000002', 'd0000000-0000-0000-0200-000000000001',
+     'BÁN HÀNG', '店員',
+     'Nào, bún chả đây em! Rau sống và giá đỗ ở rổ kia nhé, em lấy thoải mái.',
+     'はい、ブンチャーどうぞ！生野菜ともやしはあのザルにあるよ、好きなだけ取ってね。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0108-000000000002', 'd0000000-0000-0000-0200-000000000001',
+     'BẠN', 'あなた',
+     'Cảm ơn chị! Trông ngon quá! Em lấy thêm rau mùi và giá đỗ nhé.',
+     'ありがとうございます！とても美味しそう！パクチーともやしも取りますね。',
+     true, '[{"index":7,"color":"var(--secondary)"},{"index":8,"color":"var(--secondary)"},{"index":10,"color":"var(--secondary)"},{"index":11,"color":"var(--secondary)"}]', 8),
 
     -- ── Chapter 2, Lesson 2: Yêu cầu thanh toán ──
     ('f1000000-0000-0000-0201-000000000002', 'd0000000-0000-0000-0200-000000000002',
@@ -502,150 +632,402 @@ INSERT INTO lesson_dialogues (dialogue_id, lesson_id, speaker, speaker_jp, line_
 
     ('f1000000-0000-0000-0202-000000000002', 'd0000000-0000-0000-0200-000000000002',
      'BÁN HÀNG', '店員',
-     'Của em hết bảy mươi nghìn nhé.',
-     '全部で7万ドンですよ。',
+     'Của em hết bảy mươi nghìn nhé. Em trả tiền mặt hay chuyển khoản?',
+     '全部で7万ドンですよ。現金にする？それとも振込？',
      false, NULL, 2),
 
     ('f1000000-0000-0000-0203-000000000002', 'd0000000-0000-0000-0200-000000000002',
      'BẠN', 'あなた',
-     'Dạ, em trả bằng tiền mặt ạ. Cảm ơn chị!',
-     'はい、現金で払います。ありがとうございます！',
-     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"}]', 3),
+     'Dạ, quán có nhận MoMo không ạ?',
+     'すみません、MoMoは使えますか？',
+     true, '[{"index":4,"color":"var(--primary)"}]', 3),
+
+    ('f1000000-0000-0000-0204-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BÁN HÀNG', '店員',
+     'Có em! Chị quét mã cho em nhé. Hoặc em trả tiền mặt cũng được.',
+     'もちろん！QRコードをスキャンするね。現金でもいいよ。',
+     false, NULL, 4),
+
+    ('f1000000-0000-0000-0205-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BẠN', 'あなた',
+     'Dạ, em trả bằng tiền mặt ạ. Đây, em đưa một trăm nghìn.',
+     'はい、現金で払います。こちら、10万ドンです。',
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"}]', 5),
+
+    ('f1000000-0000-0000-0206-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BÁN HÀNG', '店員',
+     'Chị trả lại em ba mươi nghìn nhé. Đếm lại đi em.',
+     '3万ドンのお釣りね。数えてみて。',
+     false, NULL, 6),
+
+    ('f1000000-0000-0000-0207-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BẠN', 'あなた',
+     'Rồi ạ, đủ rồi. Cảm ơn chị nhiều!',
+     'はい、合っています。ありがとうございました！',
+     true, NULL, 7),
+
+    ('f1000000-0000-0000-0208-000000000002', 'd0000000-0000-0000-0200-000000000002',
+     'BÁN HÀNG', '店員',
+     'Không có gì! Lần sau ghé quán chị ăn tiếp nhé em!',
+     'どういたしまして！また来てね！',
+     false, NULL, 8),
 
     -- ── Chapter 2, Lesson 3: Khen ngon & Hỏi thêm ──
     ('f1000000-0000-0000-0301-000000000002', 'd0000000-0000-0000-0200-000000000003',
-     'BẠN', 'あなた',
-     'Ngon quá! Cho em thêm một bát nước chấm nhé.',
-     'とても美味しい！つけダレをもう一杯ください。',
-     true, '[{"index":0,"color":"var(--secondary)"},{"index":1,"color":"var(--secondary)"}]', 1),
+     'BÁN HÀNG', '店員',
+     'Em ăn có vừa miệng không? Nước chấm có vừa không?',
+     '味はちょうどいい？つけダレの味はどう？',
+     false, NULL, 1),
 
     ('f1000000-0000-0000-0302-000000000002', 'd0000000-0000-0000-0200-000000000003',
-     'BÁN HÀNG', '店員',
-     'Vâng, có ngay em nhé! Em dùng thêm rau sống không?',
-     'はい、すぐに！生野菜も追加しますか？',
-     false, NULL, 2),
+     'BẠN', 'あなた',
+     'Ngon lắm chị ơi! Bún chả ở đây ngon nhất mà em từng ăn!',
+     'すごく美味しいです！今まで食べた中で一番美味しいブンチャーです！',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":1,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0303-000000000002', 'd0000000-0000-0000-0200-000000000003',
-     'BẠN', 'あなた',
-     'Dạ, cho em thêm rau ạ. Cảm ơn chị!',
-     'はい、野菜も追加でお願いします。ありがとうございます！',
-     true, NULL, 3),
+     'BÁN HÀNG', '店員',
+     'Em dễ thương quá! Em có muốn gọi thêm gì không? Nem rán nhà chị cũng ngon lắm đấy!',
+     'かわいいね！他に何か頼む？うちの揚げ春巻きもすごく美味しいよ！',
+     false, NULL, 3),
 
-    -- ── Chapter 3, Lesson 1: Xin chào ──
+    ('f1000000-0000-0000-0304-000000000002', 'd0000000-0000-0000-0200-000000000003',
+     'BẠN', 'あなた',
+     'Dạ, cho em thêm một đĩa nem rán và một bát nước chấm nữa ạ.',
+     'じゃあ、揚げ春巻き一皿と、つけダレをもう一杯お願いします。',
+     true, '[{"index":6,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"},{"index":10,"color":"var(--primary)"},{"index":11,"color":"var(--primary)"}]', 4),
+
+    ('f1000000-0000-0000-0305-000000000002', 'd0000000-0000-0000-0200-000000000003',
+     'BÁN HÀNG', '店員',
+     'Được ngay! À, em thử thêm rau mùi vào nước chấm đi, dân Hà Nội ăn thế mới đúng điệu!',
+     'すぐ持ってくる！あ、つけダレにパクチーを入れてみて。ハノイっ子はそうやって食べるんだよ！',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0306-000000000002', 'd0000000-0000-0000-0200-000000000003',
+     'BẠN', 'あなた',
+     'Ồ hay quá! Em sẽ thử. Rau mùi thơm quá chị ạ!',
+     'おお、いいですね！試してみます。パクチーすごくいい香り！',
+     true, '[{"index":5,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"}]', 6),
+
+    ('f1000000-0000-0000-0307-000000000002', 'd0000000-0000-0000-0200-000000000003',
+     'BÁN HÀNG', '店員',
+     'Đúng rồi, ăn bún chả Hà Nội mà thiếu rau mùi thì mất hết mùi vị!',
+     'そうそう、ハノイのブンチャーはパクチーがないと台無しだよ！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0308-000000000002', 'd0000000-0000-0000-0200-000000000003',
+     'BẠN', 'あなた',
+     'Em sẽ nhớ! Lần sau em lại ghé quán chị. Cảm ơn chị nhiều ạ!',
+     '覚えました！次もまたお店に来ますね。ありがとうございました！',
+     true, NULL, 8),
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 3: CHÀO HỎI & XƯNG HÔ
+    -- ══════════════════════════════════════════════════════════════════════
+
+    -- ── Chapter 3, Lesson 1: Xin chào — Cách chào theo tuổi ──
     ('f1000000-0000-0000-0101-000000000003', 'd0000000-0000-0000-0300-000000000001',
      'GIÁO VIÊN', '先生',
-     'Gặp người lớn tuổi hơn, ta nói: Cháu chào bác ạ!',
-     '年上の人に会ったら：Cháu chào bác ạ！と言います。',
+     'Người Việt chào theo tuổi, không nói "xin chào" suốt đâu. Gặp người lớn tuổi thì nói thế nào?',
+     'ベトナム人は年齢に応じて挨拶を変えます。「xin chào」だけでは不十分。年上の人にはどう言う？',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0102-000000000003', 'd0000000-0000-0000-0300-000000000001',
      'BẠN', 'あなた',
-     'Cháu chào bác ạ!',
-     'おじさん/おばさん、こんにちは！',
-     true, '[{"index":0,"color":"var(--primary)"},{"index":2,"color":"var(--secondary)"}]', 2),
+     'Dạ, em chào bác ạ! Đúng không ạ?',
+     'おじさん/おばさん、こんにちは！合っていますか？',
+     true, '[{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0103-000000000003', 'd0000000-0000-0000-0300-000000000001',
-     'NGƯỜI LỚN', '年上の方',
-     'Ừ, chào cháu! Cháu khỏe không?',
-     'やあ、こんにちは！元気ですか？',
+     'GIÁO VIÊN', '先生',
+     'Rất đúng! Còn gặp bạn bè cùng tuổi thì sao? Đơn giản hơn nhiều.',
+     'とても正解！同い年の友達に会ったら？もっとシンプルだよ。',
      false, NULL, 3),
 
-    -- ── Chapter 3, Lesson 2: Xưng hô ──
+    ('f1000000-0000-0000-0104-000000000003', 'd0000000-0000-0000-0300-000000000001',
+     'BẠN', 'あなた',
+     'Chào bạn! Hoặc nói "Ê, khỏe không?" đúng không ạ?',
+     'チャオバン！または「エー、元気？」ですよね？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"}]', 4),
+
+    ('f1000000-0000-0000-0105-000000000003', 'd0000000-0000-0000-0300-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Chuẩn luôn! Bây giờ thử chào người lớn tuổi hơn mình một chút — gọi là "anh" hoặc "chị".',
+     'その通り！次は少しだけ年上の人に挨拶してみよう。「anh」か「chị」を使うよ。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0106-000000000003', 'd0000000-0000-0000-0300-000000000001',
+     'BẠN', 'あなた',
+     'Em chào anh ạ! Em chào chị ạ!',
+     'アイン（お兄さん）、こんにちは！チ（お姉さん）、こんにちは！',
+     true, '[{"index":2,"color":"var(--secondary)"},{"index":5,"color":"var(--secondary)"}]', 6),
+
+    ('f1000000-0000-0000-0107-000000000003', 'd0000000-0000-0000-0300-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Giỏi lắm! Nhớ nhé: "ạ" ở cuối câu thể hiện sự lễ phép. Người Hà Nội rất coi trọng điều này.',
+     'とても上手！覚えて：文末の「ạ」は丁寧さを表すよ。ハノイの人はこれをとても大切にしている。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0108-000000000003', 'd0000000-0000-0000-0300-000000000001',
+     'BẠN', 'あなた',
+     'Vâng, em hiểu rồi ạ! Chào theo tuổi và thêm "ạ" để tỏ ra lễ phép.',
+     'はい、わかりました！年齢に応じて挨拶して、「ạ」を付けて丁寧にする。',
+     true, '[{"index":8,"color":"var(--primary)"}]', 8),
+
+    -- ── Chapter 3, Lesson 2: Xưng hô: Anh, Chị, Em, Tôi ──
     ('f1000000-0000-0000-0201-000000000003', 'd0000000-0000-0000-0300-000000000002',
      'GIÁO VIÊN', '先生',
-     'Khi gặp người trẻ hơn: gọi là "em". Lớn hơn: gọi là "anh" hoặc "chị".',
-     '年下の人には「em」。年上の人には「anh」または「chị」を使います。',
+     'Tiếng Việt có rất nhiều đại từ xưng hô. Hôm nay ta học bốn từ cơ bản: anh, chị, em, tôi.',
+     'ベトナム語には多くの人称代名詞があります。今日は4つの基本を学びます：anh, chị, em, tôi。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0202-000000000003', 'd0000000-0000-0000-0300-000000000002',
      'BẠN', 'あなた',
-     'Chị ơi, chị có khỏe không ạ?',
-     'お姉さん、お元気ですか？',
-     true, '[{"index":0,"color":"var(--secondary)"},{"index":1,"color":"var(--secondary)"}]', 2),
+     'Dạ, "anh" nghĩa là gì ạ? Có phải là "anh trai" không?',
+     'はい、「anh」はどういう意味ですか？「お兄さん」のことですか？',
+     true, '[{"index":1,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0203-000000000003', 'd0000000-0000-0000-0300-000000000002',
-     'CHỊ', 'お姉さん',
-     'Chị khỏe, cảm ơn em!',
-     '元気よ、ありがとう！',
+     'GIÁO VIÊN', '先生',
+     'Đúng, nhưng không chỉ vậy. "Anh" dùng để gọi nam giới lớn tuổi hơn mình. Còn "chị" là nữ lớn tuổi hơn.',
+     'そうですが、それだけではありません。「anh」は年上の男性に、「chị」は年上の女性に使います。',
      false, NULL, 3),
+
+    ('f1000000-0000-0000-0204-000000000003', 'd0000000-0000-0000-0300-000000000002',
+     'BẠN', 'あなた',
+     'Vậy khi nào dùng "em" ạ? Em là người trẻ hơn phải không?',
+     'では「em」はいつ使いますか？年下の人ですよね？',
+     true, '[{"index":4,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0205-000000000003', 'd0000000-0000-0000-0300-000000000002',
+     'GIÁO VIÊN', '先生',
+     'Chính xác! "Em" vừa là tự xưng khi nói với người lớn hơn, vừa để gọi người trẻ hơn mình.',
+     '正解！「em」は年上と話す時の一人称にも、年下の人を呼ぶ時の二人称にもなります。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0206-000000000003', 'd0000000-0000-0000-0300-000000000002',
+     'BẠN', 'あなた',
+     'Chị ơi, chị có khỏe không ạ? Em nói thế đúng chưa?',
+     'お姉さん、お元気ですか？こう言えば合っていますか？',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":2,"color":"var(--secondary)"}]', 6),
+
+    ('f1000000-0000-0000-0207-000000000003', 'd0000000-0000-0000-0300-000000000002',
+     'GIÁO VIÊN', '先生',
+     'Chuẩn không cần chỉnh! Còn "tôi" thì dùng khi nào? Khi nói lịch sự, trang trọng, hoặc với người lạ.',
+     '完璧！「tôi」はいつ使う？丁寧で改まった場面、または知らない人と話す時です。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0208-000000000003', 'd0000000-0000-0000-0300-000000000002',
+     'BẠN', 'あなた',
+     'Em hiểu rồi ạ! Anh, chị cho người lớn hơn. Em cho người nhỏ hơn hoặc tự xưng. Tôi thì trang trọng.',
+     'わかりました！年上にはanh/chị、年下にはemまたは自分を指す。tôiは改まった場面で使う。',
+     true, '[{"index":3,"color":"var(--secondary)"},{"index":4,"color":"var(--secondary)"},{"index":8,"color":"var(--secondary)"},{"index":15,"color":"var(--primary)"}]', 8),
 
     -- ── Chapter 3, Lesson 3: Giới thiệu bản thân ──
     ('f1000000-0000-0000-0301-000000000003', 'd0000000-0000-0000-0300-000000000003',
      'GIÁO VIÊN', '先生',
-     'Hãy giới thiệu: Tên, người nước nào, làm nghề gì.',
-     '自己紹介しましょう：名前、国籍、職業。',
+     'Hãy tập giới thiệu bản thân nhé. Nói tên, quốc tịch và nghề nghiệp của em.',
+     '自己紹介の練習をしましょう。名前、国籍、職業を言ってみて。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0302-000000000003', 'd0000000-0000-0000-0300-000000000003',
      'BẠN', 'あなた',
-     'Xin chào, tôi tên là Yuki. Tôi là người Nhật. Tôi là kỹ sư.',
-     'こんにちは、ユキと申します。日本人です。エンジニアです。',
-     true, '[{"index":4,"color":"var(--primary)"},{"index":8,"color":"var(--secondary)"},{"index":12,"color":"var(--secondary)"}]', 2),
+     'Xin chào, tôi tên là Yuki. Tôi là người Nhật Bản.',
+     'こんにちは、私はユキです。日本人です。',
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"},{"index":9,"color":"var(--secondary)"},{"index":10,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0303-000000000003', 'd0000000-0000-0000-0300-000000000003',
      'NGƯỜI VIỆT', 'ベトナム人',
-     'Rất vui được gặp bạn, Yuki! Bạn sống ở Hà Nội lâu chưa?',
-     'ユキさん、はじめまして！ハノイには長く住んでいますか？',
+     'Ồ, chào bạn Yuki! Bạn làm nghề gì ở Hà Nội?',
+     'おお、ユキさん、こんにちは！ハノイでは何のお仕事を？',
      false, NULL, 3),
 
-    -- ── Chapter 4, Lesson 1: Hỏi giá ──
-    ('f1000000-0000-0000-0101-000000000004', 'd0000000-0000-0000-0400-000000000001',
+    ('f1000000-0000-0000-0304-000000000003', 'd0000000-0000-0000-0300-000000000003',
      'BẠN', 'あなた',
-     'Chị ơi, cái này bao nhiêu tiền ạ?',
-     'すみません、これはいくらですか？',
-     true, '[{"index":4,"color":"var(--secondary)"},{"index":5,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"}]', 1),
+     'Tôi là kỹ sư phần mềm. Tôi làm việc ở công ty Nhật tại Hà Nội.',
+     '私はソフトウェアエンジニアです。ハノイの日系企業で働いています。',
+     true, '[{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"},{"index":4,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0305-000000000003', 'd0000000-0000-0000-0300-000000000003',
+     'NGƯỜI VIỆT', 'ベトナム人',
+     'Hay quá! Bạn sống ở Hà Nội được bao lâu rồi?',
+     'すごい！ハノイにはどのくらい住んでいますか？',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0306-000000000003', 'd0000000-0000-0000-0300-000000000003',
+     'BẠN', 'あなた',
+     'Tôi sống ở Hà Nội được sáu tháng rồi. Tôi rất thích Hà Nội!',
+     'ハノイに住んで6ヶ月になります。ハノイがとても好きです！',
+     true, '[{"index":5,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0307-000000000003', 'd0000000-0000-0000-0300-000000000003',
+     'NGƯỜI VIỆT', 'ベトナム人',
+     'Rất vui được gặp bạn, Yuki! Bạn nói tiếng Việt giỏi lắm!',
+     'ユキさん、会えてうれしいです！ベトナム語がとても上手ですね！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0308-000000000003', 'd0000000-0000-0000-0300-000000000003',
+     'BẠN', 'あなた',
+     'Cảm ơn bạn! Tôi vẫn đang học. Rất vui được gặp bạn!',
+     'ありがとうございます！まだ勉強中です。お会いできて嬉しいです！',
+     true, '[{"index":5,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"}]', 8),
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 4: ĐI CHỢ & MUA SẮM
+    -- ══════════════════════════════════════════════════════════════════════
+
+    -- ── Chapter 4, Lesson 1: Hỏi giá — "Bao nhiêu tiền?" ──
+    ('f1000000-0000-0000-0101-000000000004', 'd0000000-0000-0000-0400-000000000001',
+     'BÁN HÀNG', '店員',
+     'Mời em, vào xem đi! Hôm nay có nhiều quả vải tươi lắm!',
+     'いらっしゃい、見てって！今日は新鮮なライチがたくさんあるよ！',
+     false, NULL, 1),
 
     ('f1000000-0000-0000-0102-000000000004', 'd0000000-0000-0000-0400-000000000001',
-     'BÁN HÀNG', '店員',
-     'Cái đó năm mươi nghìn em nhé.',
-     'それは5万ドンですよ。',
-     false, NULL, 2),
+     'BẠN', 'あなた',
+     'Chị ơi, quả vải này bao nhiêu tiền một cân ạ?',
+     'すみません、このライチは1キロいくらですか？',
+     true, '[{"index":4,"color":"var(--secondary)"},{"index":5,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0103-000000000004', 'd0000000-0000-0000-0400-000000000001',
-     'BẠN', 'あなた',
-     'Đắt quá! Bớt cho em được không ạ?',
-     '高い！少し安くしてもらえますか？',
-     true, NULL, 3),
+     'BÁN HÀNG', '店員',
+     'Vải thiều bốn mươi nghìn một cân em nhé. Ngon lắm, ngọt lịm luôn!',
+     'ライチは1キロ4万ドンだよ。すごく美味しい、甘くてたまらないよ！',
+     false, NULL, 3),
 
-    -- ── Chapter 4, Lesson 2: Trả giá ──
-    ('f1000000-0000-0000-0201-000000000004', 'd0000000-0000-0000-0400-000000000002',
+    ('f1000000-0000-0000-0104-000000000004', 'd0000000-0000-0000-0400-000000000001',
      'BẠN', 'あなた',
-     'Ba mươi nghìn được không chị?',
-     '3万ドンではだめですか？',
-     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"}]', 1),
+     'Đắt quá chị ơi! Bớt cho em một chút được không ạ?',
+     '高いです！少し安くしてもらえませんか？',
+     true, '[{"index":0,"color":"var(--error)"},{"index":1,"color":"var(--error)"}]', 4),
+
+    ('f1000000-0000-0000-0105-000000000004', 'd0000000-0000-0000-0400-000000000001',
+     'BÁN HÀNG', '店員',
+     'Em mua nhiều chị bớt cho. Mua hai cân chị tính bảy mươi thôi.',
+     'たくさん買うなら安くするよ。2キロなら7万でいいよ。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0106-000000000004', 'd0000000-0000-0000-0400-000000000001',
+     'BẠN', 'あなた',
+     'Vâng, cho em hai cân nhé chị. Bao nhiêu tiền tất cả ạ?',
+     'はい、2キロください。全部でいくらですか？',
+     true, '[{"index":6,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0107-000000000004', 'd0000000-0000-0000-0400-000000000001',
+     'BÁN HÀNG', '店員',
+     'Bảy mươi nghìn thôi em. Chị gói cho em nhé!',
+     '7万ドンだよ。包んであげるね！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0108-000000000004', 'd0000000-0000-0000-0400-000000000001',
+     'BẠN', 'あなた',
+     'Cảm ơn chị! Đây ạ, em đưa đúng bảy mươi nghìn.',
+     'ありがとうございます！はい、ちょうど7万ドンです。',
+     true, NULL, 8),
+
+    -- ── Chapter 4, Lesson 2: Trả giá lịch sự ──
+    ('f1000000-0000-0000-0201-000000000004', 'd0000000-0000-0000-0400-000000000002',
+     'BÁN HÀNG', '店員',
+     'Áo này đẹp lắm em ơi! Hai trăm nghìn thôi, rẻ nhất chợ Đồng Xuân rồi!',
+     'このシャツとてもきれいよ！20万ドンだけ、ドンスアン市場で一番安いよ！',
+     false, NULL, 1),
 
     ('f1000000-0000-0000-0202-000000000004', 'd0000000-0000-0000-0400-000000000002',
-     'BÁN HÀNG', '店員',
-     'Thôi bốn mươi đi, chị lỗ rồi đấy!',
-     'じゃあ4万で、赤字だよ！',
-     false, NULL, 2),
+     'BẠN', 'あなた',
+     'Hai trăm nghìn hả chị? Đắt quá! Một trăm hai mươi nghìn được không ạ?',
+     '20万ドンですか？高い！12万ドンでどうですか？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":6,"color":"var(--secondary)"},{"index":7,"color":"var(--secondary)"},{"index":8,"color":"var(--secondary)"},{"index":9,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0203-000000000004', 'd0000000-0000-0000-0400-000000000002',
-     'BẠN', 'あなた',
-     'Vâng, em lấy ạ. Cảm ơn chị!',
-     'はい、買います。ありがとうございます！',
-     true, NULL, 3),
+     'BÁN HÀNG', '店員',
+     'Trời ơi, một trăm hai thì chị lỗ vốn mất! Một trăm bảy đi, chị nhượng cho em.',
+     'えー、12万じゃ赤字だよ！17万なら譲ってあげる。',
+     false, NULL, 3),
 
-    -- ── Chapter 4, Lesson 3: Đếm số ──
+    ('f1000000-0000-0000-0204-000000000004', 'd0000000-0000-0000-0400-000000000002',
+     'BẠN', 'あなた',
+     'Một trăm năm mươi nghìn nhé chị. Em mua hai cái luôn!',
+     '15万ドンでどうですか。2枚買いますよ！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"}]', 4),
+
+    ('f1000000-0000-0000-0205-000000000004', 'd0000000-0000-0000-0400-000000000002',
+     'BÁN HÀNG', '店員',
+     'Mua hai cái hả? Thôi được, một trăm năm mươi một cái. Chị chiều em!',
+     '2枚買う？じゃあ仕方ない、1枚15万。あなたに合わせてあげる！',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0206-000000000004', 'd0000000-0000-0000-0400-000000000002',
+     'BẠN', 'あなた',
+     'Cảm ơn chị! Vậy em lấy hai cái nhé. Ba trăm nghìn tất cả phải không ạ?',
+     'ありがとう！じゃあ2枚ください。全部で30万ドンですよね？',
+     true, '[{"index":9,"color":"var(--primary)"},{"index":10,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0207-000000000004', 'd0000000-0000-0000-0400-000000000002',
+     'BÁN HÀNG', '店員',
+     'Đúng rồi! Em chọn màu nào? Có đỏ, xanh, trắng — màu nào cũng đẹp cả!',
+     'その通り！何色にする？赤、青、白 — どれもきれいだよ！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0208-000000000004', 'd0000000-0000-0000-0400-000000000002',
+     'BẠN', 'あなた',
+     'Em lấy một cái xanh và một cái trắng ạ. Cảm ơn chị, mua sắm ở đây vui quá!',
+     '青を1枚と白を1枚ください。ありがとう、ここで買い物するの楽しいです！',
+     true, '[{"index":4,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"}]', 8),
+
+    -- ── Chapter 4, Lesson 3: Đếm số & Đơn vị tiền Việt ──
     ('f1000000-0000-0000-0301-000000000004', 'd0000000-0000-0000-0400-000000000003',
      'GIÁO VIÊN', '先生',
-     'Đếm từ 1 đến 10: một, hai, ba, bốn, năm, sáu, bảy, tám, chín, mười.',
-     '1から10まで数えましょう：một, hai, ba, bốn, năm, sáu, bảy, tám, chín, mười。',
+     'Hôm nay ta học đếm số tiếng Việt. Bắt đầu từ 1 đến 10 nhé: một, hai, ba, bốn, năm, sáu, bảy, tám, chín, mười.',
+     '今日はベトナム語の数字を学びます。1から10まで：một, hai, ba, bốn, năm, sáu, bảy, tám, chín, mười。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0302-000000000004', 'd0000000-0000-0000-0400-000000000003',
      'BẠN', 'あなた',
      'Một, hai, ba, bốn, năm, sáu, bảy, tám, chín, mười.',
      'モット、ハイ、バー、ボン、ナム、サウ、バイ、タム、チン、ムオイ。',
-     true, NULL, 2),
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"}]', 2),
 
     ('f1000000-0000-0000-0303-000000000004', 'd0000000-0000-0000-0400-000000000003',
      'GIÁO VIÊN', '先生',
-     'Giỏi! Bây giờ: nghìn = 1.000, triệu = 1.000.000. "Hai trăm nghìn" là 200.000₫.',
-     '素晴らしい！次は：nghìn = 1,000、triệu = 1,000,000。"Hai trăm nghìn" は 200,000₫です。',
+     'Giỏi lắm! Bây giờ học đơn vị lớn hơn. "Mười" là 10, "trăm" là 100, "nghìn" là 1.000, "triệu" là 1.000.000.',
+     '上手！次は大きな単位を学びます。「mười」=10、「trăm」=100、「nghìn」=1,000、「triệu」=1,000,000。',
      false, NULL, 3),
 
-    -- ── Chapter 5, Lesson 1: Grab & Taxi ──
+    ('f1000000-0000-0000-0304-000000000004', 'd0000000-0000-0000-0400-000000000003',
+     'BẠN', 'あなた',
+     'Vậy hai mươi nghìn là 20.000 đồng, đúng không ạ?',
+     'では「hai mươi nghìn」は2万ドンですよね？',
+     true, '[{"index":1,"color":"var(--secondary)"},{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0305-000000000004', 'd0000000-0000-0000-0400-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Chính xác! Người Việt hay nói "hai chục" thay vì "hai mươi" — nghĩa giống nhau. Và "một trăm nghìn" là 100.000₫.',
+     '正解！ベトナム人は「hai mươi」の代わりに「hai chục」とも言います。そして「một trăm nghìn」は100,000₫。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0306-000000000004', 'd0000000-0000-0000-0400-000000000003',
+     'BẠN', 'あなた',
+     'Một trăm nghìn, hai trăm nghìn, năm trăm nghìn. Em đếm được rồi!',
+     '10万、20万、50万。数えられるようになりました！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0307-000000000004', 'd0000000-0000-0000-0400-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Xuất sắc! Mẹo nhỏ: khi đi chợ, người ta hay nói tắt "năm chục" thay vì "năm mươi nghìn". Nhớ nhé!',
+     '素晴らしい！コツ：市場では「năm mươi nghìn」の代わりに「năm chục」と省略して言うことが多いよ。覚えてね！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0308-000000000004', 'd0000000-0000-0000-0400-000000000003',
+     'BẠN', 'あなた',
+     'Năm chục là năm mươi nghìn. Em nhớ rồi ạ! Giờ em tự tin đi chợ hơn!',
+     '「năm chục」は5万ドン。覚えました！これで市場に行くのも自信が持てます！',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":1,"color":"var(--secondary)"}]', 8),
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 5: DI CHUYỂN & PHƯƠNG TIỆN
+    -- ══════════════════════════════════════════════════════════════════════
+
+    -- ── Chapter 5, Lesson 1: Gọi Grab & Taxi ──
     ('f1000000-0000-0000-0101-000000000005', 'd0000000-0000-0000-0500-000000000001',
      'BẠN', 'あなた',
      'Anh ơi, cho em đến Hồ Hoàn Kiếm ạ.',
@@ -654,143 +1036,455 @@ INSERT INTO lesson_dialogues (dialogue_id, lesson_id, speaker, speaker_jp, line_
 
     ('f1000000-0000-0000-0102-000000000005', 'd0000000-0000-0000-0500-000000000001',
      'TÀI XẾ', '運転手',
-     'Được em. Đường hơi tắc, đi khoảng 15 phút nhé.',
-     '了解。道が少し混んでいて、15分くらいかかりますよ。',
+     'Được em. Đường hơi tắc giờ này, đi khoảng 15 phút nhé.',
+     '了解。この時間は少し渋滞しているから、15分くらいかかるよ。',
      false, NULL, 2),
 
     ('f1000000-0000-0000-0103-000000000005', 'd0000000-0000-0000-0500-000000000001',
      'BẠN', 'あなた',
-     'Vâng, không sao ạ. Cảm ơn anh!',
-     'はい、大丈夫です。ありがとうございます！',
-     true, NULL, 3),
+     'Vâng, không sao ạ. Anh đi đường nào nhanh nhất ạ?',
+     'はい、大丈夫です。一番早い道はどの道ですか？',
+     true, '[{"index":5,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"}]', 3),
 
-    -- ── Chapter 5, Lesson 2: Hỏi đường ──
+    ('f1000000-0000-0000-0104-000000000005', 'd0000000-0000-0000-0500-000000000001',
+     'TÀI XẾ', '運転手',
+     'Anh đi qua đường Hai Bà Trưng rồi rẽ vào Hàng Bài nhé. Nhanh hơn đấy.',
+     'ハイバーチュン通りを通ってハンバイに曲がるよ。その方が早い。',
+     false, NULL, 4),
+
+    ('f1000000-0000-0000-0105-000000000005', 'd0000000-0000-0000-0500-000000000001',
+     'BẠN', 'あなた',
+     'Dạ, anh đi đường nào tiện thì em theo ạ. À, bao nhiêu tiền ạ?',
+     'はい、便利な道でお任せします。あの、いくらですか？',
+     true, '[{"index":10,"color":"var(--primary)"},{"index":11,"color":"var(--primary)"},{"index":12,"color":"var(--primary)"}]', 5),
+
+    ('f1000000-0000-0000-0106-000000000005', 'd0000000-0000-0000-0500-000000000001',
+     'TÀI XẾ', '運転手',
+     'Grab đã tính sẵn rồi em, ba mươi lăm nghìn trên ứng dụng.',
+     'Grabアプリですでに計算されているよ、3万5千ドン。',
+     false, NULL, 6),
+
+    ('f1000000-0000-0000-0107-000000000005', 'd0000000-0000-0000-0500-000000000001',
+     'BẠN', 'あなた',
+     'Dạ rồi ạ. Anh cho em xuống ở cổng phía Bắc Hồ Hoàn Kiếm nhé.',
+     'わかりました。ホアンキエム湖の北門で降ろしてください。',
+     true, '[{"index":5,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"}]', 7),
+
+    ('f1000000-0000-0000-0108-000000000005', 'd0000000-0000-0000-0500-000000000001',
+     'TÀI XẾ', '運転手',
+     'Đến rồi em! Cẩn thận xuống xe nhé. Chúc em vui!',
+     '着いたよ！気をつけて降りてね。楽しんでね！',
+     false, NULL, 8),
+
+    -- ── Chapter 5, Lesson 2: Hỏi đường — "Đi thế nào?" ──
     ('f1000000-0000-0000-0201-000000000005', 'd0000000-0000-0000-0500-000000000002',
      'BẠN', 'あなた',
      'Xin lỗi, cho em hỏi Bưu điện Hà Nội đi thế nào ạ?',
      'すみません、ハノイ中央郵便局はどう行けばいいですか？',
-     true, '[{"index":7,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"},{"index":9,"color":"var(--primary)"}]', 1),
+     true, '[{"index":6,"color":"var(--secondary)"},{"index":7,"color":"var(--secondary)"},{"index":8,"color":"var(--secondary)"}]', 1),
 
     ('f1000000-0000-0000-0202-000000000005', 'd0000000-0000-0000-0500-000000000002',
      'NGƯỜI ĐI ĐƯỜNG', '通行人',
-     'Đi thẳng đến ngã tư rồi rẽ trái, đi thêm 200 mét là tới.',
-     'まっすぐ交差点まで行って左折、200m先です。',
+     'Bưu điện Hà Nội hả em? Đi thẳng con đường này khoảng 200 mét nhé.',
+     'ハノイ中央郵便局？この道をまっすぐ200メートルくらい行ってね。',
      false, NULL, 2),
 
-    -- ── Chapter 5, Lesson 3: Xe buýt ──
+    ('f1000000-0000-0000-0203-000000000005', 'd0000000-0000-0000-0500-000000000002',
+     'BẠN', 'あなた',
+     'Dạ, đi thẳng 200 mét rồi sao ạ? Có cần rẽ ở đâu không?',
+     'はい、まっすぐ200メートル行ったら、その後は？どこかで曲がりますか？',
+     true, '[{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"},{"index":9,"color":"var(--secondary)"}]', 3),
+
+    ('f1000000-0000-0000-0204-000000000005', 'd0000000-0000-0000-0500-000000000002',
+     'NGƯỜI ĐI ĐƯỜNG', '通行人',
+     'Đến ngã tư thì rẽ trái, đi thêm 100 mét nữa, bưu điện ở bên tay phải.',
+     '交差点に着いたら左折して、あと100メートル行ったら右手に郵便局があるよ。',
+     false, NULL, 4),
+
+    ('f1000000-0000-0000-0205-000000000005', 'd0000000-0000-0000-0500-000000000002',
+     'BẠN', 'あなた',
+     'Đi thẳng, rẽ trái ở ngã tư, rồi 100 mét bên tay phải. Em hiểu rồi ạ!',
+     'まっすぐ、交差点で左折、100メートル先の右手。わかりました！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"},{"index":10,"color":"var(--secondary)"},{"index":11,"color":"var(--secondary)"}]', 5),
+
+    ('f1000000-0000-0000-0206-000000000005', 'd0000000-0000-0000-0500-000000000002',
+     'NGƯỜI ĐI ĐƯỜNG', '通行人',
+     'Đúng rồi! Tòa nhà màu vàng to lắm, không thể nhầm được đâu.',
+     'そうそう！黄色い大きな建物だから、見間違えないよ。',
+     false, NULL, 6),
+
+    ('f1000000-0000-0000-0207-000000000005', 'd0000000-0000-0000-0500-000000000002',
+     'BẠN', 'あなた',
+     'Dạ, tòa nhà màu vàng. Em cảm ơn anh nhiều ạ!',
+     'はい、黄色い建物ですね。ありがとうございました！',
+     true, NULL, 7),
+
+    ('f1000000-0000-0000-0208-000000000005', 'd0000000-0000-0000-0500-000000000002',
+     'NGƯỜI ĐI ĐƯỜNG', '通行人',
+     'Không có gì! Chúc em đi vui nhé!',
+     'どういたしまして！楽しんでね！',
+     false, NULL, 8),
+
+    -- ── Chapter 5, Lesson 3: Xe buýt & Tàu điện ──
     ('f1000000-0000-0000-0301-000000000005', 'd0000000-0000-0000-0500-000000000003',
      'BẠN', 'あなた',
      'Anh ơi, xe buýt số 32 có đi qua Cầu Giấy không ạ?',
      'すみません、32番バスはカウザイを通りますか？',
-     true, NULL, 1),
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"}]', 1),
 
     ('f1000000-0000-0000-0302-000000000005', 'd0000000-0000-0000-0500-000000000003',
      'HÀNH KHÁCH', '乗客',
-     'Có em! Xuống bến thứ 5 nhé.',
-     '通りますよ！5番目の停留所で降りてね。',
+     'Có em! Xe 32 đi qua Cầu Giấy luôn. Em xuống ở bến thứ 5 nhé.',
+     '通るよ！32番バスはカウザイを通る。5番目の停留所で降りてね。',
      false, NULL, 2),
 
     ('f1000000-0000-0000-0303-000000000005', 'd0000000-0000-0000-0500-000000000003',
      'BẠN', 'あなた',
-     'Dạ, cảm ơn anh nhiều ạ!',
-     'はい、どうもありがとうございます！',
-     true, NULL, 3),
+     'Dạ, vé xe buýt bao nhiêu tiền một lượt ạ?',
+     'はい、バスの運賃は片道いくらですか？',
+     true, '[{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"},{"index":4,"color":"var(--secondary)"},{"index":5,"color":"var(--secondary)"}]', 3),
 
-    -- ── Chapter 6, Lesson 1: Nguyên âm ──
+    ('f1000000-0000-0000-0304-000000000005', 'd0000000-0000-0000-0500-000000000003',
+     'HÀNH KHÁCH', '乗客',
+     'Bảy nghìn đồng thôi em, rẻ lắm. Em mua vé trên xe luôn nhé.',
+     '7千ドンだけだよ、安い。バスに乗ってからチケット買ってね。',
+     false, NULL, 4),
+
+    ('f1000000-0000-0000-0305-000000000005', 'd0000000-0000-0000-0500-000000000003',
+     'BẠN', 'あなた',
+     'Rẻ quá! Hà Nội có tuyến tàu điện trên cao không ạ?',
+     'すごく安い！ハノイにはモノレールはありますか？',
+     true, '[{"index":5,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"}]', 5),
+
+    ('f1000000-0000-0000-0306-000000000005', 'd0000000-0000-0000-0500-000000000003',
+     'HÀNH KHÁCH', '乗客',
+     'Có chứ! Tuyến Cát Linh - Hà Đông chạy rồi. Sạch sẽ, mát mẻ, rất tiện!',
+     'あるよ！カットリン - ハードン線がもう運行している。きれいで涼しくて便利だよ！',
+     false, NULL, 6),
+
+    ('f1000000-0000-0000-0307-000000000005', 'd0000000-0000-0000-0500-000000000003',
+     'BẠN', 'あなた',
+     'Hay quá! Em sẽ thử đi tàu điện Cát Linh - Hà Đông xem sao.',
+     'いいですね！カットリン - ハードン線に乗ってみます。',
+     true, '[{"index":5,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"},{"index":7,"color":"var(--secondary)"}]', 7),
+
+    ('f1000000-0000-0000-0308-000000000005', 'd0000000-0000-0000-0500-000000000003',
+     'HÀNH KHÁCH', '乗客',
+     'Em thử đi! Ga Cát Linh ở gần Hồ Đống Đa luôn. Dễ tìm lắm!',
+     '試してみて！カットリン駅はドンダー湖の近くだよ。見つけやすい！',
+     false, NULL, 8),
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 6: NGUYÊN ÂM & PHỤ ÂM ĐẶC BIỆT
+    -- ══════════════════════════════════════════════════════════════════════
+
+    -- ── Chapter 6, Lesson 1: Nguyên âm: ă, â, ê, ô, ơ, ư ──
     ('f1000000-0000-0000-0101-000000000006', 'd0000000-0000-0000-0600-000000000001',
      'GIÁO VIÊN', '先生',
-     'Đọc rõ sự khác biệt: cơm — côm, lưng — lung.',
-     '違いをはっきり読みましょう：cơm - côm, lưng - lung。',
+     'Tiếng Việt có 6 nguyên âm đặc biệt không có trong tiếng Nhật: ă, â, ê, ô, ơ, ư. Nghe kỹ nhé!',
+     'ベトナム語には日本語にない6つの特別な母音があります：ă, â, ê, ô, ơ, ư。よく聞いてね！',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0102-000000000006', 'd0000000-0000-0000-0600-000000000001',
      'BẠN', 'あなた',
-     'Cơm... côm. Lưng... lung.',
-     'コム...コム。ルン...ルン。',
-     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--secondary)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--secondary)"}]', 2),
+     'Dạ, cái nào khó nhất ạ? Em muốn luyện cái khó trước.',
+     'はい、どれが一番難しいですか？難しいのから練習したいです。',
+     true, NULL, 2),
 
-    -- ── Chapter 6, Lesson 2: Phụ âm đầu ──
+    ('f1000000-0000-0000-0103-000000000006', 'd0000000-0000-0000-0600-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Khó nhất là "ơ" và "ư". Đọc: cơm — côm. "Ơ" miệng mở rộng, "ô" miệng tròn nhỏ.',
+     '一番難しいのは「ơ」と「ư」。読んで：cơm - côm。「ơ」は口を広げ、「ô」は口を丸く小さく。',
+     false, NULL, 3),
+
+    ('f1000000-0000-0000-0104-000000000006', 'd0000000-0000-0000-0600-000000000001',
+     'BẠN', 'あなた',
+     'Cơm, côm. Cơm là gạo nấu chín, đúng không ạ?',
+     'コム、コム。cơmは炊いたご飯のことですよね？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0105-000000000006', 'd0000000-0000-0000-0600-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Đúng rồi! Bây giờ thử "ư": lưng — lung. "Ư" môi mím lại, lưỡi rút về sau.',
+     'その通り！次は「ư」：lưng - lung。「ư」は唇を引き、舌を後ろに引く。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0106-000000000006', 'd0000000-0000-0000-0600-000000000001',
+     'BẠN', 'あなた',
+     'Lưng, lung. Lưng là cái lưng của người, phải không ạ?',
+     'ルン、ルン。lưngは背中のことですよね？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--secondary)"}]', 6),
+
+    ('f1000000-0000-0000-0107-000000000006', 'd0000000-0000-0000-0600-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Chuẩn! Giờ thử thêm: "ă" rất ngắn — "ăn" (eat), "â" cũng ngắn — "ân" (grace). Đọc nhanh nhé!',
+     '正解！もう少し：「ă」はとても短い —「ăn」(食べる)、「â」も短い —「ân」(恩)。速く読んでみて！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0108-000000000006', 'd0000000-0000-0000-0600-000000000001',
+     'BẠN', 'あなた',
+     'Ăn, ân. Cơm, lưng. Em cảm nhận được sự khác biệt rồi ạ!',
+     'アン、アン。コム、ルン。違いが感じ取れるようになりました！',
+     true, '[{"index":0,"color":"var(--error)"},{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"}]', 8),
+
+    -- ── Chapter 6, Lesson 2: Phụ âm đầu: gi, d, r miền Bắc ──
     ('f1000000-0000-0000-0201-000000000006', 'd0000000-0000-0000-0600-000000000002',
      'GIÁO VIÊN', '先生',
-     'Ở miền Bắc: "gia", "da", "ra" đều đọc là /za/!',
-     '北部では「gia」「da」「ra」はすべて /za/ と発音されます！',
+     'Ở miền Bắc, ba phụ âm "gi", "d", và "r" đều đọc giống nhau: /z/! Đây là đặc điểm riêng của giọng Hà Nội.',
+     '北部では「gi」「d」「r」の3つの子音はすべて同じ /z/ と発音されます！これがハノイ方言の特徴です。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0202-000000000006', 'd0000000-0000-0000-0600-000000000002',
      'BẠN', 'あなた',
-     'Gia đình, da cam, ra ngoài — tất cả bắt đầu bằng /z/?',
-     'gia đình, da cam, ra ngoài — すべて /z/ で始まるんですか？',
-     true, NULL, 2),
+     'Vậy "gia đình", "da cam", "ra ngoài" — tất cả bắt đầu bằng /z/ ạ?',
+     'つまり「gia đình」「da cam」「ra ngoài」— すべて /z/ で始まるんですか？',
+     true, '[{"index":1,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"}]', 2),
 
     ('f1000000-0000-0000-0203-000000000006', 'd0000000-0000-0000-0600-000000000002',
      'GIÁO VIÊN', '先生',
-     'Đúng rồi! Đây là đặc điểm riêng của giọng Hà Nội.',
-     'そうです！これがハノイ方言の特徴です。',
+     'Chính xác! Khi viết thì khác nhau, nhưng khi nói giọng Hà Nội thì đều phát âm /z/.',
+     '正解！書き方は違いますが、ハノイの発音ではすべて /z/ です。',
      false, NULL, 3),
 
-    -- ── Chapter 6, Lesson 3: Vần cuối ──
+    ('f1000000-0000-0000-0204-000000000006', 'd0000000-0000-0000-0600-000000000002',
+     'BẠN', 'あなた',
+     'Gia đình, da cam, ra ngoài. Em thử đọc cả ba rồi. Giống nhau thật!',
+     'ザーディン、ザーカム、ザーンゴアイ。3つとも読んでみました。本当に同じ！',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":1,"color":"var(--secondary)"},{"index":2,"color":"var(--secondary)"},{"index":3,"color":"var(--secondary)"},{"index":4,"color":"var(--secondary)"},{"index":5,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0205-000000000006', 'd0000000-0000-0000-0600-000000000002',
+     'GIÁO VIÊN', '先生',
+     'Rất tốt! Bây giờ thử câu: "Gia đình tôi rất đoàn kết." Đọc chậm rõ nhé.',
+     'とても良い！では文を試して：「Gia đình tôi rất đoàn kết.」ゆっくりはっきり読んでね。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0206-000000000006', 'd0000000-0000-0000-0600-000000000002',
+     'BẠN', 'あなた',
+     'Gia đình tôi rất đoàn kết. "Gia" bắt đầu bằng /z/, phải không ạ?',
+     'ザーディン トイ ザット ドアン ケット。「gia」は /z/ で始まりますよね？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0207-000000000006', 'd0000000-0000-0000-0600-000000000002',
+     'GIÁO VIÊN', '先生',
+     'Hoàn hảo! Nhớ nhé: miền Nam đọc "r" là /ʐ/ cuộn lưỡi, nhưng miền Bắc thì luôn là /z/.',
+     '完璧！覚えて：南部では「r」を /ʐ/ と巻き舌で読むけど、北部はいつも /z/ だよ。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0208-000000000006', 'd0000000-0000-0000-0600-000000000002',
+     'BẠN', 'あなた',
+     'Em nhớ rồi ạ! Giọng Hà Nội: gi, d, r đều là /z/. Đây là đặc điểm rất quan trọng!',
+     '覚えました！ハノイ方言：gi, d, rはすべて /z/。これはとても重要な特徴ですね！',
+     true, '[{"index":5,"color":"var(--error)"},{"index":6,"color":"var(--error)"},{"index":7,"color":"var(--error)"},{"index":8,"color":"var(--error)"},{"index":10,"color":"var(--error)"}]', 8),
+
+    -- ── Chapter 6, Lesson 3: Vần cuối: -ng, -nh, -ch, -t ──
     ('f1000000-0000-0000-0301-000000000006', 'd0000000-0000-0000-0600-000000000003',
      'GIÁO VIÊN', '先生',
-     'Nghe kỹ: "anh" kết thúc bằng /ŋ/ mũi, "ách" kết thúc bằng /k/ tắt.',
-     'よく聞いて：「anh」は鼻音 /ŋ/ で、「ách」は破裂音 /k/ で終わります。',
+     'Phụ âm cuối trong tiếng Việt rất khác tiếng Nhật. Nghe kỹ: "anh" kết thúc bằng /ŋ/ mũi, "ách" kết thúc bằng /k/ tắt.',
+     'ベトナム語の末尾子音は日本語と大きく違います。よく聞いて：「anh」は鼻音 /ŋ/、「ách」は閉鎖音 /k/ で終わる。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0302-000000000006', 'd0000000-0000-0000-0600-000000000003',
      'BẠN', 'あなた',
-     'Anh... ách. Bạn... bát.',
-     'アイン...アック。バン...バット。',
-     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--error)"}]', 2),
+     'Anh, ách. Nghe khác nhau rồi ạ! Một cái kéo dài, một cái tắt ngắn.',
+     'アイン、アック。違いが聞こえました！一方は伸びて、もう一方は短く止まる。',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--error)"}]', 2),
 
-    -- ── Chapter 7, Lesson 1: Thời gian ──
+    ('f1000000-0000-0000-0303-000000000006', 'd0000000-0000-0000-0600-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Đúng rồi! Bây giờ thử cặp: "bạn" /n/ — "bát" /t/. "Bạn" kéo mũi, "bát" tắt nhanh ở đầu lưỡi.',
+     'その通り！次のペア：「bạn」/n/ —「bát」/t/。「bạn」は鼻に抜け、「bát」は舌先で急に止まる。',
+     false, NULL, 3),
+
+    ('f1000000-0000-0000-0304-000000000006', 'd0000000-0000-0000-0600-000000000003',
+     'BẠN', 'あなた',
+     'Bạn, bát. Bạn là friend, bát là cái bát ăn cơm, đúng không ạ?',
+     'バン、バット。bạnは友達、bátはご飯茶碗ですよね？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--error)"}]', 4),
+
+    ('f1000000-0000-0000-0305-000000000006', 'd0000000-0000-0000-0600-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Chính xác! Lưu ý: người miền Bắc nói "bát" chứ không nói "chén" như miền Nam nhé.',
+     '正解！注意：北部の人は「bát」と言い、南部のように「chén」とは言わないよ。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0306-000000000006', 'd0000000-0000-0000-0600-000000000003',
+     'BẠN', 'あなた',
+     'Dạ, em nhớ rồi! Bát, không phải chén. Giờ thử "nh" nhé: anh, ánh.',
+     'はい、覚えました！bát、chénではなく。次は「nh」：anh, ánh。',
+     true, '[{"index":5,"color":"var(--secondary)"}]', 6),
+
+    ('f1000000-0000-0000-0307-000000000006', 'd0000000-0000-0000-0600-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Rất tốt! "-nh" phát âm nhẹ, gần như biến mất ở cuối. "Anh" — /ajŋ/, "ánh" — /ajŋ/ nhưng thanh sắc.',
+     'とても良い！「-nh」は軽く、ほぼ消えるように発音。「anh」— /ajŋ/、「ánh」— /ajŋ/ だけど声調が上昇。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0308-000000000006', 'd0000000-0000-0000-0600-000000000003',
+     'BẠN', 'あなた',
+     'Anh, ánh. Bạn, bát. Em nghe rõ sự khác biệt giữa vần mũi và vần tắt rồi ạ!',
+     'アイン、アイン。バン、バット。鼻音末と閉鎖末の違いがはっきり聞き取れるようになりました！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--error)"}]', 8),
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 7: SINH HOẠT HÀNG NGÀY
+    -- ══════════════════════════════════════════════════════════════════════
+
+    -- ── Chapter 7, Lesson 1: Thời gian — Hôm nay, ngày mai ──
     ('f1000000-0000-0000-0101-000000000007', 'd0000000-0000-0000-0700-000000000001',
      'GIÁO VIÊN', '先生',
-     'Hôm nay là thứ mấy? — Hôm nay là thứ hai.',
-     '今日は何曜日？ — 今日は月曜日です。',
+     'Hôm nay là thứ mấy? Người Việt đếm thứ từ "hai" đến "bảy", còn Chủ nhật thì gọi riêng.',
+     '今日は何曜日？ベトナム人は曜日を「hai」(2)から「bảy」(7)まで数え、日曜日は特別な呼び方。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0102-000000000007', 'd0000000-0000-0000-0700-000000000001',
      'BẠN', 'あなた',
      'Hôm nay là thứ hai. Ngày mai là thứ ba.',
      '今日は月曜日です。明日は火曜日です。',
-     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":8,"color":"var(--secondary)"},{"index":9,"color":"var(--secondary)"}]', 2),
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":7,"color":"var(--secondary)"},{"index":8,"color":"var(--secondary)"}]', 2),
 
-    -- ── Chapter 7, Lesson 2: Thời tiết ──
+    ('f1000000-0000-0000-0103-000000000007', 'd0000000-0000-0000-0700-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Chuẩn! Bây giờ nói giờ nhé. "Bây giờ là mấy giờ?" — "Bây giờ là 8 giờ sáng."',
+     '正解！次は時間を言ってみよう。「今何時？」—「今朝8時です。」',
+     false, NULL, 3),
+
+    ('f1000000-0000-0000-0104-000000000007', 'd0000000-0000-0000-0700-000000000001',
+     'BẠN', 'あなた',
+     'Bây giờ là tám giờ sáng. Buổi chiều em có lớp lúc hai giờ.',
+     '今は朝8時です。午後2時に授業があります。',
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"},{"index":11,"color":"var(--secondary)"},{"index":12,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0105-000000000007', 'd0000000-0000-0000-0700-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Giỏi! "Sáng" là morning, "chiều" là afternoon, "tối" là evening. Bây giờ thử nói ngày tháng.',
+     '上手！「sáng」は朝、「chiều」は午後、「tối」は夜。次は日付を言ってみて。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0106-000000000007', 'd0000000-0000-0000-0700-000000000001',
+     'BẠN', 'あなた',
+     'Hôm nay là ngày mười lăm tháng năm. Em sinh ngày hai mươi tháng ba.',
+     '今日は5月15日です。私の誕生日は3月20日です。',
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0107-000000000007', 'd0000000-0000-0000-0700-000000000001',
+     'GIÁO VIÊN', '先生',
+     'Tuyệt vời! Nhớ nhé: tiếng Việt nói ngày trước, tháng sau. "Ngày 15 tháng 5" — ngược với tiếng Nhật!',
+     '素晴らしい！覚えて：ベトナム語は日を先に、月を後に言う。「ngày 15 tháng 5」— 日本語と逆だよ！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0108-000000000007', 'd0000000-0000-0000-0700-000000000001',
+     'BẠN', 'あなた',
+     'Ngày trước, tháng sau. Em nhớ rồi ạ! Khác với tiếng Nhật nhưng không khó lắm.',
+     '日が先、月が後。覚えました！日本語と違うけど、そんなに難しくないです。',
+     true, '[{"index":0,"color":"var(--secondary)"},{"index":2,"color":"var(--secondary)"}]', 8),
+
+    -- ── Chapter 7, Lesson 2: Thời tiết Hà Nội ──
     ('f1000000-0000-0000-0201-000000000007', 'd0000000-0000-0000-0700-000000000002',
      'ĐỒNG NGHIỆP', '同僚',
-     'Hôm nay trời nóng quá nhỉ!',
-     '今日はすごく暑いね！',
+     'Hôm nay trời nóng quá nhỉ! Hà Nội mùa hè nóng kinh khủng!',
+     '今日はすごく暑いね！ハノイの夏は恐ろしく暑い！',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0202-000000000007', 'd0000000-0000-0000-0700-000000000002',
      'BẠN', 'あなた',
-     'Ừ, nóng lắm! Nghe nói chiều nay sẽ có mưa.',
-     'うん、すごく暑い！午後は雨が降るらしいよ。',
-     true, '[{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--error)"},{"index":8,"color":"var(--secondary)"}]', 2),
+     'Ừ, nóng lắm! Nhiệt độ chắc 38 độ rồi. Em muốn uống trà đá quá!',
+     'うん、すごく暑い！気温はきっと38度。冷たいお茶が飲みたい！',
+     true, '[{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--error)"},{"index":11,"color":"var(--secondary)"},{"index":12,"color":"var(--secondary)"}]', 2),
 
-    -- ── Chapter 7, Lesson 3: Sở thích ──
+    ('f1000000-0000-0000-0203-000000000007', 'd0000000-0000-0000-0700-000000000002',
+     'ĐỒNG NGHIỆP', '同僚',
+     'Nghe nói chiều nay sẽ có mưa rào. Mưa Hà Nội thì đến nhanh, đi nhanh.',
+     '午後にはにわか雨が降るらしいよ。ハノイの雨は来るのも去るのも早い。',
+     false, NULL, 3),
+
+    ('f1000000-0000-0000-0204-000000000007', 'd0000000-0000-0000-0700-000000000002',
+     'BẠN', 'あなた',
+     'Mưa rào ạ? Em quên mang ô rồi! Mùa mưa Hà Nội kéo dài mấy tháng?',
+     'にわか雨？傘を持ってくるの忘れた！ハノイの雨季は何ヶ月続く？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":5,"color":"var(--secondary)"}]', 4),
+
+    ('f1000000-0000-0000-0205-000000000007', 'd0000000-0000-0000-0700-000000000002',
+     'ĐỒNG NGHIỆP', '同僚',
+     'Từ tháng 5 đến tháng 10 là mùa mưa. Còn mùa đông thì lạnh và ẩm, hay có mưa phùn.',
+     '5月から10月が雨季。冬は寒くて湿気が多く、霧雨がよく降るよ。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0206-000000000007', 'd0000000-0000-0000-0700-000000000002',
+     'BẠN', 'あなた',
+     'Mùa đông Hà Nội lạnh lắm hả? Ở Nhật em quen lạnh rồi nhưng lạnh ẩm thì khác.',
+     'ハノイの冬はすごく寒い？日本で寒さに慣れているけど、湿った寒さは違うよね。',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":3,"color":"var(--error)"}]', 6),
+
+    ('f1000000-0000-0000-0207-000000000007', 'd0000000-0000-0000-0700-000000000002',
+     'ĐỒNG NGHIỆP', '同僚',
+     'Đúng rồi! Lạnh ẩm Hà Nội thấm vào xương luôn. Nhớ mua áo phao và khăn quàng nhé!',
+     'そう！ハノイの湿った寒さは骨まで染みる。ダウンジャケットとマフラーを買ってね！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0208-000000000007', 'd0000000-0000-0000-0700-000000000002',
+     'BẠN', 'あなた',
+     'Em sẽ mua áo phao! Cảm ơn bạn đã nhắc nhé. Thời tiết Hà Nội thú vị quá!',
+     'ダウンジャケット買います！教えてくれてありがとう。ハノイの天気は面白い！',
+     true, '[{"index":3,"color":"var(--secondary)"},{"index":4,"color":"var(--secondary)"}]', 8),
+
+    -- ── Chapter 7, Lesson 3: Sở thích & Hoạt động cuối tuần ──
     ('f1000000-0000-0000-0301-000000000007', 'd0000000-0000-0000-0700-000000000003',
      'BẠN MỚI', '新しい友達',
-     'Cuối tuần bạn thường làm gì?',
-     '週末は普段何をしてる？',
+     'Cuối tuần bạn thường làm gì? Có đi chơi ở đâu không?',
+     '週末はいつも何してる？どこか遊びに行く？',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0302-000000000007', 'd0000000-0000-0000-0700-000000000003',
      'BẠN', 'あなた',
-     'Tôi thích đi cà phê và đọc sách. Còn bạn thì sao?',
-     'カフェに行ったり本を読んだりするのが好きです。あなたは？',
-     true, '[{"index":1,"color":"var(--secondary)"},{"index":4,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"}]', 2),
+     'Tôi thích đi cà phê và đọc sách. Hà Nội có nhiều quán cà phê đẹp lắm!',
+     'カフェに行ったり本を読んだりするのが好き。ハノイにはきれいなカフェがたくさん！',
+     true, '[{"index":2,"color":"var(--secondary)"},{"index":4,"color":"var(--secondary)"},{"index":6,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"}]', 2),
 
     ('f1000000-0000-0000-0303-000000000007', 'd0000000-0000-0000-0700-000000000003',
      'BẠN MỚI', '新しい友達',
-     'Tôi thích chạy bộ quanh Hồ Tây vào buổi sáng.',
-     '朝、ホータイ湖の周りをジョギングするのが好きです。',
+     'Ồ, bạn thích quán cà phê nào nhất? Tôi hay đi Cộng Cà Phê, không gian kiểu retro rất đẹp!',
+     'おお、一番好きなカフェは？私はコンカフェによく行く。レトロな雰囲気がすごくきれい！',
      false, NULL, 3),
 
-    -- ── Chapter 8, Lesson 1: Tôi không hiểu ──
+    ('f1000000-0000-0000-0304-000000000007', 'd0000000-0000-0000-0700-000000000003',
+     'BẠN', 'あなた',
+     'Tôi thích quán cà phê Giảng — cà phê trứng ở đó nổi tiếng lắm! Bạn đã uống thử chưa?',
+     'ジャンカフェが好き — エッグコーヒーが有名だよ！飲んだことある？',
+     true, '[{"index":5,"color":"var(--secondary)"},{"index":7,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"}]', 4),
+
+    ('f1000000-0000-0000-0305-000000000007', 'd0000000-0000-0000-0700-000000000003',
+     'BẠN MỚI', '新しい友達',
+     'Rồi, ngon lắm! Còn cuối tuần tôi cũng thích chạy bộ quanh Hồ Tây vào buổi sáng.',
+     '飲んだよ、美味しい！週末は朝ホータイ湖の周りをジョギングするのも好き。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0306-000000000007', 'd0000000-0000-0000-0700-000000000003',
+     'BẠN', 'あなた',
+     'Hay quá! Tôi cũng muốn thử chạy bộ ở Hồ Tây. Mấy giờ bạn thường đi?',
+     'いいね！私もホータイ湖でジョギングしてみたい。いつも何時に行く？',
+     true, '[{"index":6,"color":"var(--primary)"},{"index":7,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0307-000000000007', 'd0000000-0000-0000-0700-000000000003',
+     'BẠN MỚI', '新しい友達',
+     'Khoảng 6 giờ sáng. Cuối tuần này mình đi cùng nhau nhé! Chạy xong rồi ăn bún ốc luôn.',
+     '朝6時くらい。今週末一緒に行かない！走り終わったらカタツムリ麺も食べよう。',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0308-000000000007', 'd0000000-0000-0000-0700-000000000003',
+     'BẠN', 'あなた',
+     'Được luôn! Cuối tuần này mình hẹn 6 giờ sáng ở Hồ Tây nhé. Tôi rất mong!',
+     'いいね！今週末6時にホータイ湖で待ち合わせしよう。楽しみ！',
+     true, '[{"index":2,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"}]', 8),
+
+    -- ══════════════════════════════════════════════════════════════════════
+    -- CHAPTER 8: TÌNH HUỐNG KHẨN CẤP
+    -- ══════════════════════════════════════════════════════════════════════
+
+    -- ── Chapter 8, Lesson 1: "Tôi không hiểu" — Cầu cứu ngôn ngữ ──
     ('f1000000-0000-0000-0101-000000000008', 'd0000000-0000-0000-0800-000000000001',
      'NGƯỜI VIỆT', 'ベトナム人',
-     'Em ơi rẽ tay phải rồi đi thẳng qua cái ngã ba...',
-     '右に曲がってまっすぐ三差路を...',
+     'Em ơi rẽ tay phải rồi đi thẳng qua cái ngã ba, qua cầu vượt là tới.',
+     '右に曲がってまっすぐ行って三差路を越えて、高架橋を渡ったら着くよ。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0102-000000000008', 'd0000000-0000-0000-0800-000000000001',
@@ -800,48 +1494,139 @@ INSERT INTO lesson_dialogues (dialogue_id, lesson_id, speaker, speaker_jp, line_
      true, '[{"index":2,"color":"var(--error)"},{"index":3,"color":"var(--error)"},{"index":4,"color":"var(--error)"},{"index":7,"color":"var(--secondary)"},{"index":8,"color":"var(--secondary)"}]', 2),
 
     ('f1000000-0000-0000-0103-000000000008', 'd0000000-0000-0000-0800-000000000001',
-     'BẠN', 'あなた',
-     'Bạn có thể viết ra giấy cho tôi không?',
-     '紙に書いてもらえますか？',
-     true, NULL, 3),
+     'NGƯỜI VIỆT', 'ベトナム人',
+     'À, xin lỗi! Rẽ... phải... rồi... đi... thẳng. Được chưa?',
+     'あ、ごめんね！右に... 曲がって... まっすぐ... 行く。わかった？',
+     false, NULL, 3),
 
-    -- ── Chapter 8, Lesson 2: Bệnh viện ──
+    ('f1000000-0000-0000-0104-000000000008', 'd0000000-0000-0000-0800-000000000001',
+     'BẠN', 'あなた',
+     'Rẽ phải rồi đi thẳng. Tôi hiểu rồi! Cảm ơn bạn!',
+     '右に曲がってまっすぐ。わかりました！ありがとう！',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":1,"color":"var(--primary)"},{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"}]', 4),
+
+    ('f1000000-0000-0000-0105-000000000008', 'd0000000-0000-0000-0800-000000000001',
+     'NGƯỜI VIỆT', 'ベトナム人',
+     'Không có gì! Bạn nói tiếng Việt được rồi đấy! À, bạn có biết cái chỗ đó ở đâu không?',
+     'どういたしまして！ベトナム語話せるじゃない！あ、その場所どこにあるか知ってる？',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0106-000000000008', 'd0000000-0000-0000-0800-000000000001',
+     'BẠN', 'あなた',
+     'Bạn có thể viết ra giấy cho tôi không? Tôi đọc tiếng Việt dễ hơn nghe.',
+     '紙に書いてもらえますか？ベトナム語は聞くより読む方がわかりやすいです。',
+     true, '[{"index":3,"color":"var(--secondary)"},{"index":4,"color":"var(--secondary)"},{"index":5,"color":"var(--secondary)"}]', 6),
+
+    ('f1000000-0000-0000-0107-000000000008', 'd0000000-0000-0000-0800-000000000001',
+     'NGƯỜI VIỆT', 'ベトナム人',
+     'Được chứ! Đây, tôi viết cho bạn. "Rẽ phải, đi thẳng 200m, qua cầu vượt."',
+     'もちろん！はい、書くよ。「右折、まっすぐ200m、高架橋を越える。」',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0108-000000000008', 'd0000000-0000-0000-0800-000000000001',
+     'BẠN', 'あなた',
+     'Cảm ơn bạn rất nhiều! Bạn tốt quá! Tôi sẽ nhờ người viết ra khi không hiểu.',
+     'どうもありがとう！親切ですね！わからない時は書いてもらうようにします。',
+     true, '[{"index":7,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"}]', 8),
+
+    -- ── Chapter 8, Lesson 2: Tại bệnh viện & Nhà thuốc ──
     ('f1000000-0000-0000-0201-000000000008', 'd0000000-0000-0000-0800-000000000002',
      'BẠN', 'あなた',
-     'Tôi bị đau bụng. Cho tôi thuốc đau bụng.',
-     'お腹が痛いです。腹痛の薬をください。',
-     true, '[{"index":2,"color":"var(--error)"},{"index":3,"color":"var(--error)"},{"index":4,"color":"var(--error)"}]', 1),
+     'Xin lỗi, tôi bị ốm. Tôi bị đau bụng từ sáng nay.',
+     'すみません、体調が悪いです。今朝からお腹が痛いです。',
+     true, '[{"index":4,"color":"var(--error)"},{"index":7,"color":"var(--error)"},{"index":8,"color":"var(--error)"}]', 1),
 
     ('f1000000-0000-0000-0202-000000000008', 'd0000000-0000-0000-0800-000000000002',
      'DƯỢC SĨ', '薬剤師',
-     'Bạn bị từ khi nào? Ăn gì bị đau?',
-     'いつからですか？何を食べたら痛くなりましたか？',
+     'Bạn bị đau bụng hả? Bị từ khi nào? Tối qua ăn gì?',
+     'お腹が痛い？いつから？昨夜何を食べた？',
      false, NULL, 2),
 
     ('f1000000-0000-0000-0203-000000000008', 'd0000000-0000-0000-0800-000000000002',
      'BẠN', 'あなた',
-     'Từ sáng nay. Tôi ăn hải sản tối qua.',
-     '今朝からです。昨夜シーフードを食べました。',
-     true, NULL, 3),
+     'Từ sáng nay ạ. Tối qua tôi ăn hải sản ở ngoài.',
+     '今朝からです。昨夜外でシーフードを食べました。',
+     true, '[{"index":7,"color":"var(--primary)"},{"index":8,"color":"var(--primary)"}]', 3),
 
-    -- ── Chapter 8, Lesson 3: Gọi khẩn cấp ──
+    ('f1000000-0000-0000-0204-000000000008', 'd0000000-0000-0000-0800-000000000002',
+     'DƯỢC SĨ', '薬剤師',
+     'Chắc bị ngộ độc thực phẩm nhẹ rồi. Bạn có bị sốt hay buồn nôn không?',
+     '軽い食中毒かもしれません。熱や吐き気はありますか？',
+     false, NULL, 4),
+
+    ('f1000000-0000-0000-0205-000000000008', 'd0000000-0000-0000-0800-000000000002',
+     'BẠN', 'あなた',
+     'Tôi hơi buồn nôn nhưng không bị sốt. Cho tôi mua thuốc đau bụng ạ.',
+     '少し吐き気がありますが、熱はないです。腹痛の薬をください。',
+     true, '[{"index":2,"color":"var(--error)"},{"index":3,"color":"var(--error)"},{"index":11,"color":"var(--secondary)"},{"index":12,"color":"var(--secondary)"},{"index":13,"color":"var(--secondary)"}]', 5),
+
+    ('f1000000-0000-0000-0206-000000000008', 'd0000000-0000-0000-0800-000000000002',
+     'DƯỢC SĨ', '薬剤師',
+     'Đây, thuốc này uống ngày 3 lần, mỗi lần 1 viên, sau khi ăn nhé. Hết năm mươi nghìn.',
+     'はい、この薬は1日3回、毎回1錠、食後に飲んでね。5万ドンです。',
+     false, NULL, 6),
+
+    ('f1000000-0000-0000-0207-000000000008', 'd0000000-0000-0000-0800-000000000002',
+     'BẠN', 'あなた',
+     'Ngày 3 lần, sau khi ăn. Em hiểu rồi ạ. Nếu không đỡ thì em nên đi bệnh viện phải không?',
+     '1日3回、食後。わかりました。よくならなかったら病院に行くべきですか？',
+     true, '[{"index":0,"color":"var(--primary)"},{"index":2,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"}]', 7),
+
+    ('f1000000-0000-0000-0208-000000000008', 'd0000000-0000-0000-0800-000000000002',
+     'DƯỢC SĨ', '薬剤師',
+     'Đúng rồi! Nếu hai ngày không đỡ hoặc bị sốt cao thì đến bệnh viện ngay nhé. Chúc bạn mau khỏe!',
+     'その通り！2日経っても良くならないか高熱が出たらすぐ病院へ。お大事に！',
+     false, NULL, 8),
+
+    -- ── Chapter 8, Lesson 3: Gọi điện thoại khẩn cấp ──
     ('f1000000-0000-0000-0301-000000000008', 'd0000000-0000-0000-0800-000000000003',
      'GIÁO VIÊN', '先生',
-     'Nhớ số: 113 — Công an. 114 — Cứu hỏa. 115 — Cấp cứu.',
-     '番号を覚えて：113 — 警察。114 — 消防。115 — 救急。',
+     'Ở Việt Nam có 3 số khẩn cấp quan trọng: 113 — Công an, 114 — Cứu hỏa, 115 — Cấp cứu y tế.',
+     'ベトナムには3つの重要な緊急番号があります：113 — 警察、114 — 消防、115 — 救急医療。',
      false, NULL, 1),
 
     ('f1000000-0000-0000-0302-000000000008', 'd0000000-0000-0000-0800-000000000003',
      'BẠN', 'あなた',
-     'Xin hãy giúp tôi! Tôi đang ở đường Trần Hưng Đạo.',
-     '助けてください！トランフンダオ通りにいます。',
-     true, '[{"index":0,"color":"var(--error)"},{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--error)"},{"index":3,"color":"var(--error)"}]', 2),
+     '113 là Công an, 114 là Cứu hỏa, 115 là Cấp cứu. Em nhớ rồi ạ!',
+     '113は警察、114は消防、115は救急。覚えました！',
+     true, '[{"index":0,"color":"var(--error)"},{"index":3,"color":"var(--error)"},{"index":5,"color":"var(--error)"}]', 2),
 
     ('f1000000-0000-0000-0303-000000000008', 'd0000000-0000-0000-0800-000000000003',
+     'GIÁO VIÊN', '先生',
+     'Bây giờ thử gọi 115 nhé. Đầu tiên nói: "Xin hãy giúp tôi!" rồi cho biết địa chỉ.',
+     'では115に電話してみよう。まず「助けてください！」と言って、住所を伝えて。',
+     false, NULL, 3),
+
+    ('f1000000-0000-0000-0304-000000000008', 'd0000000-0000-0000-0800-000000000003',
+     'BẠN', 'あなた',
+     'Xin hãy giúp tôi! Có người bị ngất ở đường Trần Hưng Đạo, quận Hoàn Kiếm.',
+     '助けてください！トランフンダオ通り、ホアンキエム区で人が倒れています。',
+     true, '[{"index":0,"color":"var(--error)"},{"index":1,"color":"var(--error)"},{"index":2,"color":"var(--error)"},{"index":3,"color":"var(--error)"}]', 4),
+
+    ('f1000000-0000-0000-0305-000000000008', 'd0000000-0000-0000-0800-000000000003',
      'TỔNG ĐÀI', 'オペレーター',
-     'Được rồi, đội cứu hộ sẽ đến trong 10 phút.',
-     'わかりました。救助チームが10分以内に到着します。',
-     false, NULL, 3)
+     'Vâng, chúng tôi đã ghi nhận. Xe cấp cứu sẽ đến trong 10 phút. Bạn ở ngay đó đợi nhé.',
+     'はい、受け付けました。救急車が10分以内に到着します。そこで待っていてください。',
+     false, NULL, 5),
+
+    ('f1000000-0000-0000-0306-000000000008', 'd0000000-0000-0000-0800-000000000003',
+     'BẠN', 'あなた',
+     'Vâng, tôi ở đây đợi. Người bị ngất vẫn đang thở nhưng không tỉnh.',
+     'はい、ここで待ちます。倒れた人はまだ呼吸していますが、意識がありません。',
+     true, '[{"index":6,"color":"var(--secondary)"},{"index":9,"color":"var(--primary)"},{"index":11,"color":"var(--primary)"}]', 6),
+
+    ('f1000000-0000-0000-0307-000000000008', 'd0000000-0000-0000-0800-000000000003',
+     'TỔNG ĐÀI', 'オペレーター',
+     'Được rồi. Đừng di chuyển người bệnh. Đội cấp cứu sắp đến. Cảm ơn bạn đã gọi!',
+     'わかりました。患者を動かさないでください。救急チームがまもなく到着します。電話ありがとう！',
+     false, NULL, 7),
+
+    ('f1000000-0000-0000-0308-000000000008', 'd0000000-0000-0000-0800-000000000003',
+     'BẠN', 'あなた',
+     'Vâng, tôi không di chuyển người bệnh. Cảm ơn đội cấp cứu! Tôi sẽ đợi ở đây.',
+     'はい、患者を動かしません。救急チームに感謝です！ここで待ちます。',
+     true, '[{"index":3,"color":"var(--primary)"},{"index":4,"color":"var(--primary)"},{"index":5,"color":"var(--primary)"},{"index":6,"color":"var(--primary)"}]', 8)
+
 ON CONFLICT (dialogue_id) DO UPDATE SET
     lesson_id            = EXCLUDED.lesson_id,
     speaker              = EXCLUDED.speaker,

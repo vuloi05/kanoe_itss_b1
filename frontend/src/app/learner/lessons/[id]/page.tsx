@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
@@ -10,6 +10,11 @@ import { useAuth } from "@/lib/auth";
 // Hàm chuyển đổi audio chunks (webm/opus) → WAV (PCM, 16kHz, Mono)
 // để tối ưu cho FPT.AI ASR API — xem chi tiết lý do kỹ thuật trong audio-utils.ts
 import { exportToWav } from "@/lib/audio-utils";
+
+// Encouraging pass thresholds for Japanese learners studying Vietnamese pronunciation.
+// Completeness is strict (must read all words), but accuracy is lenient to avoid discouragement.
+const PASS_COMPLETENESS = 80;
+const PASS_ACCURACY = 60;
 
 // In-memory cache to avoid redundant API calls for the same text
 const ttsCache = new Map<string, string>();
@@ -155,24 +160,38 @@ function useTTSShadowing(text: string) {
 }
 
 // ─── Dialogue Line Component ───────────────────────────────────────────────────
-function DialogueLine({ dlg, isLast, lang, showSubtitle }: {
+function DialogueLine({ dlg, isLast, lang, showSubtitle, isSelected, isPassed, onSelect }: {
   dlg: DialogueDto;
   isLast: boolean;
   lang: string;
   showSubtitle: boolean;
+  isSelected: boolean;
+  isPassed: boolean;
+  onSelect: () => void;
 }) {
   const { words, activeWordIdx, isPlaying, isLoading, play, stop } = useTTSShadowing(dlg.lineVi);
   const highlightWords = parseHighlightWords(dlg.highlightWordsJson);
 
+  // Visual ring style: selected (actively recording for) vs passed vs default
+  const ringClass = isSelected
+    ? "ring-2 ring-primary ring-offset-4 ring-offset-background shadow-md"
+    : isPassed
+    ? "ring-2 ring-emerald-400/60 ring-offset-2 ring-offset-background"
+    : "";
+
   if (dlg.isActive) {
     return (
-      <div className="bg-surface-container-lowest rounded-xl p-6 ring-2 ring-primary ring-offset-4 ring-offset-background shadow-sm">
+      <div
+        className={`bg-surface-container-lowest rounded-xl p-6 cursor-pointer transition-all ${ringClass}`}
+        onClick={onSelect}
+      >
         <div className="flex justify-between items-start mb-2">
-          <span className="font-bold text-primary text-xs tracking-tighter">
+          <span className="font-bold text-primary text-xs tracking-tighter flex items-center gap-1.5">
+            {isPassed && <span className="material-symbols-outlined text-emerald-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
             {dlg.speaker} / {dlg.speakerJp} {lang === "ja" ? "（あなた）" : "(Active)"}
           </span>
           <button
-            onClick={isPlaying ? stop : play}
+            onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
             disabled={isLoading}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
               isLoading
@@ -231,16 +250,18 @@ function DialogueLine({ dlg, isLast, lang, showSubtitle }: {
 
   return (
     <div
-      className={`bg-surface-container-low rounded-xl p-6 ${
-        isLast ? "opacity-60" : "hover:bg-surface-container transition-all"
+      className={`bg-surface-container-low rounded-xl p-6 cursor-pointer transition-all ${ringClass} ${
+        isLast && !isSelected ? "opacity-60" : "hover:bg-surface-container"
       }`}
+      onClick={onSelect}
     >
       <div className="flex justify-between items-start mb-2">
-        <span className="font-bold text-primary text-xs tracking-tighter">
+        <span className="font-bold text-primary text-xs tracking-tighter flex items-center gap-1.5">
+          {isPassed && <span className="material-symbols-outlined text-emerald-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
           {dlg.speaker} / {dlg.speakerJp}
         </span>
         <button
-          onClick={isPlaying ? stop : play}
+          onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
           disabled={isLoading}
           className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
             isLoading
@@ -287,10 +308,28 @@ function DialogueLine({ dlg, isLast, lang, showSubtitle }: {
 //           → Gửi lên backend → FPT ASR chấm điểm phát âm
 // MediaRecorder ghi ở codec mặc định của trình duyệt (thường là webm/opus),
 // nên bắt buộc phải chuyển đổi sang WAV trước khi gửi API.
-function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string; subtitleJp: string; lang: string; expectedText: string }) {
+// Status key constants — stored in state instead of localized strings
+// so that language switches are reflected immediately without cascading effects
+type StatusKey = "ready" | "recording" | "playing" | "readyPlay" | "done" | "error" | "micUnavail" | "scoring" | "scored" | "converting" | "processingFile";
+
+const STATUS_LABELS: Record<StatusKey, Record<string, string>> = {
+  ready:          { vi: "Sẵn sàng thu âm",       ja: "録音準備完了" },
+  recording:      { vi: "Đang thu âm...",         ja: "録音中..." },
+  playing:        { vi: "Đang phát...",           ja: "再生中..." },
+  readyPlay:      { vi: "Sẵn sàng phát",          ja: "再生可能" },
+  done:           { vi: "Hoàn tất",               ja: "完了" },
+  error:          { vi: "Lỗi",                    ja: "エラー" },
+  micUnavail:     { vi: "Không thể truy cập mic", ja: "マイクが使用できません" },
+  scoring:        { vi: "AI đang chấm điểm...",   ja: "AI採点中..." },
+  scored:         { vi: "Đã chấm điểm xong",      ja: "採点完了" },
+  converting:     { vi: "Đang chuyển đổi WAV...",  ja: "WAV変換中..." },
+  processingFile: { vi: "Đang xử lý file...",      ja: "ファイル処理中..." },
+};
+
+function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { titleJp: string; subtitleJp: string; lang: string; expectedText: string; onPassed?: () => void }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
-  const [statusLabel, setStatusLabel] = useState("Ready to record");
+  const [statusKey, setStatusKey] = useState<StatusKey>("ready");
   const [elapsed, setElapsed] = useState(0);
   const [isPlayingRec, setIsPlayingRec] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -307,6 +346,9 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
   const recordedAudioUrlRef = useRef(recordedAudioUrl);
   useEffect(() => { recordedAudioUrlRef.current = recordedAudioUrl; }, [recordedAudioUrl]);
 
+  // Derive display label from key + lang each render — no effect needed
+  const statusLabel = STATUS_LABELS[statusKey]?.[lang] ?? STATUS_LABELS[statusKey]?.vi ?? "";
+
   useEffect(() => () => {
     if (recRef.current?.state !== "inactive") recRef.current?.stop();
     if (timerRef.current) clearInterval(timerRef.current);
@@ -318,9 +360,9 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
     if (!a || !recordedAudioUrl) return;
     const onMeta = () => setDuration(a.duration);
     const onTime = () => setCurTime(a.currentTime);
-    const onPlay = () => { setIsPlayingRec(true); setStatusLabel("Playing..."); };
-    const onPause = () => { setIsPlayingRec(false); setStatusLabel("Ready to play"); };
-    const onEnd = () => { setIsPlayingRec(false); setCurTime(0); setStatusLabel("Done"); };
+    const onPlay = () => { setIsPlayingRec(true); setStatusKey("playing"); };
+    const onPause = () => { setIsPlayingRec(false); setStatusKey("readyPlay"); };
+    const onEnd = () => { setIsPlayingRec(false); setCurTime(0); setStatusKey("done"); };
     a.addEventListener("loadedmetadata", onMeta);
     a.addEventListener("timeupdate", onTime);
     a.addEventListener("play", onPlay);
@@ -342,7 +384,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
     if (!expectedText.trim()) return;
     setIsEvaluating(true);
     setEvalError(null);
-    setStatusLabel(lang === "ja" ? "AI採点中..." : "AI đang chấm điểm...");
+    setStatusKey("scoring");
     try {
       const formData = new FormData();
       formData.append("AudioFile", blob, "recording.wav");
@@ -351,11 +393,20 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
 
       const result = await voiceLabApi.evaluate(formData);
       setScores(result);
-      setStatusLabel(lang === "ja" ? "採点完了" : "Đã chấm điểm xong");
+      setStatusKey("scored");
+
+      // Check pass condition and notify parent
+      if (
+        result.completeness >= PASS_COMPLETENESS &&
+        result.accuracy >= PASS_ACCURACY &&
+        onPassed
+      ) {
+        onPassed();
+      }
     } catch (err) {
       console.error("Voice Lab evaluation failed:", err);
       setEvalError(lang === "ja" ? "採点に失敗しました" : "Chấm điểm thất bại");
-      setStatusLabel("Error");
+      setStatusKey("error");
     } finally {
       setIsEvaluating(false);
     }
@@ -381,7 +432,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
 
         // Calculate actual duration before async conversion
         const durationSec = (Date.now() - startTimeRef.current) / 1000;
-        setStatusLabel(lang === "ja" ? "WAV変換中..." : "Đang chuyển đổi WAV...");
+        setStatusKey("converting");
 
         try {
           // Chuyển đổi webm/opus chunks → PCM 16kHz Mono WAV.
@@ -393,7 +444,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
           setRecordedAudioUrl(url);
           setIsPlayingRec(false);
           setCurTime(0);
-          setStatusLabel("Ready to play");
+          setStatusKey("readyPlay");
 
           // Auto-evaluate after stopping
           evaluateRecording(wavBlob, durationSec);
@@ -408,7 +459,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
           setRecordedAudioUrl(url);
           setIsPlayingRec(false);
           setCurTime(0);
-          setStatusLabel("Ready to play");
+          setStatusKey("readyPlay");
           evaluateRecording(fallbackBlob, durationSec);
         }
       };
@@ -418,8 +469,8 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
       setElapsed(0);
       timerRef.current = window.setInterval(() => setElapsed((v) => v + 1), 1000);
       setIsRecording(true);
-      setStatusLabel("Recording...");
-    } catch { setStatusLabel("Mic unavailable"); }
+      setStatusKey("recording");
+    } catch { setStatusKey("micUnavail"); }
   };
 
   const stopRec = () => {
@@ -435,7 +486,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
     setElapsed(0); setIsPlayingRec(false); setDuration(0); setCurTime(0);
     setScores(null); setEvalError(null);
     audioBlobRef.current = null;
-    setStatusLabel("Ready to record");
+    setStatusKey("ready");
   };
 
   const togglePlay = () => {
@@ -451,7 +502,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
     reset();
     setScores(null);
     setEvalError(null);
-    setStatusLabel(lang === "ja" ? "ファイル処理中..." : "Đang xử lý file...");
+    setStatusKey("processingFile");
 
     try {
       // 1. Decode audio using browser's AudioContext to get duration
@@ -461,7 +512,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
       const durationSec = decoded.duration;
       await tempCtx.close();
 
-      setStatusLabel(lang === "ja" ? "WAV変換中..." : "Đang chuyển đổi WAV...");
+      setStatusKey("converting");
 
       // 2. Convert raw file buffer using exportToWav
       const wavBlob = await exportToWav([file]);
@@ -476,7 +527,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
     } catch (err) {
       console.error("File processing failed:", err);
       setEvalError(lang === "ja" ? "ファイルの処理に失敗しました" : "Lỗi xử lý file âm thanh.");
-      setStatusLabel("Error");
+      setStatusKey("error");
     }
   };
 
@@ -484,13 +535,13 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
   const statusIcon = isEvaluating ? "hourglass_empty" : isRecording ? "fiber_manual_record" : isPlayingRec ? "pause_circle" : recordedAudioUrl ? "play_circle" : "mic_none";
 
   const L = {
-    voiceLab: lang === "ja" ? "ボイスラボ" : "Voice Lab",
-    shadowing: lang === "ja" ? "シャドーイング中" : "Shadowing Active",
+    voiceLab: lang === "ja" ? "ボイスラボ" : "Phòng luyện giọng",
+    shadowing: lang === "ja" ? "シャドーイング中" : "Đang luyện Shadowing",
     analyzing: lang === "ja" ? "ピッチ/音声分析..." : "Đang phân tích âm thanh...",
-    accuracy: lang === "ja" ? "精度" : "Accuracy",
-    fluency: lang === "ja" ? "流暢さ" : "Fluency",
-    complete: lang === "ja" ? "完成度" : "Completeness",
-    prosody: lang === "ja" ? "韻律" : "Prosody",
+    accuracy: lang === "ja" ? "精度" : "Độ chính xác",
+    fluency: lang === "ja" ? "流暢さ" : "Độ trôi chảy",
+    complete: lang === "ja" ? "完成度" : "Độ hoàn thiện",
+    prosody: lang === "ja" ? "韻律" : "Ngữ điệu",
     recognized: lang === "ja" ? "認識されたテキスト" : "Hệ thống nghe được",
   };
 
@@ -582,7 +633,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
               {isRecording ? `Rec: ${fmt(elapsed)}`
                 : recordedAudioUrl
                 ? isPlayingRec ? `${fmt(curTime)} / ${fmt(duration)}` : `${fmt(duration)}`
-                : "No recording yet"}
+                : lang === "ja" ? "未録音" : "Chưa thu âm"}
             </div>
           </div>
           <audio ref={audioRef} src={recordedAudioUrl ?? undefined} hidden />
@@ -611,6 +662,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText }: { titleJp: string
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function LessonDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const lessonId = Array.isArray(params?.id) ? params.id[0] : (params?.id ?? "");
   const { lang, t } = useLanguage();
   const [lesson, setLesson] = useState<LessonDetailDto | null>(null);
@@ -618,8 +670,56 @@ export default function LessonDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
   const [showSubtitle, setShowSubtitle] = useState(true);
-  const [isCompleting, setIsCompleting] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+
+  // Index of the dialogue currently focused for Voice Lab recording
+  const [activeDialogueIndex, setActiveDialogueIndex] = useState(0);
+
+  // Per-dialogue pass tracking (Set of dialogue indices that meet the pass condition)
+  const [passedDialogues, setPassedDialogues] = useState<Set<number>>(new Set());
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  // Guard to prevent duplicate auto-complete calls
+  const isAutoCompletingRef = useRef(false);
+
+  // Only count learner lines (isActive) for mastery progress —
+  // teacher/partner lines should not inflate the completion requirement
+  const totalLearnerLines = lesson?.dialogues.filter((d) => d.isActive).length ?? 0;
+  const passedCount = passedDialogues.size;
+  const masteryProgress = totalLearnerLines > 0 ? passedCount / totalLearnerLines : 0;
+
+  const showToast = useCallback((type: "success" | "error", message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  // Auto-complete lesson when all learner lines are passed
+  useEffect(() => {
+    if (
+      totalLearnerLines > 0 &&
+      passedCount === totalLearnerLines &&
+      isAuthenticated &&
+      !isAutoCompletingRef.current
+    ) {
+      isAutoCompletingRef.current = true;
+      lessonApi
+        .completeLesson(lessonId)
+        .then(() => {
+          showToast("success", t(
+            "Chúc mừng! Bạn đã hoàn thành bài học!",
+            "おめでとうございます！レッスンを完了しました！"
+          ));
+          // Brief delay so user sees the toast before navigating
+          setTimeout(() => router.push("/learner/lessons"), 2000);
+        })
+        .catch((err) => {
+          console.error("Auto-complete lesson failed:", err);
+          showToast("error", t(
+            "Lưu tiến độ thất bại, vui lòng thử lại.",
+            "進捗の保存に失敗しました。もう一度お試しください。"
+          ));
+          isAutoCompletingRef.current = false;
+        });
+    }
+  }, [passedCount, totalLearnerLines, isAuthenticated, lessonId, router, showToast, t]);
 
   useEffect(() => {
     if (!lessonId) return;
@@ -757,60 +857,110 @@ export default function LessonDetailPage() {
                 isLast={idx === lesson.dialogues.length - 1 && !dlg.isActive}
                 lang={lang}
                 showSubtitle={showSubtitle}
+                isSelected={idx === activeDialogueIndex}
+                isPassed={passedDialogues.has(idx)}
+                onSelect={() => setActiveDialogueIndex(idx)}
               />
             ))}
           </div>
 
-          {/* Complete lesson button */}
-          {isAuthenticated && (
-            <div className="mt-8">
-              {isCompleted ? (
-                <div className="flex items-center justify-center gap-3 bg-[#e8f5e9] text-[#2e7d32] p-5 rounded-2xl">
-                  <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: '"FILL" 1' }}>check_circle</span>
-                  <span className="font-headline font-bold text-lg">
-                    {t("Đã hoàn thành bài học!", "レッスン完了！")}
+
+        </div>
+
+        {/* ── Right Column (Sticky Voice Lab) ── */}
+        <div className="lg:col-span-5">
+          <div className="lg:sticky lg:top-24 space-y-6">
+            {/* Single Voice Lab — driven by activeDialogueIndex */}
+            {(() => {
+              const activeDlg = lesson.dialogues[activeDialogueIndex];
+              if (!activeDlg) return null;
+              return (
+                <VoiceLab
+                  key={activeDialogueIndex}
+                  titleJp={lesson.titleJp}
+                  subtitleJp={`${activeDlg.speaker}: ${activeDlg.lineVi}`}
+                  lang={lang}
+                  expectedText={activeDlg.lineVi}
+                  onPassed={() => {
+                    // Only credit learner lines — teacher/partner lines
+                    // can be practiced for fun but don't count toward mastery
+                    if (!activeDlg.isActive) return;
+                    setPassedDialogues((prev) => {
+                      if (prev.has(activeDialogueIndex)) return prev;
+                      const next = new Set(prev);
+                      next.add(activeDialogueIndex);
+                      return next;
+                    });
+                  }}
+                />
+              );
+            })()}
+
+            {/* Mastery Progress — Lotus Progress Tracker (SRS design) */}
+            <div className="bg-surface-container-low p-8 rounded-[2rem] flex flex-col items-center">
+              <h4 className="font-label text-xs font-bold text-primary mb-6 tracking-widest uppercase">
+                {t("Tiến độ luyện tập", "習得状況")}
+              </h4>
+              <div className="relative w-24 h-24 flex items-center justify-center">
+                {/* Decorative lotus petal background */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 100, transform: "rotate(45deg)" }}>filter_vintage</span>
+                </div>
+                {/* Center text */}
+                <div className="z-10 text-center">
+                  <span className="text-xl font-headline font-extrabold text-primary">
+                    {passedCount}/{totalLearnerLines}
+                  </span>
+                  <span className="block text-[8px] font-bold text-secondary uppercase">
+                    {t("Câu", "フレーズ")}
                   </span>
                 </div>
-              ) : (
-                <button
-                  onClick={async () => {
-                    setIsCompleting(true);
-                    try {
-                      await lessonApi.completeLesson(lessonId);
-                      setIsCompleted(true);
-                    } catch (err) {
-                      console.error("Failed to complete lesson:", err);
-                    } finally {
-                      setIsCompleting(false);
-                    }
-                  }}
-                  disabled={isCompleting}
-                  className="w-full group bg-primary text-on-primary py-4 rounded-2xl font-headline font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                >
-                  {isCompleting ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
-                      {t("Đang lưu...", "保存中...")}
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-xl">task_alt</span>
-                      {t("Hoàn thành bài học", "レッスンを完了する")}
-                      <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                    </>
-                  )}
-                </button>
-              )}
+                {/* Circular progress ring — circumference = 2π × 44 ≈ 276 */}
+                <svg className="absolute inset-0 w-full h-full -rotate-90">
+                  <circle
+                    className="text-primary-container/10"
+                    cx="48" cy="48" r="44"
+                    fill="transparent" stroke="currentColor" strokeWidth="4"
+                  />
+                  <circle
+                    cx="48" cy="48" r="44"
+                    fill="transparent" strokeWidth="4"
+                    stroke={masteryProgress === 1 ? "#4caf50" : "var(--primary)"}
+                    strokeDasharray="276"
+                    strokeDashoffset={276 - 276 * masteryProgress}
+                    strokeLinecap="round"
+                    className="transition-all duration-700 ease-out"
+                  />
+                </svg>
+              </div>
+              <p className="text-[10px] text-on-surface-variant mt-4 text-center">
+                {masteryProgress === 1
+                  ? t("🎉 Tất cả câu đã đạt!", "🎉 全文合格！")
+                  : t(
+                      `Chính xác ≥ ${PASS_ACCURACY}% & Hoàn thiện ≥ ${PASS_COMPLETENESS}%`,
+                      `合格: 精度 ≥ ${PASS_ACCURACY}% & 完成度 ≥ ${PASS_COMPLETENESS}%`
+                    )}
+              </p>
             </div>
-          )}
 
-
+          </div>
         </div>
 
-        {/* ── Right Column ── */}
-        <div className="lg:col-span-5">
-          <VoiceLab titleJp={lesson.titleJp} subtitleJp={lesson.subtitleJp} lang={lang} expectedText={lesson.dialogues.find(d => d.isActive)?.lineVi ?? lesson.dialogues[0]?.lineVi ?? ""} />
-        </div>
+        {/* Toast Notification */}
+        {toast && (
+          <div
+            className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold animate-[slideUp_0.3s_ease-out] ${
+              toast.type === "success"
+                ? "bg-emerald-500 text-white"
+                : "bg-red-500 text-white"
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">
+              {toast.type === "success" ? "check_circle" : "error"}
+            </span>
+            {toast.message}
+          </div>
+        )}
         </div>
       </main>
       <LearnerBottomNav />
