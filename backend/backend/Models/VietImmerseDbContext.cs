@@ -64,6 +64,8 @@ public partial class VietImmerseDbContext : DbContext
 
     public virtual DbSet<VoiceLabRecord> VoiceLabRecords { get; set; }
 
+    public virtual DbSet<PasswordReset> PasswordResets { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -403,6 +405,14 @@ public partial class VietImmerseDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.VoiceLabRecords)
                 .HasConstraintName("voice_lab_records_user_id_fkey");
+        });
+
+        modelBuilder.Entity<PasswordReset>(entity =>
+        {
+            entity.HasKey(e => e.ResetId).HasName("password_resets_pkey");
+
+            entity.Property(e => e.ResetId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
         });
 
         OnModelCreatingPartial(modelBuilder);

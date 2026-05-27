@@ -75,6 +75,7 @@ builder.Services.AddScoped<ITtsService, FptTtsService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IAsrService, OpenAiWhisperService>();
 builder.Services.AddSingleton<IVoiceScoringService, VoiceScoringService>();
+builder.Services.AddHostedService<OtpCleanupBackgroundService>();
 
 // SignalR (Realtime Messaging — replaces Supabase Realtime)
 builder.Services.AddSignalR();

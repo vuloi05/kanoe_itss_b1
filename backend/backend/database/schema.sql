@@ -371,3 +371,20 @@ CREATE TABLE IF NOT EXISTS voice_lab_records (
     CONSTRAINT voice_lab_records_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 CREATE INDEX IF NOT EXISTS idx_voice_lab_records_user ON voice_lab_records (user_id);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- PASSWORD RESETS (OTP / Reset Tokens)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS password_resets (
+    reset_id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email             VARCHAR(255) NOT NULL,
+    otp_code          VARCHAR(10) NOT NULL,
+    otp_expires_at    TIMESTAMPTZ NOT NULL,
+    reset_token       VARCHAR(255) DEFAULT NULL,
+    token_expires_at  TIMESTAMPTZ DEFAULT NULL,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_password_resets_email ON password_resets (email);
+CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets (reset_token);
+
