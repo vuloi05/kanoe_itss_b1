@@ -65,7 +65,7 @@ public class AuthController : ControllerBase
         try
         {
             await _authService.ForgotPasswordAsync(request);
-            return Ok(new { message = "Đã gửi email kèm mật khẩu tạm thời." });
+            return Ok(new { message = "Đã gửi mã OTP qua email." });
         }
         catch (KeyNotFoundException ex)
         {
@@ -77,11 +77,40 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+    {
+        try
+        {
+            var resetToken = await _authService.VerifyOtpAsync(request);
+            return Ok(new { resetToken });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
-        await _authService.ResetPasswordAsync(request);
-        return Ok(new { message = "Mật khẩu đã được cập nhật thành công." });
+        try
+        {
+            await _authService.ResetPasswordAsync(request);
+            return Ok(new { message = "Mật khẩu đã được cập nhật thành công." });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [Authorize]
@@ -95,6 +124,10 @@ public class AuthController : ControllerBase
             return Ok(new { message = "Đổi mật khẩu thành công." });
         }
         catch (UnauthorizedAccessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
