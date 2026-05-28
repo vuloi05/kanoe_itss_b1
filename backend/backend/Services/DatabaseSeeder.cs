@@ -113,11 +113,25 @@ public static class DatabaseSeeder
             await ApplyFileIfChangedAsync(context, logger, seedV3File, "seed_data_v3.sql");
         }
 
+        // ── Phase 4.1: Apply seed_data_v3_part2.sql (V3 dialogues Ch20-24) ──
+        var seedV3Part2File = Path.Combine(sqlDir, "seed_data_v3_part2.sql");
+        if (File.Exists(seedV3Part2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV3Part2File, "seed_data_v3_part2.sql");
+        }
+
         // ── Phase 4.5: Apply seed_data_v3_extra.sql (V3 extended lessons 4-7) ──
         var seedV3ExtraFile = Path.Combine(sqlDir, "seed_data_v3_extra.sql");
         if (File.Exists(seedV3ExtraFile))
         {
             await ApplyFileIfChangedAsync(context, logger, seedV3ExtraFile, "seed_data_v3_extra.sql");
+        }
+
+        // ── Phase 4.6: Apply seed_data_v3_extra_part2.sql (V3 extra dialogues Ch21-24) ──
+        var seedV3ExtraPart2File = Path.Combine(sqlDir, "seed_data_v3_extra_part2.sql");
+        if (File.Exists(seedV3ExtraPart2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV3ExtraPart2File, "seed_data_v3_extra_part2.sql");
         }
     }
 
