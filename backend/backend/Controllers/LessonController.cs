@@ -1,6 +1,8 @@
 using backend.DTOs.Lesson;
 using backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace backend.Controllers;
 
@@ -17,13 +19,23 @@ public class LessonController : ControllerBase
 
     /// <summary>
     /// Get chapters with lesson summaries for a given level.
-    /// No auth required — public curriculum data.
+    /// Authenticated users get per-user progress (lock/complete state).
+    /// Guests see first lesson unlocked, rest locked.
     /// </summary>
     [HttpGet("chapters")]
     public async Task<ActionResult<List<ChapterWithLessonsDto>>> GetChapters([FromQuery] int levelId = 1)
     {
-        var chapters = await _lessonService.GetChaptersByLevelAsync(levelId);
-        return Ok(chapters);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim != null && Guid.TryParse(userIdClaim, out var userId))
+        {
+            var chapters = await _lessonService.GetChaptersByLevelForUserAsync(levelId, userId);
+            return Ok(chapters);
+        }
+
+        // Fallback for unauthenticated requests
+        var publicChapters = await _lessonService.GetChaptersByLevelAsync(levelId);
+        return Ok(publicChapters);
     }
 
     /// <summary>
@@ -37,5 +49,20 @@ public class LessonController : ControllerBase
             return NotFound(new { message = "Lesson not found." });
 
         return Ok(lesson);
+    }
+
+    /// <summary>
+    /// Mark a lesson as completed for the authenticated user.
+    /// </summary>
+    [Authorize]
+    [HttpPost("{id:guid}/complete")]
+    public async Task<IActionResult> CompleteLesson(Guid id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "Invalid token." });
+
+        await _lessonService.CompleteLessonAsync(userId, id);
+        return Ok(new { message = "Lesson marked as completed." });
     }
 }

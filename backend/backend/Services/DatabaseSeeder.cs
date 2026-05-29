@@ -70,6 +70,76 @@ public static class DatabaseSeeder
                 throw;
             }
         }
+
+        // ── Phase 2.1: Apply seed_data_part2.sql (V1 dialogues Ch4-8, voice lab, progress) ──
+        var seedPart2File = Path.Combine(sqlDir, "seed_data_part2.sql");
+        if (File.Exists(seedPart2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedPart2File, "seed_data_part2.sql");
+        }
+
+        // ── Phase 2.5: Apply seed_data_v1_extra.sql (V1 extended lessons 4-7) ──
+        var seedV1ExtraFile = Path.Combine(sqlDir, "seed_data_v1_extra.sql");
+        if (File.Exists(seedV1ExtraFile))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV1ExtraFile, "seed_data_v1_extra.sql");
+        }
+
+        // ── Phase 2.6: Apply seed_data_v1_extra_part2.sql (V1 extended L4-7, Ch5-8) ──
+        var seedV1ExtraPart2File = Path.Combine(sqlDir, "seed_data_v1_extra_part2.sql");
+        if (File.Exists(seedV1ExtraPart2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV1ExtraPart2File, "seed_data_v1_extra_part2.sql");
+        }
+
+        // ── Phase 3: Apply seed_data_v2.sql (V2 content — runs after V1) ──
+        var seedV2File = Path.Combine(sqlDir, "seed_data_v2.sql");
+        if (File.Exists(seedV2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV2File, "seed_data_v2.sql");
+        }
+
+        // ── Phase 3.5: Apply seed_data_v2_extra.sql (V2 extended lessons 4-7) ──
+        var seedV2ExtraFile = Path.Combine(sqlDir, "seed_data_v2_extra.sql");
+        if (File.Exists(seedV2ExtraFile))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV2ExtraFile, "seed_data_v2_extra.sql");
+        }
+
+        // ── Phase 4: Apply seed_data_v3.sql (V3 content — runs after V2) ──
+        var seedV3File = Path.Combine(sqlDir, "seed_data_v3.sql");
+        if (File.Exists(seedV3File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV3File, "seed_data_v3.sql");
+        }
+
+        // ── Phase 4.1: Apply seed_data_v3_part2.sql (V3 dialogues Ch20-24) ──
+        var seedV3Part2File = Path.Combine(sqlDir, "seed_data_v3_part2.sql");
+        if (File.Exists(seedV3Part2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV3Part2File, "seed_data_v3_part2.sql");
+        }
+
+        // ── Phase 4.5: Apply seed_data_v3_extra.sql (V3 extended lessons 4-7) ──
+        var seedV3ExtraFile = Path.Combine(sqlDir, "seed_data_v3_extra.sql");
+        if (File.Exists(seedV3ExtraFile))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV3ExtraFile, "seed_data_v3_extra.sql");
+        }
+
+        // ── Phase 4.6: Apply seed_data_v3_extra_part2.sql (V3 extra dialogues Ch21-24) ──
+        var seedV3ExtraPart2File = Path.Combine(sqlDir, "seed_data_v3_extra_part2.sql");
+        if (File.Exists(seedV3ExtraPart2File))
+        {
+            await ApplyFileIfChangedAsync(context, logger, seedV3ExtraPart2File, "seed_data_v3_extra_part2.sql");
+        }
+
+        // ── Phase 5: Fix invalid progress data for abc@gmail.com (V2 Ch10-16) ──
+        var fixProgressV2AbcFile = Path.Combine(sqlDir, "fix_progress_v2_abc.sql");
+        if (File.Exists(fixProgressV2AbcFile))
+        {
+            await ApplyFileIfChangedAsync(context, logger, fixProgressV2AbcFile, "fix_progress_v2_abc.sql");
+        }
     }
 
     /// <summary>

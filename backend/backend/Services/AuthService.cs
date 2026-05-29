@@ -11,13 +11,15 @@ public class AuthService : IAuthService
     private readonly VietImmerseDbContext _db;
     private readonly IJwtService _jwt;
     private readonly IEmailService _email;
+    private readonly ILessonService _lessonService;
     private readonly ILogger<AuthService> _logger;
 
-    public AuthService(VietImmerseDbContext db, IJwtService jwt, IEmailService email, ILogger<AuthService> logger)
+    public AuthService(VietImmerseDbContext db, IJwtService jwt, IEmailService email, ILessonService lessonService, ILogger<AuthService> logger)
     {
         _db = db;
         _jwt = jwt;
         _email = email;
+        _lessonService = lessonService;
         _logger = logger;
     }
 
@@ -67,6 +69,12 @@ public class AuthService : IAuthService
             _db.LearnerProfiles.Add(learnerProfile);
             user.LearnerProfile = learnerProfile;
             await _db.SaveChangesAsync();
+
+            // Auto-complete lessons below registered level
+            if (request.Level is not null)
+            {
+                await _lessonService.InitProgressForLevelAsync(user.UserId, request.Level);
+            }
 
             await transaction.CommitAsync();
         }

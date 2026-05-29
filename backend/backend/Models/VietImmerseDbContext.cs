@@ -64,6 +64,8 @@ public partial class VietImmerseDbContext : DbContext
 
     public virtual DbSet<VoiceLabRecord> VoiceLabRecords { get; set; }
 
+    public virtual DbSet<LessonProgress> LessonProgresses { get; set; }
+
     public virtual DbSet<PasswordReset> PasswordResets { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -405,6 +407,22 @@ public partial class VietImmerseDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.VoiceLabRecords)
                 .HasConstraintName("voice_lab_records_user_id_fkey");
+        });
+
+        modelBuilder.Entity<LessonProgress>(entity =>
+        {
+            entity.HasKey(e => e.ProgressId).HasName("lesson_progress_pkey");
+
+            entity.Property(e => e.ProgressId).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.IsCompleted).HasDefaultValue(false);
+            entity.Property(e => e.Progress).HasDefaultValue(0);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.User).WithMany(p => p.LessonProgresses)
+                .HasConstraintName("lesson_progress_user_id_fkey");
+
+            entity.HasOne(d => d.Lesson).WithMany(p => p.LessonProgresses)
+                .HasConstraintName("lesson_progress_lesson_id_fkey");
         });
 
         modelBuilder.Entity<PasswordReset>(entity =>

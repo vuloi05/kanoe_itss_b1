@@ -1,12 +1,29 @@
--- =============================================================================
+-- ======================================================================
+-- -----------------------------------------------------------------------------
 -- VietImmerse — Database Schema (Source of Truth)
--- =============================================================================
+-- ======================================================================
+-- -----------------------------------------------------------------------------
 -- This file is the AUTHORITATIVE DDL for all tables.
 -- DatabaseSeeder.cs auto-applies this file on startup when content changes.
 -- All statements use CREATE TABLE IF NOT EXISTS for idempotent re-execution.
 --
 -- ⚠️  EF Core Migrations are NOT used — schema is managed here.
--- =============================================================================
+-- ======================================================================
+-- -----------------------------------------------------------------------------
+--
+-- ╔═══════════════════════════════════════════════════════════════════════════╗
+-- ║  CRITICAL RULE — READ BEFORE EDITING                                    ║
+-- ║                                                                         ║
+-- ║  When adding a NEW COLUMN to an EXISTING table, you MUST do BOTH:       ║
+-- ║                                                                         ║
+-- ║    1. Declare the column inside the CREATE TABLE block (for fresh DBs). ║
+-- ║    2. Add an ALTER TABLE … ADD COLUMN IF NOT EXISTS statement in the    ║
+-- ║       "IDEMPOTENT COLUMN PATCHES" section at the BOTTOM of this file    ║
+-- ║       (for existing DBs where CREATE TABLE IF NOT EXISTS is a no-op).   ║
+-- ║                                                                         ║
+-- ║  Failure to do BOTH will cause the Seeder to crash on environments      ║
+-- ║  that already have the table but lack the new column.                   ║
+-- ╚═══════════════════════════════════════════════════════════════════════════╝
 
 -- Custom ENUM types (managed by Npgsql)
 -- CREATE TYPE account_status   AS ENUM ('active','inactive','suspended','pending_verification');
@@ -373,6 +390,37 @@ CREATE TABLE IF NOT EXISTS voice_lab_records (
 CREATE INDEX IF NOT EXISTS idx_voice_lab_records_user ON voice_lab_records (user_id);
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- LESSON PROGRESS (Per-user lesson completion tracking)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS lesson_progress (
+    progress_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id      UUID NOT NULL,
+    lesson_id    UUID NOT NULL,
+    is_completed BOOLEAN NOT NULL DEFAULT false,
+    progress     INT NOT NULL DEFAULT 0,
+    completed_at TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT lesson_progress_user_id_fkey   FOREIGN KEY (user_id)   REFERENCES users(user_id),
+    CONSTRAINT lesson_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id),
+    CONSTRAINT lesson_progress_unique         UNIQUE (user_id, lesson_id)
+);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress (user_id);
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- IDEMPOTENT COLUMN PATCHES
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- These ALTER statements ensure new columns are added to tables that already
+-- exist in the database. CREATE TABLE IF NOT EXISTS silently skips DDL when the
+-- table is present, so any columns added after initial creation would be missed.
+--
+-- Each statement uses ADD COLUMN IF NOT EXISTS to remain safe for re-execution.
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- lesson_progress.progress — tracks lesson completion percentage (0-100)
+ALTER TABLE lesson_progress ADD COLUMN IF NOT EXISTS progress INT DEFAULT 0;
+
+-- -----------------------------------------------------------------------------
 -- PASSWORD RESETS (OTP / Reset Tokens)
 -- ─────────────────────────────────────────────────────────────────────────────
 
