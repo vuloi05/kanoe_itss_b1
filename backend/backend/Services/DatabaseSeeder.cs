@@ -133,6 +133,13 @@ public static class DatabaseSeeder
         {
             await ApplyFileIfChangedAsync(context, logger, seedV3ExtraPart2File, "seed_data_v3_extra_part2.sql");
         }
+
+        // ── Phase 5: Fix invalid progress data for abc@gmail.com (V2 Ch10-16) ──
+        var fixProgressV2AbcFile = Path.Combine(sqlDir, "fix_progress_v2_abc.sql");
+        if (File.Exists(fixProgressV2AbcFile))
+        {
+            await ApplyFileIfChangedAsync(context, logger, fixProgressV2AbcFile, "fix_progress_v2_abc.sql");
+        }
     }
 
     /// <summary>

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
@@ -163,8 +163,23 @@ export default function LessonsPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<number>>(new Set());
   const [selectedLevel, setSelectedLevel] = useState(1);
+  const [toast, setToast] = useState<{ vi: string; jp: string } | null>(null);
 
-  const toggleChapter = (chapterId: number) => {
+  // Auto-dismiss toast after 3s
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const toggleChapter = useCallback((chapterId: number, isLocked: boolean) => {
+    if (isLocked) {
+      setToast({
+        vi: "Vui lòng hoàn thành chương trước đó để mở khóa!",
+        jp: "前の章を完了してロックを解除してください！",
+      });
+      return;
+    }
     setExpandedChapters((prev) => {
       const next = new Set(prev);
       if (next.has(chapterId)) {
@@ -174,7 +189,21 @@ export default function LessonsPage() {
       }
       return next;
     });
-  };
+  }, []);
+
+  /** Only auto-expand chapters that are unlocked */
+  const applyChapterExpansion = useCallback((data: ChapterDto[]) => {
+    const unlocked = new Set<number>();
+    data.forEach((chapter, idx) => {
+      if (idx === 0) {
+        unlocked.add(chapter.chapterId);
+      } else {
+        const prevStats = getChapterStats(data[idx - 1].lessons);
+        if (prevStats.percent >= 100) unlocked.add(chapter.chapterId);
+      }
+    });
+    setExpandedChapters(unlocked);
+  }, []);
 
   const fetchChapters = (level: number) => {
     setLoading(true);
@@ -183,7 +212,7 @@ export default function LessonsPage() {
       .getChaptersByLevel(level)
       .then((data) => {
         setChapters(data);
-        setExpandedChapters(new Set(data.map((c) => c.chapterId)));
+        applyChapterExpansion(data);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -194,18 +223,25 @@ export default function LessonsPage() {
     fetchChapters(level);
   };
 
-  // Initial fetch on mount — loading/error already have correct initial values,
-  // so only the async API call is needed here (async callbacks are fine in effects)
+  // Initial fetch on mount
   useEffect(() => {
     lessonApi
       .getChaptersByLevel(1)
       .then((data) => {
         setChapters(data);
-        setExpandedChapters(new Set(data.map((c) => c.chapterId)));
+        applyChapterExpansion(data);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Compute sequential chapter lock state within current level
+  const chaptersWithLock = chapters.map((chapter, idx) => {
+    if (idx === 0) return { chapter, isChapterLocked: false };
+    const prevStats = getChapterStats(chapters[idx - 1].lessons);
+    return { chapter, isChapterLocked: prevStats.percent < 100 };
+  });
 
   // Overall level progress
   const allLessons = chapters.flatMap((c) => c.lessons);
@@ -261,45 +297,67 @@ export default function LessonsPage() {
           <>
             {/* Bento Grid Layout for Chapters */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              {chapters.map((chapter, chapterIdx) => {
-                const isExpanded = expandedChapters.has(chapter.chapterId);
+              {chaptersWithLock.map(({ chapter, isChapterLocked }, chapterIdx) => {
+                const isExpanded = !isChapterLocked && expandedChapters.has(chapter.chapterId);
                 const stats = getChapterStats(chapter.lessons);
                 return (
-                  <section key={chapter.chapterId} className="lg:col-span-6 space-y-4">
+                  <section key={chapter.chapterId} className={`lg:col-span-6 space-y-4 transition-opacity duration-300 ${isChapterLocked ? "opacity-50" : ""}`}>
                     {/* Clickable chapter header */}
                     <button
                       type="button"
-                      onClick={() => toggleChapter(chapter.chapterId)}
-                      className="w-full flex items-center gap-4 mb-2 group/header cursor-pointer select-none hover:opacity-80 transition-opacity"
+                      onClick={() => toggleChapter(chapter.chapterId, isChapterLocked)}
+                      className={`w-full flex items-center gap-4 mb-2 group/header select-none transition-opacity ${
+                        isChapterLocked ? "cursor-not-allowed" : "cursor-pointer hover:opacity-80"
+                      }`}
                     >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${CHAPTER_ICON_COLORS[chapterIdx + 1] || "bg-primary-container text-on-primary-container"}`}>
-                        <span className="material-symbols-outlined">{chapter.icon}</span>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                        isChapterLocked
+                          ? "bg-surface-container-high text-on-surface-variant/50"
+                          : (CHAPTER_ICON_COLORS[chapterIdx + 1] || "bg-primary-container text-on-primary-container")
+                      }`}>
+                        <span className="material-symbols-outlined">
+                          {isChapterLocked ? "lock" : chapter.icon}
+                        </span>
                       </div>
                       <div className="flex-1 text-left">
-                        <h2 className="font-headline font-bold text-xl text-primary">
-                          {t(chapter.titleVi, chapter.titleJp)}
-                        </h2>
+                        <div className="flex items-center gap-2">
+                          <h2 className={`font-headline font-bold text-xl ${
+                            isChapterLocked ? "text-on-surface-variant/60" : "text-primary"
+                          }`}>
+                            {t(chapter.titleVi, chapter.titleJp)}
+                          </h2>
+                          {isChapterLocked && (
+                            <span className="material-symbols-outlined text-sm text-on-surface-variant/40">lock</span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-3 mt-0.5">
                           <p className="text-xs text-on-surface-variant">
                             {t(`${chapter.lessons.length} bài học`, `${chapter.lessons.length} レッスン`)}
                           </p>
-                          {stats.completed > 0 && (
+                          {!isChapterLocked && stats.completed > 0 && (
                             <span className="text-xs font-bold text-[#2e7d32]">
                               {stats.completed}/{stats.total} ✓
                             </span>
                           )}
+                          {isChapterLocked && (
+                            <span className="text-[10px] font-bold uppercase text-on-surface-variant/40 tracking-widest">
+                              {t("Khóa", "ロック")}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <span
-                        className="material-symbols-outlined text-on-surface-variant transition-transform duration-300"
-                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
-                      >
-                        expand_more
-                      </span>
+                      {!isChapterLocked && (
+                        <span
+                          className="material-symbols-outlined text-on-surface-variant transition-transform duration-300"
+                          style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
+                        >
+                          expand_more
+                        </span>
+                      )}
                     </button>
 
-                    {/* Chapter progress bar */}
-                    {stats.completed > 0 && (
+                    {/* Chapter progress bar — only for unlocked chapters with progress */}
+                    {!isChapterLocked && stats.completed > 0 && (
                       <div className="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
                         <div
                           className="h-full bg-[#2e7d32] rounded-full transition-all duration-500"
@@ -308,20 +366,22 @@ export default function LessonsPage() {
                       </div>
                     )}
 
-                    {/* Collapsible lesson list */}
-                    <div
-                      className="overflow-hidden transition-all duration-400 ease-in-out"
-                      style={{
-                        maxHeight: isExpanded ? "2000px" : "0px",
-                        opacity: isExpanded ? 1 : 0,
-                      }}
-                    >
-                      <div className="space-y-4">
-                        {chapter.lessons.map((lesson) => (
-                          <LessonCard key={lesson.lessonId} lesson={lesson} t={t} />
-                        ))}
+                    {/* Collapsible lesson list — hidden for locked chapters */}
+                    {!isChapterLocked && (
+                      <div
+                        className="overflow-hidden transition-all duration-400 ease-in-out"
+                        style={{
+                          maxHeight: isExpanded ? "2000px" : "0px",
+                          opacity: isExpanded ? 1 : 0,
+                        }}
+                      >
+                        <div className="space-y-4">
+                          {chapter.lessons.map((lesson) => (
+                            <LessonCard key={lesson.lessonId} lesson={lesson} t={t} />
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </section>
                 );
               })}
@@ -393,6 +453,22 @@ export default function LessonsPage() {
         )}
       </main>
       <LearnerBottomNav />
+
+      {/* Toast notification for locked chapters */}
+      {toast && (
+        <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 animate-[slideUp_0.3s_ease-out]">
+          <div className="flex items-center gap-3 px-5 py-3 bg-surface-container-highest text-on-surface rounded-2xl shadow-lg border border-outline-variant/20 backdrop-blur-sm">
+            <span className="material-symbols-outlined text-lg text-secondary" style={{ fontVariationSettings: '"FILL" 1' }}>lock</span>
+            <p className="text-sm font-medium">{t(toast.vi, toast.jp)}</p>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 text-on-surface-variant/60 hover:text-on-surface transition-colors"
+            >
+              <span className="material-symbols-outlined text-base">close</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
