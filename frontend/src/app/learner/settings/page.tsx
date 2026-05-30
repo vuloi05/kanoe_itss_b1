@@ -211,6 +211,19 @@ export default function LearnerSettingsPage() {
 
           {/* Bottom Right: Actions */}
           <div className="lg:col-span-5 flex flex-col gap-6">
+            <Link href="/learner/wallet" className="flex items-center p-6 bg-white dark:bg-slate-900 rounded-[24px] shadow-sm hover:shadow-md border border-slate-100 dark:border-slate-800 transition-all group cursor-pointer">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/20 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mr-6 group-hover:scale-105 transition-transform">
+                <span className="text-[28px]">🪙</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-[#112340] dark:text-white text-[16px] mb-1 group-hover:text-primary transition-colors">
+                  {t("Ví Token", "トークンウォレット")}
+                </h3>
+                <p className="text-[12px] text-[#94A3B8]">{t("Xem số dư & lịch sử giao dịch", "残高と取引履歴を確認")}</p>
+              </div>
+              <span className="material-symbols-outlined text-[#CBD5E1] group-hover:text-[#94A3B8] transition-colors">chevron_right</span>
+            </Link>
+
             <Link href="/change-password" className="flex items-center p-6 bg-white dark:bg-slate-900 rounded-[24px] shadow-sm hover:shadow-md border border-slate-100 dark:border-slate-800 transition-all group cursor-pointer">
               <div className="w-14 h-14 bg-[#FDE68A] text-[#B45309] rounded-2xl flex items-center justify-center mr-6 group-hover:scale-105 transition-transform">
                 <span className="material-symbols-outlined text-[28px]">lock</span>

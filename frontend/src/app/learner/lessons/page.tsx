@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/lib/auth";
 import { lessonApi, type ChapterDto, type LessonSummaryDto } from "@/lib/api";
 
 // Predefined chapter icons — fallback when API icon name is not in map
@@ -156,14 +158,45 @@ function getChapterStats(lessons: LessonSummaryDto[]) {
   return { total, completed, percent };
 }
 
+/** Compute level completion from pre-fetched chapter data */
+function getLevelStats(chapters: ChapterDto[]) {
+  const allLessons = chapters.flatMap((c) => c.lessons);
+  const total = allLessons.length;
+  const completed = allLessons.filter((l) => l.isCompleted).length;
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+  return { total, completed, percent };
+}
+
+/**
+ * Traverse chapters sequentially to find the first incomplete & unlocked lesson.
+ * Returns the lessonId, or null if every lesson is completed.
+ */
+function getNextLessonId(chapters: ChapterDto[]): string | null {
+  for (const chapter of chapters) {
+    for (const lesson of chapter.lessons) {
+      if (lesson.isLocked) continue;
+      if (!lesson.isCompleted) return lesson.lessonId;
+    }
+  }
+  return null;
+}
+
+type LevelLockMap = Record<number, boolean>;
+
 export default function LessonsPage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const router = useRouter();
   const [chapters, setChapters] = useState<ChapterDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<number>>(new Set());
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [toast, setToast] = useState<{ vi: string; jp: string } | null>(null);
+
+  // Cache progress data per level for lock calculations
+  const [levelProgressCache, setLevelProgressCache] = useState<Record<number, ChapterDto[]>>({});
+  const initialFetchDone = useRef(false);
 
   // Auto-dismiss toast after 3s
   useEffect(() => {
@@ -213,26 +246,63 @@ export default function LessonsPage() {
       .then((data) => {
         setChapters(data);
         applyChapterExpansion(data);
+        // Update cache for lock recalculation
+        setLevelProgressCache((prev) => ({ ...prev, [level]: data }));
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   };
 
   const handleLevelChange = (level: number) => {
+    if (levelLockMap[level]) {
+      setToast({
+        vi: "Vui lòng hoàn thành trình độ trước đó để mở khóa!",
+        jp: "前のレベルを完了してロックを解除してください！",
+      });
+      return;
+    }
     setSelectedLevel(level);
     fetchChapters(level);
   };
 
-  // Initial fetch on mount
+  // Derived state: level lock map computed from cached progress.
+  // V1: always open.
+  // V2: locked if V1 < 100% (bypass when user's starting level is V2).
+  // V3: locked if V2 < 100%.
+  const userStartingLevel = user?.level?.toLowerCase();
+  const v1Stats = levelProgressCache[1] ? getLevelStats(levelProgressCache[1]) : null;
+  const v2Stats = levelProgressCache[2] ? getLevelStats(levelProgressCache[2]) : null;
+  // V2 bypass: if user's assigned starting level is V2, skip V1 completion check
+  const isV2Bypassed = userStartingLevel === "v2";
+  const levelLockMap: LevelLockMap = {
+    1: false,
+    2: isV2Bypassed ? false : !(v1Stats && v1Stats.percent >= 100),
+    3: !(v2Stats && v2Stats.percent >= 100),
+  };
+
+  // Initial fetch: load V1 (visible) + V2 (for lock calculation) in parallel
   useEffect(() => {
-    lessonApi
-      .getChaptersByLevel(1)
-      .then((data) => {
-        setChapters(data);
-        applyChapterExpansion(data);
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+    if (initialFetchDone.current) return;
+    initialFetchDone.current = true;
+
+    const fetchInitial = async () => {
+      try {
+        const [v1Data, v2Data] = await Promise.all([
+          lessonApi.getChaptersByLevel(1),
+          lessonApi.getChaptersByLevel(2),
+        ]);
+        setChapters(v1Data);
+        applyChapterExpansion(v1Data);
+        setLevelProgressCache({ 1: v1Data, 2: v2Data });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitial();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -248,6 +318,9 @@ export default function LessonsPage() {
   const totalLessons = allLessons.length;
   const completedLessons = allLessons.filter((l) => l.isCompleted).length;
   const levelPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+  // Next incomplete lesson for CTA
+  const nextLessonId = getNextLessonId(chapters);
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen pb-20 md:pb-0">
@@ -265,19 +338,27 @@ export default function LessonsPage() {
           </div>
           {/* Filter / Tab Bar */}
           <div className="flex bg-surface-container-low p-1.5 rounded-full overflow-hidden">
-            {[1, 2, 3].map((level) => (
-              <button
-                key={level}
-                onClick={() => handleLevelChange(level)}
-                className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-200 ${
-                  selectedLevel === level
-                    ? "bg-primary text-on-primary shadow-sm"
-                    : "text-on-surface-variant hover:text-primary font-medium"
-                }`}
-              >
-                {level === selectedLevel ? t(`Trình độ V${level}`, `レベル V${level}`) : `V${level}`}
-              </button>
-            ))}
+            {[1, 2, 3].map((level) => {
+              const isLocked = levelLockMap[level] ?? false;
+              return (
+                <button
+                  key={level}
+                  onClick={() => handleLevelChange(level)}
+                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-200 flex items-center gap-1.5 ${
+                    isLocked
+                      ? "opacity-50 text-on-surface-variant/50 cursor-not-allowed"
+                      : selectedLevel === level
+                        ? "bg-primary text-on-primary shadow-sm"
+                        : "text-on-surface-variant hover:text-primary font-medium"
+                  }`}
+                >
+                  {level === selectedLevel && !isLocked ? t(`Trình độ V${level}`, `レベル V${level}`) : `V${level}`}
+                  {isLocked && (
+                    <span className="material-symbols-outlined text-xs">lock</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </header>
 
@@ -424,6 +505,23 @@ export default function LessonsPage() {
                     />
                   </div>
                   <span className="text-2xl font-extrabold text-primary">{levelPercent}%</span>
+
+                  {/* CTA: Continue Learning / Completed */}
+                  {nextLessonId ? (
+                    <button
+                      onClick={() => router.push(`/learner/lessons/${nextLessonId}`)}
+                      className="mt-5 inline-flex items-center gap-2 px-7 py-3 bg-primary text-on-primary rounded-full font-semibold text-sm shadow-md hover:shadow-lg hover:brightness-110 active:scale-[0.97] transition-all duration-200"
+                    >
+                      <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: '"FILL" 1' }}>play_arrow</span>
+                      {t("Tiếp tục học", "学習を続ける")}
+                    </button>
+                  ) : totalLessons > 0 ? (
+                    <div className="mt-5 inline-flex items-center gap-2 px-7 py-3 bg-[#e8f5e9] text-[#2e7d32] rounded-full font-semibold text-sm cursor-default">
+                      <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: '"FILL" 1' }}>check_circle</span>
+                      {t("Đã hoàn thành trình độ", "レベル完了")}
+                    </div>
+                  ) : null}
+
                   <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
                 </div>
 
@@ -454,7 +552,7 @@ export default function LessonsPage() {
       </main>
       <LearnerBottomNav />
 
-      {/* Toast notification for locked chapters */}
+      {/* Toast notification for locked chapters / levels */}
       {toast && (
         <div className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 animate-[slideUp_0.3s_ease-out]">
           <div className="flex items-center gap-3 px-5 py-3 bg-surface-container-highest text-on-surface rounded-2xl shadow-lg border border-outline-variant/20 backdrop-blur-sm">

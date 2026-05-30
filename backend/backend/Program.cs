@@ -73,6 +73,7 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
 builder.Services.AddScoped<ITtsService, FptTtsService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
+builder.Services.AddScoped<IMatchingService, MatchingService>();
 builder.Services.AddScoped<OpenAiWhisperService>();
 builder.Services.AddScoped<FptAsrService>();
 builder.Services.AddScoped<IAsrService, FallbackAsrService>();

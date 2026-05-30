@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_seen           TIMESTAMPTZ,
     last_login_at       TIMESTAMPTZ,
     password_changed_at TIMESTAMPTZ,
+    token_balance       INT          NOT NULL DEFAULT 0,
     deleted_at          TIMESTAMPTZ,
     created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -420,6 +421,9 @@ CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress (user_id)
 -- lesson_progress.progress — tracks lesson completion percentage (0-100)
 ALTER TABLE lesson_progress ADD COLUMN IF NOT EXISTS progress INT DEFAULT 0;
 
+-- users.token_balance — token wallet for paid connections
+ALTER TABLE users ADD COLUMN IF NOT EXISTS token_balance INT NOT NULL DEFAULT 0;
+
 -- -----------------------------------------------------------------------------
 -- PASSWORD RESETS (OTP / Reset Tokens)
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -435,4 +439,30 @@ CREATE TABLE IF NOT EXISTS password_resets (
 );
 CREATE INDEX IF NOT EXISTS idx_password_resets_email ON password_resets (email);
 CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets (reset_token);
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- TOKEN TRANSACTIONS (Paid connection audit log — 70/30 revenue split)
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS token_transactions (
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    learner_id       UUID NOT NULL,
+    partner_id       UUID NOT NULL,
+    amount_paid      INT  NOT NULL DEFAULT 100,
+    partner_received INT  NOT NULL DEFAULT 70,
+    platform_fee     INT  NOT NULL DEFAULT 30,
+    conversation_id  UUID,
+    status           VARCHAR(20) NOT NULL DEFAULT 'completed',
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT token_transactions_learner_id_fkey
+        FOREIGN KEY (learner_id) REFERENCES users(user_id),
+    CONSTRAINT token_transactions_partner_id_fkey
+        FOREIGN KEY (partner_id) REFERENCES users(user_id),
+    CONSTRAINT token_transactions_conversation_id_fkey
+        FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id),
+    CONSTRAINT token_transactions_no_duplicate
+        UNIQUE (learner_id, partner_id, status)
+);
+CREATE INDEX IF NOT EXISTS idx_token_transactions_learner ON token_transactions (learner_id);
+CREATE INDEX IF NOT EXISTS idx_token_transactions_partner ON token_transactions (partner_id);
 

@@ -357,3 +357,39 @@ export const partnerApi = {
   startConversation: (partnerId: string) =>
     api.post<StartConversationResponse>(`/api/partners/${partnerId}/start-conversation`, {}),
 };
+
+// ─── Matching Token Economy ───────────────────────────────────
+
+export interface ConnectResponse {
+  conversationId: string;
+  isNew: boolean;
+  remainingBalance: number;
+  amountCharged: number;
+}
+
+export interface TokenBalanceResponse {
+  tokenBalance: number;
+}
+
+export interface TransactionHistoryDto {
+  id: string;
+  type: "debit" | "credit";
+  amount: number;
+  counterpartyName: string;
+  counterpartyAvatarUrl: string | null;
+  createdAt: string;
+}
+
+export const matchingApi = {
+  /** Atomically deducts tokens, creates conversation, logs transaction */
+  connect: (partnerId: string) =>
+    api.post<ConnectResponse>("/api/matching/connect", { partnerId }),
+
+  /** Returns current token balance for the authenticated user */
+  getBalance: () =>
+    api.get<TokenBalanceResponse>("/api/matching/balance"),
+
+  /** Returns transaction history (debits + credits), newest first */
+  getTransactions: () =>
+    api.get<TransactionHistoryDto[]>("/api/matching/transactions"),
+};

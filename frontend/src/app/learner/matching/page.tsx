@@ -1,12 +1,14 @@
 "use client";
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
+import SelectPicker from "@/components/common/SelectPicker";
+import TokenConfirmModal, { CONNECTION_COST } from "@/components/matching/TokenConfirmModal";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { partnerApi, type PartnerDto } from "@/lib/api";
+import { partnerApi, matchingApi, type PartnerDto } from "@/lib/api";
 
 // ─── Hardcoded job filter options (spec §4.2) ─────────────────
 const JOB_OPTIONS = [
@@ -42,6 +44,11 @@ export default function MatchingPage() {
   // ── Per-button loading state for "Nhắn tin" ──
   const [sendingTo, setSendingTo] = useState<string | null>(null);
 
+  // ── Token Economy state — fetched from backend ──
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [modalPartner, setModalPartner] = useState<PartnerDto | null>(null);
+  const [isModalProcessing, setIsModalProcessing] = useState(false);
+
   // ── Toast ──
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const showToast = useCallback((message: string, type: "success" | "error") => {
@@ -49,16 +56,19 @@ export default function MatchingPage() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  // ── Fetch partners on mount ──
+  // ── Fetch partners + token balance on mount ──
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
-    setError(null);
 
-    partnerApi
-      .getPartners()
-      .then((data) => {
-        if (mounted) setPartners(data);
+    Promise.all([
+      partnerApi.getPartners(),
+      matchingApi.getBalance(),
+    ])
+      .then(([partnerData, balanceData]) => {
+        if (mounted) {
+          setPartners(partnerData);
+          setTokenBalance(balanceData.tokenBalance);
+        }
       })
       .catch((err) => {
         if (mounted) setError(err.message || t("Đã xảy ra lỗi.", "エラーが発生しました。"));
@@ -85,7 +95,6 @@ export default function MatchingPage() {
     if (statusFilter === "offline" && p.isOnline) return false;
     if (jobFilter !== "all") {
       if (jobFilter === "Khác") {
-        // "Khác" = job is null or not in the 4 known categories
         if (p.job && KNOWN_JOBS.includes(p.job)) return false;
       } else {
         if (p.job !== jobFilter) return false;
@@ -94,27 +103,60 @@ export default function MatchingPage() {
     return true;
   });
 
-  // ── Handle "Nhắn tin" click (spec §4.4) ──
-  const handleMessage = async (partner: PartnerDto) => {
-    setSendingTo(partner.userId);
+  // ── Handle "Nhắn tin" click — show modal for new connections ──
+  const handleMessageClick = (partner: PartnerDto) => {
+    if (partner.hasConversation && partner.conversationId) {
+      router.push(`/learner/messages?conv=${partner.conversationId}`);
+      return;
+    }
+    setModalPartner(partner);
+  };
+
+  // ── Handle modal confirmation — call backend API for atomic transaction ──
+  const handleConfirmConnection = async () => {
+    if (!modalPartner) return;
+    setIsModalProcessing(true);
+    setSendingTo(modalPartner.userId);
+
     try {
-      if (partner.hasConversation && partner.conversationId) {
-        router.push(`/learner/messages?conv=${partner.conversationId}`);
-      } else {
-        const result = await partnerApi.startConversation(partner.userId);
-        // Update local data so button reflects the new conversation
-        setPartners((prev) =>
-          prev.map((p) =>
-            p.userId === partner.userId
-              ? { ...p, hasConversation: true, conversationId: result.conversationId }
-              : p
-          )
-        );
+      const result = await matchingApi.connect(modalPartner.userId);
+
+      // Reflect server-side balance
+      setTokenBalance(result.remainingBalance);
+
+      // Update local partner data so button reflects the new conversation
+      setPartners((prev) =>
+        prev.map((p) =>
+          p.userId === modalPartner.userId
+            ? { ...p, hasConversation: true, conversationId: result.conversationId }
+            : p
+        )
+      );
+
+      setModalPartner(null);
+      showToast(
+        t(
+          "🎉 Kết nối thành công! Đang chuyển đến tin nhắn...",
+          "🎉 接続成功！メッセージに移動中..."
+        ),
+        "success"
+      );
+
+      setTimeout(() => {
         router.push(`/learner/messages?conv=${result.conversationId}`);
-      }
-    } catch {
-      showToast(t("Không thể kết nối. Thử lại sau.", "接続できません。後でもう一度お試しください。"), "error");
+      }, 800);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t("Không thể kết nối. Thử lại sau.", "接続できません。後でもう一度お試しください。");
+      showToast(message, "error");
+    } finally {
+      setIsModalProcessing(false);
       setSendingTo(null);
+    }
+  };
+
+  const handleCancelModal = () => {
+    if (!isModalProcessing) {
+      setModalPartner(null);
     }
   };
 
@@ -157,11 +199,19 @@ export default function MatchingPage() {
             </p>
           </div>
 
-          {/* View All Messages Button */}
-          <div className="flex justify-end mb-4">
+          {/* View All Messages Button + Mobile Token Balance */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Mobile-only token balance */}
+            <div className="flex md:hidden items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/60">
+              <span className="text-base leading-none">🪙</span>
+              <span className="text-sm font-bold text-amber-700 tabular-nums">
+                {tokenBalance.toLocaleString()}
+              </span>
+            </div>
+
             <Link
               href="/learner/messages"
-              className="flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary border border-secondary/20 rounded-lg font-headline font-bold text-sm hover:bg-secondary hover:text-white transition-all duration-300"
+              className="flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary border border-secondary/20 rounded-lg font-headline font-bold text-sm hover:bg-secondary hover:text-white transition-all duration-300 ml-auto"
             >
               <span className="material-symbols-outlined text-lg">mail</span>
               {t(
@@ -178,22 +228,17 @@ export default function MatchingPage() {
               <label className="block text-[10px] uppercase tracking-wider font-bold text-secondary mb-1.5 ml-1">
                 {t("Độ tuổi", "年齢")}
               </label>
-              <div className="relative">
-                <select
-                  value={draftAge}
-                  onChange={(e) => setDraftAge(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-low border-none rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="all">{t("Tất cả", "すべて")}</option>
-                  <option value="18-24">18-24</option>
-                  <option value="25-30">25-30</option>
-                  <option value="31-40">31-40</option>
-                  <option value="40+">40+</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-xl">
-                  expand_more
-                </span>
-              </div>
+              <SelectPicker
+                value={draftAge}
+                onChange={setDraftAge}
+                options={[
+                  { value: "all", label: t("Tất cả", "すべて") },
+                  { value: "18-24", label: "18-24" },
+                  { value: "25-30", label: "25-30" },
+                  { value: "31-40", label: "31-40" },
+                  { value: "40+", label: "40+" },
+                ]}
+              />
             </div>
 
             {/* Job Filter — hardcoded per spec */}
@@ -201,22 +246,14 @@ export default function MatchingPage() {
               <label className="block text-[10px] uppercase tracking-wider font-bold text-secondary mb-1.5 ml-1">
                 {t("Công việc", "職業")}
               </label>
-              <div className="relative">
-                <select
-                  value={draftJob}
-                  onChange={(e) => setDraftJob(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-low border-none rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  {JOB_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {t(opt.vi, opt.ja)}
-                    </option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-xl">
-                  expand_more
-                </span>
-              </div>
+              <SelectPicker
+                value={draftJob}
+                onChange={setDraftJob}
+                options={JOB_OPTIONS.map((opt) => ({
+                  value: opt.value,
+                  label: t(opt.vi, opt.ja),
+                }))}
+              />
             </div>
 
             {/* Status Filter */}
@@ -224,20 +261,15 @@ export default function MatchingPage() {
               <label className="block text-[10px] uppercase tracking-wider font-bold text-secondary mb-1.5 ml-1">
                 {t("Trạng thái", "状態")}
               </label>
-              <div className="relative">
-                <select
-                  value={draftStatus}
-                  onChange={(e) => setDraftStatus(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-low border-none rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
-                >
-                  <option value="all">{t("Tất cả", "すべて")}</option>
-                  <option value="online">{t("Trực tuyến", "オンライン")}</option>
-                  <option value="offline">{t("Ngoại tuyến", "オフライン")}</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-xl">
-                  expand_more
-                </span>
-              </div>
+              <SelectPicker
+                value={draftStatus}
+                onChange={setDraftStatus}
+                options={[
+                  { value: "all", label: t("Tất cả", "すべて") },
+                  { value: "online", label: t("Trực tuyến", "オンライン") },
+                  { value: "offline", label: t("Ngoại tuyến", "オフライン") },
+                ]}
+              />
             </div>
 
             {/* Search Button — applies filter (spec §4.2) */}
@@ -376,11 +408,15 @@ export default function MatchingPage() {
                     </span>
                   </div>
 
-                  {/* Message Button */}
+                  {/* Message Button — shows token cost for new connections */}
                   <button
-                    onClick={() => handleMessage(p)}
+                    onClick={() => handleMessageClick(p)}
                     disabled={sendingTo === p.userId}
-                    className="w-full mt-4 py-2.5 bg-primary text-on-primary rounded-xl font-headline font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`w-full mt-4 py-2.5 rounded-xl font-headline font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      p.hasConversation
+                        ? "bg-primary text-on-primary hover:opacity-90"
+                        : "bg-gradient-to-r from-primary to-primary/85 text-on-primary hover:opacity-90 shadow-sm"
+                    }`}
                   >
                     {sendingTo === p.userId ? (
                       <>
@@ -389,12 +425,22 @@ export default function MatchingPage() {
                         </span>
                         {t("Đang kết nối...", "接続中...")}
                       </>
+                    ) : p.hasConversation ? (
+                      <>
+                        <span className="material-symbols-outlined text-lg">
+                          send
+                        </span>
+                        {t("Nhắn tin", "メッセージ")}
+                      </>
                     ) : (
                       <>
                         <span className="material-symbols-outlined text-lg">
                           send
                         </span>
                         {t("Nhắn tin", "メッセージ")}
+                        <span className="opacity-70 text-xs flex items-center gap-0.5 ml-0.5">
+                          • {CONNECTION_COST} 🪙
+                        </span>
                       </>
                     )}
                   </button>
@@ -404,6 +450,16 @@ export default function MatchingPage() {
           </div>
         )}
       </main>
+
+      {/* Token Confirmation Modal */}
+      <TokenConfirmModal
+        isOpen={modalPartner !== null}
+        partnerName={modalPartner?.displayName ?? ""}
+        tokenBalance={tokenBalance}
+        isProcessing={isModalProcessing}
+        onConfirm={handleConfirmConnection}
+        onCancel={handleCancelModal}
+      />
 
       {/* Toast */}
       {toast && (
@@ -422,3 +478,4 @@ export default function MatchingPage() {
     </div>
   );
 }
+
