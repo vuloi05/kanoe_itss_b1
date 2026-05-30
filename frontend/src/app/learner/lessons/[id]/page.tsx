@@ -668,7 +668,7 @@ export default function LessonDetailPage() {
   const [lesson, setLesson] = useState<LessonDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, updateUser } = useAuth();
   const [showSubtitle, setShowSubtitle] = useState(true);
 
   // Index of the dialogue currently focused for Voice Lab recording
@@ -704,7 +704,10 @@ export default function LessonDetailPage() {
       isAutoCompletingRef.current = true;
       lessonApi
         .completeLesson(lessonId)
-        .then(() => {
+        .then((res) => {
+          if (res && res.newLevel) {
+            updateUser({ level: res.newLevel });
+          }
           showToast("success", t(
             "Chúc mừng! Bạn đã hoàn thành bài học!",
             "おめでとうございます！レッスンを完了しました！"
@@ -898,7 +901,13 @@ export default function LessonDetailPage() {
                     // Only call once per page load to avoid spamming the endpoint.
                     if (!hasRecordedStudyRef.current) {
                       hasRecordedStudyRef.current = true;
-                      userApi.recordStudyActivity().catch(console.error);
+                      userApi.recordStudyActivity()
+                        .then((res) => {
+                          if (res && typeof res.currentStreak === "number") {
+                            updateUser({ currentStreak: res.currentStreak });
+                          }
+                        })
+                        .catch(console.error);
                     }
                   }}
                 />

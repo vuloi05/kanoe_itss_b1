@@ -186,7 +186,7 @@ export default function LearnerSettingsPage() {
               
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm flex flex-col justify-center">
-                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">12</span>
+                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">{user?.currentStreak ?? 0}</span>
                   <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wide mt-1">DAYSSTREAK</span>
                   <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Chuỗi ngày", "継続日数")}</span>
                 </div>

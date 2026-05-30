@@ -62,8 +62,8 @@ public class LessonController : ControllerBase
         if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized(new { message = "Invalid token." });
 
-        await _lessonService.CompleteLessonAsync(userId, id);
-        return Ok(new { message = "Lesson marked as completed." });
+        var newLevel = await _lessonService.CompleteLessonAsync(userId, id);
+        return Ok(new { message = "Lesson marked as completed.", newLevel });
     }
 
     /// <summary>

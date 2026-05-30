@@ -218,7 +218,7 @@ public class LessonService : ILessonService
     /// <summary>
     /// Mark a lesson as completed for the user. Upsert pattern.
     /// </summary>
-    public async Task CompleteLessonAsync(Guid userId, Guid lessonId)
+    public async Task<string?> CompleteLessonAsync(Guid userId, Guid lessonId)
     {
         var existing = await _db.LessonProgresses
             .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lessonId);
@@ -246,6 +246,58 @@ public class LessonService : ILessonService
         }
 
         await _db.SaveChangesAsync();
+
+        // Check if all lessons of the current level are completed
+        var lesson = await _db.Lessons
+            .Include(l => l.Chapter)
+            .FirstOrDefaultAsync(l => l.LessonId == lessonId);
+
+        if (lesson != null)
+        {
+            var completedLevelId = lesson.Chapter.LevelId;
+
+            // Fetch all lesson IDs in this level
+            var levelLessonIds = await _db.Lessons
+                .Where(l => l.Chapter.LevelId == completedLevelId)
+                .Select(l => l.LessonId)
+                .ToListAsync();
+
+            // Count completed lessons for this level
+            var completedCount = await _db.LessonProgresses
+                .CountAsync(p => p.UserId == userId && levelLessonIds.Contains(p.LessonId) && p.IsCompleted);
+
+            // If all lessons in this level are completed, upgrade user's level
+            if (completedCount == levelLessonIds.Count)
+            {
+                var nextLevelEntry = LevelIdMap.FirstOrDefault(kv => kv.Value == completedLevelId + 1);
+                if (nextLevelEntry.Key != null)
+                {
+                    var profile = await _db.LearnerProfiles
+                        .FirstOrDefaultAsync(p => p.UserId == userId);
+                    if (profile != null)
+                    {
+                        var currentGoalsStr = profile.Goals ?? "v1";
+                        var currentGoalsId = LevelIdMap.TryGetValue(currentGoalsStr, out var cid) ? cid : 1;
+                        var nextLevelId = nextLevelEntry.Value;
+
+                        if (nextLevelId > currentGoalsId)
+                        {
+                            var nextLevelStr = nextLevelEntry.Key.ToLower();
+                            profile.Goals = nextLevelStr;
+                            profile.UpdatedAt = DateTime.UtcNow;
+                            await _db.SaveChangesAsync();
+
+                            // Auto-complete lessons below the new level
+                            await InitProgressForLevelAsync(userId, nextLevelStr);
+
+                            return nextLevelStr;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
