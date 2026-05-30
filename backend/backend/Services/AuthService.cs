@@ -304,6 +304,7 @@ public class AuthService : IAuthService
     {
         var user = await _db.Users
             .Include(u => u.LearnerProfile)
+            .Include(u => u.PartnerProfile)
             .FirstOrDefaultAsync(u => u.UserId == userId && u.DeletedAt == null)
             ?? throw new KeyNotFoundException("Không tìm thấy tài khoản.");
 
@@ -316,6 +317,8 @@ public class AuthService : IAuthService
             Level: user.LearnerProfile?.Goals,
             Phone: user.Phone,
             LanguagePref: user.LanguagePref,
+            Bio: user.PartnerProfile?.Bio,
+            CurrentStreak: user.LearnerProfile?.CurrentStreak ?? 0,
             CreatedAt: user.CreatedAt,
             LastLoginAt: user.LastLoginAt,
             PasswordChangedAt: user.PasswordChangedAt

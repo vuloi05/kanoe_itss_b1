@@ -299,4 +299,76 @@ public class LessonService : ILessonService
             await _db.SaveChangesAsync();
         }
     }
+
+    /// <summary>
+    /// Finds the best lesson for the user to continue studying.
+    /// Priority: in-progress (partial) → next not-started → first lesson (new user).
+    /// Returns null when every lesson across all levels is completed.
+    /// </summary>
+    public async Task<ContinueLessonDto?> GetContinueLessonAsync(Guid userId)
+    {
+        // Determine user's registered level
+        var profile = await _db.LearnerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        var userLevelStr = profile?.Goals ?? "v1";
+        var userLevelId = LevelIdMap.TryGetValue(userLevelStr, out var lid) ? lid : 1;
+
+        // Load all lessons in the user's current level, ordered globally by chapter then lesson
+        var orderedLessons = await _db.Lessons
+            .Include(l => l.Chapter)
+            .Where(l => l.Chapter.LevelId == userLevelId)
+            .OrderBy(l => l.Chapter.SortOrder)
+            .ThenBy(l => l.SortOrder)
+            .AsNoTracking()
+            .ToListAsync();
+
+        if (orderedLessons.Count == 0)
+            return null;
+
+        var lessonIds = orderedLessons.Select(l => l.LessonId).ToList();
+
+        var progressMap = await _db.LessonProgresses
+            .Where(p => p.UserId == userId && lessonIds.Contains(p.LessonId))
+            .AsNoTracking()
+            .ToDictionaryAsync(p => p.LessonId);
+
+        // Priority 1: Find the most recently touched in-progress (not completed) lesson
+        var inProgressEntry = progressMap.Values
+            .Where(p => !p.IsCompleted && p.Progress > 0)
+            .OrderByDescending(p => p.CreatedAt)
+            .FirstOrDefault();
+
+        if (inProgressEntry != null)
+        {
+            var lesson = orderedLessons.First(l => l.LessonId == inProgressEntry.LessonId);
+            return ToDto(lesson);
+        }
+
+        // Priority 2: Find the first not-yet-started lesson (no progress record, respecting unlock)
+        foreach (var lesson in orderedLessons)
+        {
+            if (!progressMap.ContainsKey(lesson.LessonId))
+                return ToDto(lesson);
+
+            // Also return if there is a record but 0 progress and not completed
+            var prog = progressMap[lesson.LessonId];
+            if (!prog.IsCompleted && prog.Progress == 0)
+                return ToDto(lesson);
+        }
+
+        // All completed — return null so UI can show "review" state
+        return null;
+    }
+
+    private static ContinueLessonDto ToDto(Lesson lesson) => new(
+        lesson.LessonId,
+        lesson.SceneLabel,
+        lesson.SceneLabelJp,
+        lesson.TitleVi,
+        lesson.TitleJp,
+        lesson.Chapter.TitleVi,
+        lesson.Chapter.TitleJp
+    );
 }

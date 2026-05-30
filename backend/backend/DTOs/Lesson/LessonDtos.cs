@@ -60,3 +60,15 @@ public record ToneNoteDto(
     string Example,
     string Color
 );
+
+// ─── Response DTO for Continue Learning CTA ─────────────────────────────────
+
+public record ContinueLessonDto(
+    Guid LessonId,
+    string SceneLabel,
+    string SceneLabelJp,
+    string TitleVi,
+    string TitleJp,
+    string ChapterTitleVi,
+    string ChapterTitleJp
+);

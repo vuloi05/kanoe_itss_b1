@@ -81,9 +81,9 @@ INSERT INTO lesson_dialogues (dialogue_id, lesson_id, speaker, speaker_jp, line_
     -- ── Ch9, L4: Xin nghỉ phép & Báo ốm ──
     ('f2000000-0000-0000-0104-000000000009', 'd0000000-0000-0000-0900-000000000004',
      'BẠN', 'あなた',
-     'Anh ơi, ngày mai em xin nghỉ phép một ngày được không ạ? Em có việc gia đình cần giải quyết gấp.',
-     'すみません、明日1日お休みをいただけますか？家族の用事を急いで片付ける必要があります。',
-     true, '[{"index":5,"color":"var(--secondary)"},{"index":6,"color":"var(--secondary)"}]', 1),
+     'Anh ơi, thứ sáu tuần này em muốn xin nghỉ phép một ngày. Em cần đưa bố mẹ đi khám bệnh ạ.',
+     'すみません、今週の金曜日に1日休暇をいただきたいです。両親を病院に連れて行く必要があります。',
+     true, '[{"index":6,"color":"var(--secondary)"},{"index":7,"color":"var(--secondary)"},{"index":8,"color":"var(--secondary)"}]', 1),
     ('f2000000-0000-0000-0204-000000000009', 'd0000000-0000-0000-0900-000000000004',
      'SẾP', '上司',
      'Được, nhưng em đã làm đơn trên hệ thống chưa? Nhớ gửi trước 5 giờ chiều nhé.',

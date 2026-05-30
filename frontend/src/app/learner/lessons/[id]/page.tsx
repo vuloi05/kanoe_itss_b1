@@ -5,7 +5,7 @@ import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { lessonApi, ttsApi, voiceLabApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
+import { lessonApi, ttsApi, voiceLabApi, userApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 // Hàm chuyển đổi audio chunks (webm/opus) → WAV (PCM, 16kHz, Mono)
 // để tối ưu cho FPT.AI ASR API — xem chi tiết lý do kỹ thuật trong audio-utils.ts
@@ -679,6 +679,8 @@ export default function LessonDetailPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   // Guard to prevent duplicate auto-complete calls
   const isAutoCompletingRef = useRef(false);
+  // Prevent duplicate record-study API calls within the same session
+  const hasRecordedStudyRef = useRef(false);
 
   // Only count learner lines (isActive) for mastery progress —
   // teacher/partner lines should not inflate the completion requirement
@@ -891,6 +893,13 @@ export default function LessonDetailPage() {
                       next.add(activeDialogueIndex);
                       return next;
                     });
+
+                    // Fire-and-forget: report study activity for streak tracking.
+                    // Only call once per page load to avoid spamming the endpoint.
+                    if (!hasRecordedStudyRef.current) {
+                      hasRecordedStudyRef.current = true;
+                      userApi.recordStudyActivity().catch(console.error);
+                    }
                   }}
                 />
               );

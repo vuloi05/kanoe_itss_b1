@@ -7,17 +7,32 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { useEffect, useState } from "react";
-import { bookingApi, BookingDto } from "@/lib/api";
+import { bookingApi, BookingDto, lessonApi, ContinueLessonDto } from "@/lib/api";
 
 export default function LearnerHomePage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [upcomingBookings, setUpcomingBookings] = useState<BookingDto[]>([]);
+  const [continueLesson, setContinueLesson] = useState<ContinueLessonDto | null>(null);
+  const [continueLessonLoading, setContinueLessonLoading] = useState(true);
+  // null = still has lessons, true = all lessons completed
+  const [allCompleted, setAllCompleted] = useState(false);
 
   useEffect(() => {
     bookingApi.getUpcomingBookings()
       .then(data => setUpcomingBookings(data))
       .catch(console.error);
+
+    lessonApi.getContinueLesson()
+      .then(data => {
+        if (data) {
+          setContinueLesson(data);
+        } else {
+          setAllCompleted(true);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setContinueLessonLoading(false));
   }, []);
 
   // Format a UTC ISO string to Hanoi Time date display
@@ -54,22 +69,53 @@ export default function LearnerHomePage() {
             <div className="bg-surface-container-low p-6 rounded-xl border-l-4 border-secondary italic mb-8 mt-6">
               {t("\"Ngôn ngữ là bản đồ văn hóa của một dân tộc. Nó cho bạn biết họ đến từ đâu và họ đang đi tới đâu.\"", "「言語は人々の文化の地図です。彼らがどこから来て、どこへ行くのかを教えてくれます。」")}
             </div>
-            <Link
-              href="/learner/lessons"
-              className="group inline-flex items-center gap-4 bg-primary text-on-primary px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <div className="text-left">
-                <span className="block text-xs uppercase tracking-widest opacity-80">
-                  {t("Tiếp tục học", "学習を続ける")}
-                </span>
-                <span className="text-lg font-bold">
-                  {t("Bài 05: Tại quán Bún Chả", "レッスン05：ブンチャ屋にて")}
-                </span>
+            {continueLessonLoading ? (
+              /* Skeleton placeholder — matches button dimensions to prevent layout shift */
+              <div className="inline-flex items-center gap-4 bg-primary/20 px-8 py-4 rounded-xl shadow-lg w-80 h-[68px] animate-pulse">
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-20 bg-primary/30 rounded" />
+                  <div className="h-5 w-48 bg-primary/30 rounded" />
+                </div>
+                <div className="w-6 h-6 bg-primary/30 rounded" />
               </div>
-              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-                arrow_forward
-              </span>
-            </Link>
+            ) : allCompleted ? (
+              <Link
+                href="/learner/lessons"
+                className="group inline-flex items-center gap-4 bg-secondary text-on-secondary px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <div className="text-left">
+                  <span className="block text-xs uppercase tracking-widest opacity-80">
+                    {t("Hoàn thành tất cả", "全レッスン完了")}
+                  </span>
+                  <span className="text-lg font-bold">
+                    {t("Ôn tập lại khóa học", "コースを復習する")}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+                  replay
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href={`/learner/lessons/${continueLesson!.lessonId}`}
+                className="group inline-flex items-center gap-4 bg-primary text-on-primary px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <div className="text-left">
+                  <span className="block text-xs uppercase tracking-widest opacity-80">
+                    {t("Tiếp tục học", "学習を続ける")}
+                  </span>
+                  <span className="text-lg font-bold">
+                    {t(
+                      `${continueLesson!.sceneLabel}: ${continueLesson!.titleVi}`,
+                      `${continueLesson!.sceneLabelJp}：${continueLesson!.titleJp}`
+                    )}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+                  arrow_forward
+                </span>
+              </Link>
+            )}
           </div>
           <div className="lg:col-span-5 relative hidden lg:block">
             <div className="aspect-video rounded-xl overflow-hidden shadow-2xl rotate-2">
@@ -105,7 +151,7 @@ export default function LearnerHomePage() {
                 local_fire_department
               </span>
             </div>
-            <p className="text-3xl font-black text-primary">12</p>
+            <p className="text-3xl font-black text-primary">{user?.currentStreak ?? 0}</p>
             <p className="text-sm font-medium text-on-surface-variant">
               {t("Chuỗi ngày học", "継続日数")}
             </p>
