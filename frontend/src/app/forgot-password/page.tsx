@@ -14,6 +14,8 @@ export default function ForgotPasswordPage() {
     email,
     timer,
     isTimerActive,
+    resendTimer,
+    isResendTimerActive,
     register,
     handleSubmit,
     errors,
@@ -117,6 +119,16 @@ export default function ForgotPasswordPage() {
       setOtpValues(Array(6).fill(""));
       inputRefs.current[0]?.focus();
     }
+  };
+
+  // Handle Resend OTP Code
+  const handleResendOtp = async () => {
+    setOtpValues(Array(6).fill(""));
+    setOtpError("");
+    await onResendOtp();
+    setTimeout(() => {
+      inputRefs.current[0]?.focus();
+    }, 100);
   };
 
   // Handle Resubmit New Password
@@ -431,13 +443,13 @@ export default function ForgotPasswordPage() {
                 <span className="text-on-surface-variant">
                   {t("Chưa nhận được mã? ", "コードが届かない場合 ")}
                 </span>
-                {timer > 0 ? (
+                {resendTimer > 0 ? (
                   <span className="text-secondary opacity-60 font-semibold cursor-not-allowed">
-                    {t(`Gửi lại sau (${timer}s)`, `再送信まで (${timer}秒)`)}
+                    {t(`Gửi lại sau (${resendTimer}s)`, `再送信まで (${resendTimer}秒)`)}
                   </span>
                 ) : (
                   <button
-                    onClick={onResendOtp}
+                    onClick={handleResendOtp}
                     disabled={isLoading}
                     className="text-primary hover:text-primary-container font-bold hover:underline focus:outline-none transition-all disabled:opacity-50"
                   >
@@ -445,13 +457,6 @@ export default function ForgotPasswordPage() {
                   </button>
                 )}
               </div>
-
-              <button
-                onClick={resetFlow}
-                className="text-xs text-on-surface-variant hover:text-error transition-all font-semibold uppercase tracking-wider mt-2"
-              >
-                {t("Hủy bỏ giao dịch", "取引をキャンセル")}
-              </button>
 
             </div>
 

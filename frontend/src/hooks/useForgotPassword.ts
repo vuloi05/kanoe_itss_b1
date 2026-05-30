@@ -30,10 +30,15 @@ export function useForgotPassword() {
   const [serverError, setServerError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Countdown timer for OTP (300 seconds = 5 minutes)
+  // Countdown timer for OTP expiry (300 seconds = 5 minutes)
   const [timer, setTimer] = useState(300);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cooldown timer for Resend button (60 seconds = 1 minute)
+  const [resendTimer, setResendTimer] = useState(60);
+  const [isResendTimerActive, setIsResendTimerActive] = useState(false);
+  const resendTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     register,
@@ -45,7 +50,7 @@ export function useForgotPassword() {
     defaultValues: { email: "" },
   });
 
-  // Manage timer countdown
+  // Manage OTP expiry countdown
   useEffect(() => {
     if (isTimerActive && timer > 0) {
       timerRef.current = setInterval(() => {
@@ -61,9 +66,28 @@ export function useForgotPassword() {
     };
   }, [isTimerActive, timer]);
 
+  // Manage Resend cooldown countdown
+  useEffect(() => {
+    if (isResendTimerActive && resendTimer > 0) {
+      resendTimerRef.current = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setIsResendTimerActive(false);
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    }
+
+    return () => {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    };
+  }, [isResendTimerActive, resendTimer]);
+
   const startTimer = () => {
     setTimer(300);
     setIsTimerActive(true);
+    
+    setResendTimer(60);
+    setIsResendTimerActive(true);
   };
 
   // Step 1: Request OTP
@@ -95,9 +119,11 @@ export function useForgotPassword() {
       const res = await authApi.verifyOtp({ email, otp: otpCode });
       setResetToken(res.resetToken);
       setStep("reset");
-      // Stop the timer when verified
+      // Stop the timers when verified
       setIsTimerActive(false);
+      setIsResendTimerActive(false);
       if (timerRef.current) clearInterval(timerRef.current);
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
     } catch (err) {
       if (err instanceof ApiException) {
         setServerError(err.message);
@@ -112,7 +138,7 @@ export function useForgotPassword() {
 
   // Resend OTP code
   const onResendOtp = async () => {
-    if (isTimerActive) return; // Prevent spamming resend
+    if (isResendTimerActive) return; // Prevent spamming resend
     setServerError("");
     setIsLoading(true);
     try {
@@ -156,7 +182,9 @@ export function useForgotPassword() {
     setSuccessMessage("");
     setValue("email", "");
     setIsTimerActive(false);
+    setIsResendTimerActive(false);
     if (timerRef.current) clearInterval(timerRef.current);
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
   };
 
   return {
@@ -164,6 +192,8 @@ export function useForgotPassword() {
     email,
     timer,
     isTimerActive,
+    resendTimer,
+    isResendTimerActive,
     register,
     handleSubmit,
     errors,

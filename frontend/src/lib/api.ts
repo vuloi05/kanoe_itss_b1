@@ -319,7 +319,7 @@ export const lessonApi = {
     api.get<LessonDetailDto>(`/api/lesson/${id}`),
 
   completeLesson: (id: string) =>
-    api.post<{ message: string }>(`/api/lesson/${id}/complete`),
+    api.post<{ message: string; newLevel?: string | null }>(`/api/lesson/${id}/complete`),
 
   getContinueLesson: () =>
     api.get<ContinueLessonDto | undefined>("/api/lesson/continue"),
