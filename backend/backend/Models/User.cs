@@ -73,6 +73,9 @@ public partial class User
     [StringLength(30)]
     public string AccountStatus { get; set; } = "active";
 
+    [Column("token_balance")]
+    public int TokenBalance { get; set; }
+
     [InverseProperty("CancelledByNavigation")]
     public virtual ICollection<Booking> BookingCancelledByNavigations { get; set; } = new List<Booking>();
 
@@ -129,4 +132,10 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<LessonProgress> LessonProgresses { get; set; } = new List<LessonProgress>();
+
+    [InverseProperty("Learner")]
+    public virtual ICollection<TokenTransaction> TokenTransactionsAsLearner { get; set; } = new List<TokenTransaction>();
+
+    [InverseProperty("Partner")]
+    public virtual ICollection<TokenTransaction> TokenTransactionsAsPartner { get; set; } = new List<TokenTransaction>();
 }

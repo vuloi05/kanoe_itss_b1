@@ -254,6 +254,29 @@ export default function PartnerSettingsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Token Wallet Card */}
+                <Link
+                  href="/partner/wallet"
+                  className="p-6 bg-surface-container-lowest rounded-xl engawa-shadow flex items-center justify-between group cursor-pointer hover:bg-primary transition-colors duration-300 md:col-span-2"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/20 flex items-center justify-center group-hover:bg-primary-container transition-colors">
+                      <span className="text-2xl">🪙</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-primary group-hover:text-white">
+                        {t("Ví Token", "トークンウォレット")}
+                      </h3>
+                      <p className="text-xs text-secondary group-hover:text-white/70">
+                        {t("Xem số dư & lịch sử nhận tiền", "残高と受取履歴を確認")}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="material-symbols-outlined text-outline-variant group-hover:text-white">
+                    chevron_right
+                  </span>
+                </Link>
+
                 {/* Email Card */}
                 <div className="p-6 bg-surface-container-lowest rounded-xl engawa-shadow flex items-center justify-between group cursor-pointer hover:bg-primary transition-colors duration-300">
                   <div className="flex items-center gap-4">

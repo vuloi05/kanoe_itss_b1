@@ -68,6 +68,8 @@ public partial class VietImmerseDbContext : DbContext
 
     public virtual DbSet<PasswordReset> PasswordResets { get; set; }
 
+    public virtual DbSet<TokenTransaction> TokenTransactions { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -431,6 +433,32 @@ public partial class VietImmerseDbContext : DbContext
 
             entity.Property(e => e.ResetId).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+        });
+
+        modelBuilder.Entity<TokenTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("token_transactions_pkey");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.AmountPaid).HasDefaultValue(100);
+            entity.Property(e => e.PartnerReceived).HasDefaultValue(70);
+            entity.Property(e => e.PlatformFee).HasDefaultValue(30);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
+
+            entity.HasOne(d => d.Learner)
+                .WithMany(p => p.TokenTransactionsAsLearner)
+                .HasForeignKey(d => d.LearnerId)
+                .HasConstraintName("token_transactions_learner_id_fkey");
+
+            entity.HasOne(d => d.Partner)
+                .WithMany(p => p.TokenTransactionsAsPartner)
+                .HasForeignKey(d => d.PartnerId)
+                .HasConstraintName("token_transactions_partner_id_fkey");
+
+            entity.HasOne(d => d.Conversation)
+                .WithMany()
+                .HasForeignKey(d => d.ConversationId)
+                .HasConstraintName("token_transactions_conversation_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

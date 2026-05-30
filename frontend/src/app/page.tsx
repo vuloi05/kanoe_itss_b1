@@ -176,10 +176,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <span className="text-2xl font-bold text-primary font-headline">VietImmerse</span>
           <div className="flex gap-8 text-sm font-medium text-on-surface-variant">
-            <a className="hover:text-primary transition-colors" href="#">{t("Điều khoản", "利用規約")}</a>
-            <a className="hover:text-primary transition-colors" href="#">{t("Quyền riêng tư", "プライバシー")}</a>
-            <a className="hover:text-primary transition-colors" href="#">{t("Trung tâm trợ giúp", "ヘルプ")}</a>
-            <a className="hover:text-primary transition-colors" href="#">{t("Blog", "ブログ")}</a>
+            <Link className="hover:text-primary transition-colors" href="/terms">{t("Điều khoản", "利用規約")}</Link>
+            <Link className="hover:text-primary transition-colors" href="/privacy">{t("Quyền riêng tư", "プライバシー")}</Link>
+            <Link className="hover:text-primary transition-colors" href="/help">{t("Trung tâm trợ giúp", "ヘルプ")}</Link>
+            <Link className="hover:text-primary transition-colors" href="/blog">{t("Blog", "ブログ")}</Link>
           </div>
           <p className="text-xs text-on-surface-variant">{t("© 2024 VietImmerse. Bảo lưu mọi quyền.", "© 2024 VietImmerse. All rights reserved.")}</p>
         </div>
