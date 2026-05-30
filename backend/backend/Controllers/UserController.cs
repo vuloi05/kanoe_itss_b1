@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using backend.DTOs.User;
 using backend.Hubs;
 using backend.Models;
 using backend.Services;
@@ -33,6 +34,60 @@ public class UserController : ControllerBase
         _photoService = photoService;
         _hubContext = hubContext;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Update the authenticated user's display name and partner bio.
+    /// Auto-creates PartnerProfile row if it doesn't exist yet.
+    /// </summary>
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+    {
+        var userId = GetCurrentUserId();
+
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null)
+            return NotFound(new { message = "User not found." });
+
+        // Update display name when provided
+        if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
+            user.DisplayName = dto.Name.Trim();
+            user.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Upsert partner profile for bio
+        var profile = await _db.PartnerProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            profile = new PartnerProfile
+            {
+                UserId = userId,
+                Bio = dto.Bio,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            _db.PartnerProfiles.Add(profile);
+        }
+        else
+        {
+            profile.Bio = dto.Bio;
+            profile.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("User {UserId} updated profile (name + bio)", userId);
+
+        return Ok(new
+        {
+            message = "Profile updated successfully.",
+            displayName = user.DisplayName,
+            bio = profile.Bio,
+        });
     }
 
     /// <summary>
@@ -142,6 +197,63 @@ public class UserController : ControllerBase
             .ToListAsync();
             
         return Ok(onlineUserIds);
+    }
+
+    /// <summary>
+    /// Record a study activity and update the learner's streak.
+    /// Called from Voice Lab when a learner passes a pronunciation exercise.
+    /// </summary>
+    [Authorize]
+    [HttpPost("record-study")]
+    public async Task<IActionResult> RecordStudy()
+    {
+        var userId = GetCurrentUserId();
+
+        var profile = await _db.LearnerProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+            return NotFound(new { message = "Learner profile not found." });
+
+        var today = DateTime.UtcNow.Date;
+        var lastDate = profile.LastStudyDate?.Date;
+
+        if (lastDate == today)
+        {
+            // Already recorded for today — return current streak without changes
+            return Ok(new { currentStreak = profile.CurrentStreak ?? 0 });
+        }
+
+        if (lastDate == null)
+        {
+            profile.CurrentStreak = 1;
+        }
+        else if (lastDate == today.AddDays(-1))
+        {
+            // Consecutive day — increment streak
+            profile.CurrentStreak = (profile.CurrentStreak ?? 0) + 1;
+        }
+        else
+        {
+            // Missed one or more days — reset
+            profile.CurrentStreak = 1;
+        }
+
+        // Track personal best
+        if ((profile.CurrentStreak ?? 0) > (profile.LongestStreak ?? 0))
+        {
+            profile.LongestStreak = profile.CurrentStreak;
+        }
+
+        profile.LastStudyDate = DateTime.UtcNow;
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "User {UserId} recorded study activity — streak: {Streak}",
+            userId, profile.CurrentStreak);
+
+        return Ok(new { currentStreak = profile.CurrentStreak });
     }
 
     private Guid GetCurrentUserId()

@@ -9,7 +9,10 @@ public record UserProfileResponse(
     string? Level,
     string? Phone,
     string? LanguagePref,
+    string? Bio,
+    int CurrentStreak,
     DateTime CreatedAt,
     DateTime? LastLoginAt,
     DateTime? PasswordChangedAt
 );
+

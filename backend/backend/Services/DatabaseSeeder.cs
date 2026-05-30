@@ -140,6 +140,13 @@ public static class DatabaseSeeder
         {
             await ApplyFileIfChangedAsync(context, logger, fixProgressV2AbcFile, "fix_progress_v2_abc.sql");
         }
+
+        // ── Phase 6: Add last_study_date column for streak tracking ──
+        var addStreakFile = Path.Combine(sqlDir, "add_streak_last_study.sql");
+        if (File.Exists(addStreakFile))
+        {
+            await ApplyFileIfChangedAsync(context, logger, addStreakFile, "add_streak_last_study.sql");
+        }
     }
 
     /// <summary>

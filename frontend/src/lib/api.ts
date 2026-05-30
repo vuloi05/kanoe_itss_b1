@@ -115,6 +115,8 @@ export interface UserProfile {
   level?: string | null;
   phone: string | null;
   languagePref: string | null;
+  bio?: string | null;
+  currentStreak: number;
   createdAt: string;
   lastLoginAt: string | null;
   passwordChangedAt: string | null;
@@ -152,10 +154,14 @@ export const userApi = {
     formData.append("file", file);
     return uploadRequest<{ avatarUrl: string }>("/api/users/avatar", formData);
   },
+  updateProfile: (data: { name: string; bio: string }) =>
+    api.put<{ message: string; displayName: string; bio: string }>("/api/users/profile", data),
   updatePresence: (isOnline: boolean) =>
     api.post<{ isOnline: boolean; lastSeen: string }>("/api/users/presence", { isOnline }),
   getOnlineUsers: () =>
     api.get<string[]>("/api/users/presence"),
+  recordStudyActivity: () =>
+    api.post<{ currentStreak: number }>("/api/users/record-study"),
 };
 
 export interface ConversationDto {
@@ -314,7 +320,22 @@ export const lessonApi = {
 
   completeLesson: (id: string) =>
     api.post<{ message: string }>(`/api/lesson/${id}/complete`),
+
+  getContinueLesson: () =>
+    api.get<ContinueLessonDto | undefined>("/api/lesson/continue"),
 };
+
+// ─── Continue Learning CTA ────────────────────────────────────
+
+export interface ContinueLessonDto {
+  lessonId: string;
+  sceneLabel: string;
+  sceneLabelJp: string;
+  titleVi: string;
+  titleJp: string;
+  chapterTitleVi: string;
+  chapterTitleJp: string;
+}
 
 // ─── Voice Lab (Pronunciation Scoring) ────────────────────────
 export interface VoiceLabEvaluateResponse {

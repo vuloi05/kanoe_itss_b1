@@ -65,4 +65,23 @@ public class LessonController : ControllerBase
         await _lessonService.CompleteLessonAsync(userId, id);
         return Ok(new { message = "Lesson marked as completed." });
     }
+
+    /// <summary>
+    /// Get the next lesson for the authenticated user to continue studying.
+    /// Returns the in-progress or next available lesson, or 204 if all completed.
+    /// </summary>
+    [Authorize]
+    [HttpGet("continue")]
+    public async Task<IActionResult> GetContinueLesson()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "Invalid token." });
+
+        var result = await _lessonService.GetContinueLessonAsync(userId);
+        if (result == null)
+            return NoContent();
+
+        return Ok(result);
+    }
 }

@@ -82,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         level: response.level ?? null,
         phone: null,
         languagePref: null,
+        currentStreak: 0,
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
         passwordChangedAt: null,

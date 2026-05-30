@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -39,6 +39,9 @@ public partial class LearnerProfile
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
+
+    [Column("last_study_date")]
+    public DateTime? LastStudyDate { get; set; }
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
