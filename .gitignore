@@ -69,3 +69,6 @@ appsettings.Local.json
 # ========================
 coverage/
 *.pem
+
+# Screenshots
+Screen/

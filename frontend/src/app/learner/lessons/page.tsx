@@ -183,15 +183,23 @@ function getNextLessonId(chapters: ChapterDto[]): string | null {
 
 type LevelLockMap = Record<number, boolean>;
 
+/** Map "V1"/"V2"/"V3" string to numeric tab index (default 1) */
+function parseLevelToNumber(level: string | undefined | null): number {
+  if (!level) return 1;
+  const match = level.match(/\d+/);
+  const num = match ? parseInt(match[0], 10) : 1;
+  return num >= 1 && num <= 3 ? num : 1;
+}
+
 export default function LessonsPage() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [chapters, setChapters] = useState<ChapterDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<number>>(new Set());
-  const [selectedLevel, setSelectedLevel] = useState(1);
+  const [selectedLevel, setSelectedLevel] = useState(() => parseLevelToNumber(user?.currentLevel));
   const [toast, setToast] = useState<{ vi: string; jp: string } | null>(null);
 
   // Cache progress data per level for lock calculations
@@ -267,33 +275,37 @@ export default function LessonsPage() {
 
   // Derived state: level lock map computed from cached progress.
   // V1: always open.
-  // V2: locked if V1 < 100% (bypass when user's starting level is V2).
-  // V3: locked if V2 < 100%.
-  const userStartingLevel = user?.level?.toLowerCase();
+  // V2: locked if V1 < 100% (bypass when user's starting level is V2+).
+  // V3: locked if V2 < 100% (bypass when user's starting level is V3).
+
   const v1Stats = levelProgressCache[1] ? getLevelStats(levelProgressCache[1]) : null;
   const v2Stats = levelProgressCache[2] ? getLevelStats(levelProgressCache[2]) : null;
-  // V2 bypass: if user's assigned starting level is V2, skip V1 completion check
-  const isV2Bypassed = userStartingLevel === "v2";
+  const userLevelNum = parseLevelToNumber(user?.currentLevel);
   const levelLockMap: LevelLockMap = {
     1: false,
-    2: isV2Bypassed ? false : !(v1Stats && v1Stats.percent >= 100),
-    3: !(v2Stats && v2Stats.percent >= 100),
+    2: userLevelNum >= 2 ? false : !(v1Stats && v1Stats.percent >= 100),
+    3: userLevelNum >= 3 ? false : !(v2Stats && v2Stats.percent >= 100),
   };
 
-  // Initial fetch: load V1 (visible) + V2 (for lock calculation) in parallel
+
+  // Initial fetch: load user's level (visible) + adjacent levels (for lock calculation)
   useEffect(() => {
-    if (initialFetchDone.current) return;
+    if (initialFetchDone.current || authLoading) return;
     initialFetchDone.current = true;
+
+    const startLevel = parseLevelToNumber(user?.currentLevel);
+    setSelectedLevel(startLevel);
 
     const fetchInitial = async () => {
       try {
-        const [v1Data, v2Data] = await Promise.all([
-          lessonApi.getChaptersByLevel(1),
-          lessonApi.getChaptersByLevel(2),
-        ]);
-        setChapters(v1Data);
-        applyChapterExpansion(v1Data);
-        setLevelProgressCache({ 1: v1Data, 2: v2Data });
+        // Always pre-fetch all levels for accurate lock calculations
+        const levelFetches = [1, 2, 3].map((lv) => lessonApi.getChaptersByLevel(lv));
+        const [v1Data, v2Data, v3Data] = await Promise.all(levelFetches);
+
+        const activeLevelData = startLevel === 3 ? v3Data : startLevel === 2 ? v2Data : v1Data;
+        setChapters(activeLevelData);
+        applyChapterExpansion(activeLevelData);
+        setLevelProgressCache({ 1: v1Data, 2: v2Data, 3: v3Data });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setError(message);
@@ -304,7 +316,7 @@ export default function LessonsPage() {
 
     fetchInitial();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [authLoading]);
 
   // Compute sequential chapter lock state within current level
   const chaptersWithLock = chapters.map((chapter, idx) => {

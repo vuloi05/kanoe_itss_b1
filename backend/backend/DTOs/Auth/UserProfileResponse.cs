@@ -11,6 +11,11 @@ public record UserProfileResponse(
     string? LanguagePref,
     string? Bio,
     int CurrentStreak,
+    int LearnedVocabCount,
+    int AverageToneAccuracy,
+    int TotalStudyHours,
+    string CurrentLevel,
+    int MasteryPercentage,
     DateTime CreatedAt,
     DateTime? LastLoginAt,
     DateTime? PasswordChangedAt

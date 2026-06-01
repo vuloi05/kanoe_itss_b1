@@ -175,15 +175,45 @@ public class LessonService : ILessonService
         return result;
     }
 
-    public async Task<LessonDetailDto?> GetLessonByIdAsync(Guid lessonId)
+    public async Task<LessonDetailDto?> GetLessonByIdAsync(Guid lessonId, Guid userId)
     {
         var lesson = await _db.Lessons
             .Include(l => l.Dialogues.OrderBy(d => d.SortOrder))
             .Include(l => l.ToneNotes.OrderBy(t => t.SortOrder))
+            .Include(l => l.Chapter)
             .AsNoTracking()
             .FirstOrDefaultAsync(l => l.LessonId == lessonId);
 
         if (lesson == null) return null;
+
+        // Determine lesson's level ID via Chapter → LevelId
+        var lessonLevelId = lesson.Chapter?.LevelId ?? 1;
+
+        // Determine user's registered level
+        var profile = await _db.LearnerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+        var userLevelStr = profile?.Goals ?? "v1";
+        var userLevelId = LevelIdMap.TryGetValue(userLevelStr, out var lid) ? lid : 1;
+
+        bool isCompleted;
+        int progressValue;
+
+        if (lessonLevelId < userLevelId)
+        {
+            // Below user's level — auto-complete
+            isCompleted = true;
+            progressValue = 100;
+        }
+        else
+        {
+            // Load from DB
+            var progress = await _db.LessonProgresses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lessonId);
+            isCompleted = progress?.IsCompleted ?? false;
+            progressValue = progress?.Progress ?? 0;
+        }
 
         return new LessonDetailDto(
             lesson.LessonId,
@@ -197,6 +227,8 @@ public class LessonService : ILessonService
             lesson.TagJp,
             lesson.DurationMinutes,
             lesson.IsLocked,
+            isCompleted,
+            progressValue,
             lesson.Dialogues.Select(d => new DialogueDto(
                 d.Speaker,
                 d.SpeakerJp,

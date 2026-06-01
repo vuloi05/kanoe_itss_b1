@@ -250,6 +250,12 @@ body {
   to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
 
+/* Lesson complete celebration entrance */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Help center — prose styling for FAQ accordion content */
 .prose-help strong {
   color: var(--on-surface);

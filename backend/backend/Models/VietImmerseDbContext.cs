@@ -70,6 +70,8 @@ public partial class VietImmerseDbContext : DbContext
 
     public virtual DbSet<TokenTransaction> TokenTransactions { get; set; }
 
+    public virtual DbSet<LearnerVocabulary> LearnerVocabularies { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -459,6 +461,23 @@ public partial class VietImmerseDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(d => d.ConversationId)
                 .HasConstraintName("token_transactions_conversation_id_fkey");
+        });
+
+        modelBuilder.Entity<LearnerVocabulary>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("learner_vocabularies_pkey");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.LearnedAt).HasDefaultValueSql("now()");
+
+            entity.HasIndex(e => new { e.LearnerProfileId, e.Word })
+                .IsUnique()
+                .HasDatabaseName("learner_vocab_unique_word");
+
+            entity.HasOne(d => d.LearnerProfile)
+                .WithMany(p => p.LearnerVocabularies)
+                .HasForeignKey(d => d.LearnerProfileId)
+                .HasConstraintName("learner_vocab_profile_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

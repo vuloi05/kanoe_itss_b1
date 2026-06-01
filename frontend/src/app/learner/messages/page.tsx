@@ -20,6 +20,7 @@ import {
   autoResizeTextarea,
   normalizeLessonStatus,
 } from "@/lib/chatUtils";
+import MessagePreviewRow from "@/components/messages/MessagePreviewRow";
 
 export default function LearnerMessagesPage() {
   const [activeConvIdx, setActiveConvIdx] = useState(0);
@@ -416,7 +417,20 @@ export default function LearnerMessagesPage() {
                             : "bg-surface-variant"
                         }`}
                       >
-                        {conv.partnerName.charAt(0)}
+                        {(() => {
+                          const avatarSrc = conv.partnerAvatarUrl
+                            || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(conv.partnerName)}&backgroundColor=c0aede`;
+                          return (
+                            <img
+                              alt={conv.partnerName}
+                              className="w-full h-full object-cover"
+                              src={avatarSrc}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          );
+                        })()}
                       </div>
                       <div 
                         className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
@@ -444,15 +458,13 @@ export default function LearnerMessagesPage() {
                           </span>
                         )}
                       </div>
-                      <p
-                        className={`text-xs mt-1 truncate ${
-                          activeConvIdx === idx
-                            ? "text-secondary"
-                            : "text-on-surface-variant"
-                        } ${conv.unreadCount > 0 ? "font-bold text-primary" : ""}`}
-                      >
-                        {conv.lastMessage || t("Chưa có tin nhắn", "メッセージなし")}
-                      </p>
+                      <MessagePreviewRow
+                        lastMessage={conv.lastMessage}
+                        lastMessageType={conv.lastMessageType}
+                        unreadCount={conv.unreadCount}
+                        active={activeConvIdx === idx}
+                        t={t}
+                      />
                     </div>
                   </div>
                 </button>
@@ -468,7 +480,20 @@ export default function LearnerMessagesPage() {
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-container flex items-center justify-center font-bold text-on-primary-container text-sm">
-                  {activeConv?.partnerName?.charAt(0)}
+                  {(() => {
+                    const avatarSrc = activeConv?.partnerAvatarUrl
+                      || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(activeConv?.partnerName || "user")}&backgroundColor=c0aede`;
+                    return (
+                      <img
+                        alt={activeConv?.partnerName}
+                        className="w-full h-full object-cover"
+                        src={avatarSrc}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    );
+                  })()}
                 </div>
                 {activeConv && (
                   <div 

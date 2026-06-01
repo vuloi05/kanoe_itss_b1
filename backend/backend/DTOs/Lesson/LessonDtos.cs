@@ -40,6 +40,8 @@ public record LessonDetailDto(
     string? TagJp,
     int? DurationMinutes,
     bool IsLocked,
+    bool IsCompleted,
+    int Progress,
     List<DialogueDto> Dialogues,
     List<ToneNoteDto> ToneNotes
 );

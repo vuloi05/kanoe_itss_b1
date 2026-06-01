@@ -43,7 +43,7 @@ export default function LearnerSettingsPage() {
   const { logout, user, updateUser } = useAuth();
   const [showAvatarModal, setShowAvatarModal] = useState(false);
 
-  const currentLevel = user?.level ?? "v3";
+  const currentLevel = user?.currentLevel ?? "V1";
 
   const [passwordChangedLabel, setPasswordChangedLabel] = useState<{ vi: string; ja: string } | null>(null);
 
@@ -52,7 +52,12 @@ export default function LearnerSettingsPage() {
 
     authApi.getProfile()
       .then((profile) => {
-        if (!cancelled && profile.passwordChangedAt) {
+        if (cancelled) return;
+
+        // Sync fresh profile into auth context so currentLevel is accurate
+        updateUser(profile);
+
+        if (profile.passwordChangedAt) {
           setPasswordChangedLabel(getRelativeTime(profile.passwordChangedAt));
         }
       })
@@ -61,6 +66,7 @@ export default function LearnerSettingsPage() {
       });
 
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const passwordSubtext = passwordChangedLabel
@@ -163,10 +169,10 @@ export default function LearnerSettingsPage() {
             <div>
               <div className="flex justify-between items-end mb-2">
                 <span className="text-[13px] font-medium text-[#64748B] dark:text-slate-400">Hanoi Dialect Mastery</span>
-                <span className="text-[15px] font-bold text-[#112340] dark:text-white">64%</span>
+                <span className="text-[15px] font-bold text-[#112340] dark:text-white">{user?.masteryPercentage ?? 0}%</span>
               </div>
               <div className="h-2 w-full bg-[#E2E8F0] dark:bg-slate-700 rounded-full overflow-hidden">
-                <div className="h-full bg-[#112340] dark:bg-blue-500 rounded-full w-[64%]"></div>
+                <div className="h-full bg-[#112340] dark:bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${user?.masteryPercentage ?? 0}%` }}></div>
               </div>
             </div>
           </div>
@@ -191,17 +197,17 @@ export default function LearnerSettingsPage() {
                   <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Chuỗi ngày", "継続日数")}</span>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm flex flex-col justify-center">
-                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">840</span>
+                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">{user?.learnedVocabCount ?? 0}</span>
                   <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wide mt-1">VOCAB</span>
                   <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Từ vựng", "単語数")}</span>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm flex flex-col justify-center">
-                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">92%</span>
+                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">{user?.averageToneAccuracy ?? 0}%</span>
                   <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wide mt-1">TONE ACC.</span>
                   <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Phát âm", "声調精度")}</span>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm flex flex-col justify-center">
-                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">24</span>
+                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">{user?.totalStudyHours ?? 0}</span>
                   <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wide mt-1">HOURS</span>
                   <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Thời gian", "学習時間")}</span>
                 </div>

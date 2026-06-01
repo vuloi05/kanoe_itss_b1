@@ -38,6 +38,8 @@ public class MessageService : IMessageService
                 c.LearnerId,
                 PartnerName = c.Partner.DisplayName,
                 LearnerName = c.Learner.DisplayName,
+                PartnerAvatarUrl = c.Partner.AvatarUrl,
+                LearnerAvatarUrl = c.Learner.AvatarUrl,
                 CreatedAt = c.CreatedAt,
                 LastMessage = _context.Messages
                     .Where(m => m.ConversationId == c.ConversationId)
@@ -48,6 +50,7 @@ public class MessageService : IMessageService
             })
             .ToListAsync();
 
+        // Determine which side the current user is on and get the other person's avatar
         return conversations.Select(c => new ConversationDto
         {
             ConversationId = c.ConversationId,
@@ -55,7 +58,20 @@ public class MessageService : IMessageService
             LearnerId = (Guid)c.LearnerId!,
             PartnerName = c.PartnerName,
             LearnerName = c.LearnerName,
-            LastMessage = c.LastMessage?.Content,
+            PartnerAvatarUrl = c.PartnerId == userId
+                ? c.LearnerAvatarUrl
+                : c.PartnerAvatarUrl,
+            LastMessage = string.IsNullOrEmpty(c.LastMessage?.Content)
+                ? c.LastMessage?.MessageType switch
+                {
+                    "LESSON_REQUEST" => "Yêu cầu học thử",
+                    "BOOKING_CONFIRMED" => "Đã xác nhận lịch",
+                    "BOOKING_DECLINED" => "Đã từ chối lịch",
+                    "BOOKING_CANCELLED" => "Đã hủy lịch",
+                    _ => null
+                }
+                : c.LastMessage?.Content,
+            LastMessageType = c.LastMessage?.MessageType,
             LastMessageTime = c.LastMessage?.SentAt,
             UnreadCount = c.UnreadCount,
             CreatedAt = c.CreatedAt

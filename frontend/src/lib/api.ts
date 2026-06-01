@@ -117,6 +117,11 @@ export interface UserProfile {
   languagePref: string | null;
   bio?: string | null;
   currentStreak: number;
+  learnedVocabCount: number;
+  averageToneAccuracy: number;
+  totalStudyHours: number;
+  currentLevel: string;
+  masteryPercentage: number;
   createdAt: string;
   lastLoginAt: string | null;
   passwordChangedAt: string | null;
@@ -162,6 +167,8 @@ export const userApi = {
     api.get<string[]>("/api/users/presence"),
   recordStudyActivity: () =>
     api.post<{ currentStreak: number }>("/api/users/record-study"),
+  recordStudyTime: (seconds: number) =>
+    api.post<{ totalStudySeconds: number }>("/api/users/record-time", { seconds }),
 };
 
 export interface ConversationDto {
@@ -170,7 +177,9 @@ export interface ConversationDto {
   learnerId: string;
   partnerName: string;
   learnerName: string;
+  partnerAvatarUrl: string | null;
   lastMessage: string | null;
+  lastMessageType: string | null;
   lastMessageTime: string | null;
   unreadCount: number;
   createdAt: string;
@@ -307,6 +316,8 @@ export interface LessonDetailDto {
   tagJp: string | null;
   durationMinutes: number | null;
   isLocked: boolean;
+  isCompleted: boolean;
+  progress: number;
   dialogues: DialogueDto[];
   toneNotes: ToneNoteDto[];
 }
@@ -349,6 +360,13 @@ export interface VoiceLabEvaluateResponse {
 export const voiceLabApi = {
   evaluate: (formData: FormData) =>
     uploadRequest<VoiceLabEvaluateResponse>("/api/voicelab/evaluate", formData),
+};
+
+// ─── Vocabulary Tracking ──────────────────────────────────────
+export const vocabApi = {
+  /** Record learned words (fire-and-forget from Voice Lab) */
+  recordLearnedWords: (words: string[]) =>
+    api.post<{ recorded: number; totalVocab: number }>("/api/vocabularies/record", { words }),
 };
 
 // ─── Partner Matching ─────────────────────────────────────────
@@ -413,4 +431,4 @@ export const matchingApi = {
   /** Returns transaction history (debits + credits), newest first */
   getTransactions: () =>
     api.get<TransactionHistoryDto[]>("/api/matching/transactions"),
-};
+};

@@ -256,6 +256,33 @@ public class UserController : ControllerBase
         return Ok(new { currentStreak = profile.CurrentStreak });
     }
 
+    /// <summary>
+    /// Record study time (heartbeat from learning pages).
+    /// Caps at 300s per call to mitigate abuse from stale browser tabs.
+    /// </summary>
+    [Authorize]
+    [HttpPost("record-time")]
+    public async Task<IActionResult> RecordStudyTime([FromBody] RecordStudyTimeDto dto)
+    {
+        if (dto.Seconds <= 0)
+            return BadRequest(new { message = "Seconds must be positive." });
+
+        var cappedSeconds = Math.Min(dto.Seconds, 300);
+        var userId = GetCurrentUserId();
+
+        var profile = await _db.LearnerProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+            return NotFound(new { message = "Learner profile not found." });
+
+        profile.TotalStudySeconds += cappedSeconds;
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return Ok(new { totalStudySeconds = profile.TotalStudySeconds });
+    }
+
     private Guid GetCurrentUserId()
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)
