@@ -1,15 +1,22 @@
 "use client";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import Link from "next/link";
+
+// SSR-safe dynamic import: react-confetti requires window dimensions
+// and Canvas API which are unavailable during server-side rendering.
+// Using `ssr: false` prevents hydration mismatch errors in Next.js.
+const ReactConfetti = dynamic(() => import("react-confetti"), { ssr: false });
 import { useLanguage } from "@/contexts/LanguageContext";
-import { lessonApi, ttsApi, voiceLabApi, userApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
+import { lessonApi, ttsApi, voiceLabApi, userApi, vocabApi, type LessonDetailDto, type DialogueDto } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 // Hàm chuyển đổi audio chunks (webm/opus) → WAV (PCM, 16kHz, Mono)
 // để tối ưu cho FPT.AI ASR API — xem chi tiết lý do kỹ thuật trong audio-utils.ts
 import { exportToWav } from "@/lib/audio-utils";
+import { useStudyTimeTracker } from "@/hooks/useStudyTimeTracker";
 
 // Encouraging pass thresholds for Japanese learners studying Vietnamese pronunciation.
 // Completeness is strict (must read all words), but accuracy is lenient to avoid discouragement.
@@ -25,6 +32,52 @@ interface HighlightWord {
   color: string;
 }
 
+// Word timestamp for precise karaoke-style highlighting
+interface WordTimestamp {
+  word: string;
+  start: number;
+  end: number;
+}
+
+/**
+ * Estimate word-level timestamps based on syllable count.
+ * Vietnamese TTS typically speaks at ~4-5 syllables/second.
+ * This gives much better accuracy than uniform distribution.
+ */
+function estimateWordTimestamps(words: string[], totalDuration: number): WordTimestamp[] {
+  if (words.length === 0) return [];
+
+  // Count syllables per word (Vietnamese: each word is typically 1-3 syllables)
+  // Heuristic: count vowel clusters as syllable boundaries
+  const countSyllables = (word: string): number => {
+    const cleaned = word.toLowerCase().replace(/[.,!?]/g, '');
+    const vowels = cleaned.match(/[aăâeêioôơuưy]+/g);
+    return vowels ? vowels.length : 1;
+  };
+
+  const syllableCounts = words.map(countSyllables);
+  const totalSyllables = syllableCounts.reduce((sum, c) => sum + c, 0);
+
+  // Allocate duration proportionally to syllable count
+  const timestamps: WordTimestamp[] = [];
+  let currentTime = 0;
+
+  for (let i = 0; i < words.length; i++) {
+    const syllableRatio = syllableCounts[i] / totalSyllables;
+    const wordDuration = totalDuration * syllableRatio;
+
+    timestamps.push({
+      word: words[i],
+      start: currentTime,
+      end: currentTime + wordDuration,
+    });
+
+    currentTime += wordDuration;
+  }
+
+  return timestamps;
+}
+
 function parseHighlightWords(json: string | null): HighlightWord[] {
   if (!json) return [];
   try {
@@ -35,37 +88,139 @@ function parseHighlightWords(json: string | null): HighlightWord[] {
 }
 
 // ─── TTS Shadowing Hook ────────────────────────────────────────────────────────
-function useTTSShadowing(text: string) {
+// Uses Web Audio API for sample-accurate timing + requestAnimationFrame for smooth UI updates.
+// Eliminates decode latency and provides microsecond-precision playback tracking.
+
+function useTTSShadowing(text: string, onEnded?: () => void) {
   const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const intervalRef = useRef<number | null>(null);
-  const words = text.split(/\s+/);
 
-  // Cleanup on unmount
+  // Web Audio API refs for sample-accurate playback
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const durationRef = useRef<number>(0);
+  // Word timestamps for syllable-weighted highlight sync (Tier 3)
+  const wordTimestampsRef = useRef<WordTimestamp[]>([]);
+
+  const rafRef = useRef<number | null>(null);
+  const lastWordIdxRef = useRef<number>(-1);
+  const onEndedRef = useRef(onEnded);
+
+  useEffect(() => { onEndedRef.current = onEnded; }, [onEnded]);
+
+  const words = text.split(/\s+/);
+  const wordCountRef = useRef(words.length);
+  useEffect(() => { wordCountRef.current = words.length; }, [words.length]);
+
+  const cancelRaf = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  }, []);
+
+  const stopSource = useCallback(() => {
+    if (sourceNodeRef.current) {
+      try { sourceNodeRef.current.stop(); } catch { /* already stopped */ }
+      sourceNodeRef.current.disconnect();
+      sourceNodeRef.current = null;
+    }
+  }, []);
+
+  // rAF loop: reads AudioContext.currentTime (sample-accurate, no decode lag)
+  // instead of HTMLAudioElement.currentTime which has ~50-100ms decode latency.
+  // Uses syllable-weighted timestamps (Tier 3) for precise per-word sync.
+  const startTrackingLoop = useCallback(() => {
+    const tick = () => {
+      const ctx = audioContextRef.current;
+      if (!ctx || !sourceNodeRef.current) return;
+
+      const elapsed = ctx.currentTime - startTimeRef.current;
+      const duration = durationRef.current;
+
+      if (elapsed >= duration) return;
+
+      const timestamps = wordTimestampsRef.current;
+      let newIdx: number;
+
+      if (timestamps.length > 0) {
+        // Binary search for current word by elapsed time
+        let lo = 0, hi = timestamps.length - 1;
+        newIdx = hi;
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          if (elapsed < timestamps[mid].start) {
+            hi = mid - 1;
+          } else if (elapsed >= timestamps[mid].end) {
+            lo = mid + 1;
+          } else {
+            newIdx = mid;
+            break;
+          }
+        }
+        if (elapsed >= timestamps[timestamps.length - 1].end) {
+          newIdx = timestamps.length - 1;
+        }
+      } else {
+        // Fallback: uniform distribution
+        const wordCount = wordCountRef.current;
+        const segmentDuration = duration / wordCount;
+        newIdx = Math.floor(elapsed / segmentDuration);
+        if (newIdx >= wordCount) newIdx = wordCount - 1;
+        if (newIdx < 0) newIdx = 0;
+      }
+
+      if (newIdx !== lastWordIdxRef.current) {
+        lastWordIdxRef.current = newIdx;
+        setActiveWordIdx(newIdx);
+      }
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  // Preload: fetch + decode audio into AudioBuffer as soon as component mounts.
+  // This eliminates the fetch + decode latency on first click entirely.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+
+    const preload = async () => {
+      if (ttsCache.get(text)) return; // URL already cached, skip
+
+      try {
+        const result = await ttsApi.synthesize(text);
+        if (!cancelled) ttsCache.set(text, result.audioUrl);
+      } catch {
+        // Preload failure is silent — play() will retry on demand
+      }
+    };
+
+    preload();
+    return () => { cancelled = true; };
+  }, [text]);
+
+  // Cleanup on unmount: stop source, cancel rAF, close AudioContext
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+      cancelRaf();
+      stopSource();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
       }
-      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, []);
+  }, [cancelRaf, stopSource]);
 
   const play = useCallback(async () => {
     if (typeof window === "undefined" || isLoading) return;
 
-    // Stop any current playback first
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    cancelRaf();
+    stopSource();
 
     let audioUrl = ttsCache.get(text);
 
@@ -83,94 +238,102 @@ function useTTSShadowing(text: string) {
       setIsLoading(false);
     }
 
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
+    try {
+      // Proxy through backend to avoid CORS block on FPT CDN.
+      // FPT CDN does not set Access-Control-Allow-Origin, so direct fetch() fails.
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const proxyUrl = `${backendUrl}/api/tts/audio?url=${encodeURIComponent(audioUrl)}`;
+      const response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+      const arrayBuffer = await response.arrayBuffer();
 
-    // Retry wrapper — FPT CDN may still be processing even after backend poll
-    const tryPlay = (retriesLeft: number) => {
-      audio.onplay = () => {
-        setIsPlaying(true);
-        const estimatedDuration = audio.duration || words.length * 0.35;
-        const interval = (estimatedDuration / words.length) * 1000;
-        let idx = 0;
-        setActiveWordIdx(0);
-        intervalRef.current = window.setInterval(() => {
-          idx++;
-          if (idx < words.length) {
-            setActiveWordIdx(idx);
-          } else {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-          }
-        }, interval);
-      };
+      // Reuse or create AudioContext (browsers limit total contexts per page)
+      if (!audioContextRef.current || audioContextRef.current.state === "closed") {
+        audioContextRef.current = new AudioContext();
+      }
+      const ctx = audioContextRef.current;
 
-      audio.onended = () => {
+      // Resume context if suspended (browser autoplay policy)
+      if (ctx.state === "suspended") await ctx.resume();
+
+      // decodeAudioData gives us a fully decoded AudioBuffer — zero decode latency at playback
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+      durationRef.current = audioBuffer.duration;
+
+      // Tier 3: Calculate syllable-weighted word timestamps for precise sync
+      wordTimestampsRef.current = estimateWordTimestamps(words, audioBuffer.duration);
+
+      const source = ctx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(ctx.destination);
+      sourceNodeRef.current = source;
+
+      // Record the exact AudioContext timestamp at start — used for sample-accurate elapsed calc
+      startTimeRef.current = ctx.currentTime;
+      lastWordIdxRef.current = 0;
+      setActiveWordIdx(0);
+      setIsPlaying(true);
+
+      source.onended = () => {
+        cancelRaf();
         setIsPlaying(false);
         setActiveWordIdx(-1);
-        if (intervalRef.current) clearInterval(intervalRef.current);
+        lastWordIdxRef.current = -1;
+        onEndedRef.current?.();
       };
 
-      audio.onerror = () => {
-        if (retriesLeft > 0) {
-          setTimeout(() => {
-            audio.load();
-            tryPlay(retriesLeft - 1);
-          }, 800);
-          return;
-        }
-        console.error("Audio playback failed after retries");
-        setIsPlaying(false);
-        setActiveWordIdx(-1);
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        // Evict stale cache entry so next click fetches a fresh URL
-        ttsCache.delete(text);
-      };
-
-      audio.play().catch((err) => {
-        if (retriesLeft > 0) {
-          setTimeout(() => {
-            audio.load();
-            tryPlay(retriesLeft - 1);
-          }, 800);
-          return;
-        }
-        console.error("Audio playback failed:", err);
-        setIsPlaying(false);
-        ttsCache.delete(text);
-      });
-    };
-
-    tryPlay(3);
-  }, [text, words.length, isLoading]);
+      source.start(0);
+      startTrackingLoop();
+    } catch (err) {
+      console.error("Audio playback failed:", err);
+      // Evict stale cache entry so next click re-fetches
+      ttsCache.delete(text);
+      setIsLoading(false);
+      setIsPlaying(false);
+    }
+  }, [text, isLoading, cancelRaf, stopSource, startTrackingLoop]);
 
   const stop = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    cancelRaf();
+    stopSource();
     setIsPlaying(false);
     setActiveWordIdx(-1);
-  }, []);
+    lastWordIdxRef.current = -1;
+  }, [cancelRaf, stopSource]);
 
   return { words, activeWordIdx, isPlaying, isLoading, play, stop };
 }
 
 // ─── Dialogue Line Component ───────────────────────────────────────────────────
-function DialogueLine({ dlg, isLast, lang, showSubtitle, isSelected, isPassed, onSelect }: {
+// Exposed handle allows parent to programmatically trigger TTS playback
+// (used by auto-play flow for partner/AI dialogue lines)
+interface DialogueLineHandle {
+  playTTS: () => void;
+}
+
+interface DialogueLineProps {
   dlg: DialogueDto;
+  index: number;
   isLast: boolean;
   lang: string;
   showSubtitle: boolean;
   isSelected: boolean;
   isPassed: boolean;
+  isLocked: boolean;
   onSelect: () => void;
-}) {
-  const { words, activeWordIdx, isPlaying, isLoading, play, stop } = useTTSShadowing(dlg.lineVi);
+  onAudioEnded?: () => void;
+}
+
+const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function DialogueLine(
+  { dlg, index, isLast, lang, showSubtitle, isSelected, isPassed, isLocked, onSelect, onAudioEnded },
+  ref
+) {
+  const { words, activeWordIdx, isPlaying, isLoading, play, stop } = useTTSShadowing(dlg.lineVi, onAudioEnded);
   const highlightWords = parseHighlightWords(dlg.highlightWordsJson);
+
+  useImperativeHandle(ref, () => ({
+    playTTS: play,
+  }), [play]);
 
   // Visual ring style: selected (actively recording for) vs passed vs default
   const ringClass = isSelected
@@ -182,8 +345,9 @@ function DialogueLine({ dlg, isLast, lang, showSubtitle, isSelected, isPassed, o
   if (dlg.isActive) {
     return (
       <div
-        className={`bg-surface-container-lowest rounded-xl p-6 cursor-pointer transition-all ${ringClass}`}
-        onClick={onSelect}
+        data-dialogue-index={index}
+        className={`bg-surface-container-lowest rounded-xl p-6 transition-all ${ringClass} ${isLocked ? "opacity-40 grayscale pointer-events-none" : "cursor-pointer"}`}
+        onClick={isLocked ? undefined : () => { onSelect(); if (isPlaying) { stop(); } else { play(); } }}
       >
         <div className="flex justify-between items-start mb-2">
           <span className="font-bold text-primary text-xs tracking-tighter flex items-center gap-1.5">
@@ -250,10 +414,11 @@ function DialogueLine({ dlg, isLast, lang, showSubtitle, isSelected, isPassed, o
 
   return (
     <div
-      className={`bg-surface-container-low rounded-xl p-6 cursor-pointer transition-all ${ringClass} ${
-        isLast && !isSelected ? "opacity-60" : "hover:bg-surface-container"
+      data-dialogue-index={index}
+      className={`bg-surface-container-low rounded-xl p-6 transition-all ${ringClass} ${
+        isLocked ? "opacity-40 grayscale pointer-events-none" : isLast && !isSelected ? "opacity-60 cursor-pointer" : "cursor-pointer hover:bg-surface-container"
       }`}
-      onClick={onSelect}
+      onClick={isLocked ? undefined : () => { onSelect(); if (isPlaying) { stop(); } else { play(); } }}
     >
       <div className="flex justify-between items-start mb-2">
         <span className="font-bold text-primary text-xs tracking-tighter flex items-center gap-1.5">
@@ -301,7 +466,7 @@ function DialogueLine({ dlg, isLast, lang, showSubtitle, isSelected, isPassed, o
       {showSubtitle && <p className="text-sm text-secondary mt-2 opacity-80">{dlg.lineJp}</p>}
     </div>
   );
-}
+});
 
 // ─── Voice Lab (Mic Recorder + Real Scoring) ─────────────────────────────────
 // Pipeline: Thu âm (MediaRecorder) → Chuyển đổi WAV 16kHz Mono (Web Audio API)
@@ -671,8 +836,15 @@ export default function LessonDetailPage() {
   const { isAuthenticated, updateUser } = useAuth();
   const [showSubtitle, setShowSubtitle] = useState(true);
 
+  // Heartbeat: record 60s of study time every minute the learner stays on this page
+  useStudyTimeTracker();
+
   // Index of the dialogue currently focused for Voice Lab recording
   const [activeDialogueIndex, setActiveDialogueIndex] = useState(0);
+
+  // Sequential flow watermark: tracks the furthest dialogue the learner has reached.
+  // Lines beyond this index are locked to enforce top-down shadowing progression.
+  const [furthestIndex, setFurthestIndex] = useState(0);
 
   // Per-dialogue pass tracking (Set of dialogue indices that meet the pass condition)
   const [passedDialogues, setPassedDialogues] = useState<Set<number>>(new Set());
@@ -681,6 +853,25 @@ export default function LessonDetailPage() {
   const isAutoCompletingRef = useRef(false);
   // Prevent duplicate record-study API calls within the same session
   const hasRecordedStudyRef = useRef(false);
+
+  // ── Auto-flow refs ──────────────────────────────────────────────────────────
+  // Refs array for each DialogueLine to trigger programmatic TTS playback
+  const dialogueRefs = useRef<(DialogueLineHandle | null)[]>([]);
+  // Timer ref for auto-advance delay (prevents stale/orphan timers on rapid step changes)
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracks whether user has started the lesson (any interaction = autoplay is safe)
+  const hasUserInteractedRef = useRef(false);
+
+  // ── Lesson Complete celebration state ──────────────────────────────────────
+  const [isLessonCompleted, setIsLessonCompleted] = useState(false);
+  // Window dimensions for confetti canvas to fill the entire viewport
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const updateSize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
 
   // Only count learner lines (isActive) for mastery progress —
   // teacher/partner lines should not inflate the completion requirement
@@ -693,13 +884,14 @@ export default function LessonDetailPage() {
     setTimeout(() => setToast(null), 4000);
   }, []);
 
-  // Auto-complete lesson when all learner lines are passed
+  // Auto-complete lesson when all learner lines are passed → trigger celebration
   useEffect(() => {
     if (
       totalLearnerLines > 0 &&
       passedCount === totalLearnerLines &&
       isAuthenticated &&
-      !isAutoCompletingRef.current
+      !isAutoCompletingRef.current &&
+      !lesson?.isCompleted
     ) {
       isAutoCompletingRef.current = true;
       lessonApi
@@ -708,12 +900,8 @@ export default function LessonDetailPage() {
           if (res && res.newLevel) {
             updateUser({ level: res.newLevel });
           }
-          showToast("success", t(
-            "Chúc mừng! Bạn đã hoàn thành bài học!",
-            "おめでとうございます！レッスンを完了しました！"
-          ));
-          // Brief delay so user sees the toast before navigating
-          setTimeout(() => router.push("/learner/lessons"), 2000);
+          // Delay to let the last score animation settle before showing celebration
+          setTimeout(() => setIsLessonCompleted(true), 1000);
         })
         .catch((err) => {
           console.error("Auto-complete lesson failed:", err);
@@ -724,16 +912,128 @@ export default function LessonDetailPage() {
           isAutoCompletingRef.current = false;
         });
     }
-  }, [passedCount, totalLearnerLines, isAuthenticated, lessonId, router, showToast, t]);
+  }, [passedCount, totalLearnerLines, isAuthenticated, lessonId, lesson?.isCompleted, showToast, t, updateUser]);
 
   useEffect(() => {
     if (!lessonId) return;
     lessonApi
       .getLessonById(lessonId)
-      .then(setLesson)
+      .then((data) => {
+        setLesson(data);
+
+        // Initialize passedDialogues from saved progress
+        const activeLines = data.dialogues.filter((d) => d.isActive);
+        if (data.isCompleted) {
+          // All active dialogues passed
+          const allPassed = new Set<number>(
+            data.dialogues
+              .map((d, i) => (d.isActive ? i : -1))
+              .filter((i) => i >= 0)
+          );
+          setPassedDialogues(allPassed);
+          setFurthestIndex(data.dialogues.length - 1);
+        } else if (data.progress > 0 && activeLines.length > 0) {
+          // Calculate how many dialogues were passed based on saved progress
+          const passedCount = Math.round((data.progress / 100) * activeLines.length);
+          const passedIndices = data.dialogues
+            .map((d, i) => (d.isActive ? i : -1))
+            .filter((i) => i >= 0)
+            .slice(0, passedCount);
+
+          setPassedDialogues(new Set(passedIndices));
+          // Set furthestIndex to last passed dialogue
+          if (passedIndices.length > 0) {
+            setFurthestIndex(passedIndices[passedIndices.length - 1]);
+            setActiveDialogueIndex(passedIndices[passedIndices.length - 1] + 1);
+          }
+        }
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [lessonId]);
+
+  // ── Auto-play & Auto-scroll on step change ────────────────────────────────
+  // When activeDialogueIndex changes:
+  // 1. Scroll the active dialogue card into view (smooth, centered)
+  // 2. If current line is a partner/AI line (!isActive), auto-play TTS
+  //    and auto-advance to the next step when audio ends
+  useEffect(() => {
+    if (!lesson) return;
+
+    // Auto-scroll: find the DOM element for the current dialogue and scroll it into view
+    // Uses requestAnimationFrame to ensure DOM has rendered after state change
+    requestAnimationFrame(() => {
+      const activeEl = document.querySelector(`[data-dialogue-index="${activeDialogueIndex}"]`);
+      activeEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    const currentDlg = lesson.dialogues[activeDialogueIndex];
+    if (!currentDlg) return;
+
+    // Auto-play for partner/AI lines: only trigger if user has already interacted
+    // (first interaction = clicking "Bắt đầu" or recording mic) to comply with
+    // browser autoplay policy
+    if (!currentDlg.isActive && hasUserInteractedRef.current) {
+      // Small delay to let the scroll animation settle before audio starts
+      const playTimer = setTimeout(() => {
+        dialogueRefs.current[activeDialogueIndex]?.playTTS();
+      }, 300);
+      return () => clearTimeout(playTimer);
+    }
+  }, [activeDialogueIndex, lesson]);
+
+  // Cleanup auto-advance timer on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    };
+  }, []);
+
+  // Wrapper: advance dialogue AND update watermark in the same render batch.
+  // Avoids cascading renders that would occur if watermark was updated in an effect.
+  const advanceToDialogue = useCallback((nextIdx: number) => {
+    setActiveDialogueIndex(nextIdx);
+    setFurthestIndex(prev => Math.max(prev, nextIdx));
+  }, []);
+
+  // Handler: when partner/AI TTS audio finishes → auto-advance to next step
+  const handlePartnerAudioEnded = useCallback(() => {
+    if (!lesson) return;
+    const nextIdx = activeDialogueIndex + 1;
+    if (nextIdx < lesson.dialogues.length) {
+      advanceToDialogue(nextIdx);
+    }
+  }, [activeDialogueIndex, lesson, advanceToDialogue]);
+
+  // Handler: when learner passes a line → show score for 1.5s then auto-advance
+  const handleAutoAdvanceAfterPass = useCallback(() => {
+    if (!lesson) return;
+    // Cancel any pending auto-advance to avoid double-firing
+    if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+
+    const nextIdx = activeDialogueIndex + 1;
+    if (nextIdx < lesson.dialogues.length) {
+      autoAdvanceTimerRef.current = setTimeout(() => {
+        advanceToDialogue(nextIdx);
+        autoAdvanceTimerRef.current = null;
+      }, 1500);
+    }
+  }, [activeDialogueIndex, lesson, advanceToDialogue]);
+
+  // Resets all practice state to allow learner to redo the lesson from scratch
+  const handleRestartLesson = useCallback(() => {
+    setIsLessonCompleted(false);
+    setActiveDialogueIndex(0);
+    setFurthestIndex(0);
+    setPassedDialogues(new Set());
+    isAutoCompletingRef.current = false;
+    hasRecordedStudyRef.current = false;
+    hasUserInteractedRef.current = false;
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+  }, []);
 
   const L = {
     toggleSubtitle: t("Bật/Tắt phụ đề", "字幕 ON/OFF"),
@@ -796,6 +1096,77 @@ export default function LessonDetailPage() {
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           {L.back}
         </Link>
+
+        {/* ── Lesson Complete Celebration View ── */}
+        {isLessonCompleted ? (
+          <>
+            {/* Confetti — fixed fullscreen canvas */}
+            <ReactConfetti
+              width={windowSize.width}
+              height={windowSize.height}
+              recycle={false}
+              numberOfPieces={500}
+              gravity={0.12}
+              style={{ position: "fixed", top: 0, left: 0, zIndex: 100, pointerEvents: "none" }}
+            />
+
+            <div className="flex flex-col items-center justify-center py-16 animate-[fadeInUp_0.6s_ease-out]">
+              {/* Trophy icon */}
+              <div className="w-28 h-28 rounded-full bg-gradient-to-br from-amber-400 via-yellow-300 to-orange-400 flex items-center justify-center shadow-2xl mb-8 animate-bounce">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: 56, fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+              </div>
+
+              {/* Celebration heading */}
+              <h2 className="text-4xl md:text-5xl font-headline font-extrabold text-primary text-center mb-3">
+                {t("Xuất sắc! 🎉", "素晴らしい！ 🎉")}
+              </h2>
+              <p className="text-lg text-on-surface-variant text-center max-w-md mb-10">
+                {t(
+                  "Bạn đã hoàn thành tất cả các câu thoại trong bài học này!",
+                  "このレッスンのすべてのセリフを完了しました！"
+                )}
+              </p>
+
+              {/* Lesson summary card */}
+              <div className="bg-surface-container-lowest rounded-3xl p-8 w-full max-w-lg shadow-xl mb-10">
+                <h3 className="font-headline font-bold text-lg text-primary mb-1">{lesson.titleVi}</h3>
+                <p className="text-sm text-on-surface-variant italic mb-6">{t(lesson.subtitleVi, lesson.subtitleJp)}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4 text-center">
+                    <span className="block text-3xl font-headline font-extrabold text-emerald-600">{passedCount}/{totalLearnerLines}</span>
+                    <span className="block text-[10px] font-bold text-emerald-600/80 uppercase tracking-wider mt-1">
+                      {t("Câu đạt", "合格フレーズ")}
+                    </span>
+                  </div>
+                  <div className="bg-primary/5 rounded-2xl p-4 text-center">
+                    <span className="block text-3xl font-headline font-extrabold text-primary">100%</span>
+                    <span className="block text-[10px] font-bold text-primary/80 uppercase tracking-wider mt-1">
+                      {t("Hoàn thành", "完了率")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg">
+                <button
+                  onClick={() => router.push("/learner/home")}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-primary text-on-primary rounded-2xl font-bold text-sm hover:opacity-90 transition-all shadow-lg active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-lg">home</span>
+                  {t("Về Trang chủ", "ホームへ戻る")}
+                </button>
+                <button
+                  onClick={handleRestartLesson}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-surface-container-low text-primary border-2 border-primary/20 rounded-2xl font-bold text-sm hover:bg-surface-container transition-all active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-lg">replay</span>
+                  {t("Luyện tập lại", "もう一度練習")}
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* ── Left Column ── */}
@@ -855,18 +1226,29 @@ export default function LessonDetailPage() {
 
           {/* Dialogues */}
           <div className="space-y-4">
-            {lesson.dialogues.map((dlg, idx) => (
-              <DialogueLine
-                key={idx}
-                dlg={dlg}
-                isLast={idx === lesson.dialogues.length - 1 && !dlg.isActive}
-                lang={lang}
-                showSubtitle={showSubtitle}
-                isSelected={idx === activeDialogueIndex}
-                isPassed={passedDialogues.has(idx)}
-                onSelect={() => setActiveDialogueIndex(idx)}
-              />
-            ))}
+            {lesson.dialogues.map((dlg, idx) => {
+              const isLocked = idx > furthestIndex;
+              return (
+                <DialogueLine
+                  key={idx}
+                  ref={(el) => { dialogueRefs.current[idx] = el; }}
+                  dlg={dlg}
+                  index={idx}
+                  isLast={idx === lesson.dialogues.length - 1 && !dlg.isActive}
+                  lang={lang}
+                  showSubtitle={showSubtitle}
+                  isSelected={idx === activeDialogueIndex}
+                  isPassed={passedDialogues.has(idx)}
+                  isLocked={isLocked}
+                  onSelect={() => {
+                    if (isLocked) return;
+                    hasUserInteractedRef.current = true;
+                    advanceToDialogue(idx);
+                  }}
+                  onAudioEnded={!dlg.isActive ? handlePartnerAudioEnded : undefined}
+                />
+              );
+            })}
           </div>
 
 
@@ -887,6 +1269,9 @@ export default function LessonDetailPage() {
                   lang={lang}
                   expectedText={activeDlg.lineVi}
                   onPassed={() => {
+                    // Mark user has interacted for autoplay policy compliance
+                    hasUserInteractedRef.current = true;
+
                     // Only credit learner lines — teacher/partner lines
                     // can be practiced for fun but don't count toward mastery
                     if (!activeDlg.isActive) return;
@@ -896,6 +1281,9 @@ export default function LessonDetailPage() {
                       next.add(activeDialogueIndex);
                       return next;
                     });
+
+                    // Auto-advance to next dialogue after 1.5s delay
+                    handleAutoAdvanceAfterPass();
 
                     // Fire-and-forget: report study activity for streak tracking.
                     // Only call once per page load to avoid spamming the endpoint.
@@ -909,6 +1297,26 @@ export default function LessonDetailPage() {
                         })
                         .catch(console.error);
                     }
+
+                    // Fire-and-forget: record learned vocabulary words.
+                    // Extract highlight words (key vocab) from dialogue; fallback to all words.
+                    const hlWords = activeDlg.highlightWordsJson
+                      ? (() => {
+                          try {
+                            const parsed: { index: number }[] = JSON.parse(activeDlg.highlightWordsJson);
+                            const allWords = activeDlg.lineVi.split(/\s+/);
+                            return parsed
+                              .map((h) => allWords[h.index])
+                              .filter((w): w is string => !!w);
+                          } catch {
+                            return [];
+                          }
+                        })()
+                      : [];
+                    const wordsToRecord = hlWords.length > 0
+                      ? hlWords
+                      : activeDlg.lineVi.split(/\s+/).filter((w) => w.length > 0);
+                    vocabApi.recordLearnedWords(wordsToRecord).catch(console.error);
                   }}
                 />
               );
@@ -980,6 +1388,7 @@ export default function LessonDetailPage() {
           </div>
         )}
         </div>
+        )}
       </main>
       <LearnerBottomNav />
     </div>

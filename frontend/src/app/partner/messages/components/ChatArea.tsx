@@ -59,8 +59,21 @@ export default function ChatArea({
       <div className="px-8 py-4 bg-surface flex items-center justify-between border-b border-outline-variant/10 shrink-0">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-sm">
-              {activeConv?.learnerName?.charAt(0)}
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-sm">
+              {(() => {
+                const avatarSrc = activeConv?.partnerAvatarUrl
+                  || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(activeConv?.learnerName || "user")}&backgroundColor=c0aede`;
+                return (
+                  <img
+                    alt={activeConv?.learnerName}
+                    className="w-full h-full object-cover"
+                    src={avatarSrc}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                );
+              })()}
             </div>
             <span className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full ${
               activeConv && isUserOnline(activeConv.learnerId) ? "bg-green-500" : "bg-gray-400"

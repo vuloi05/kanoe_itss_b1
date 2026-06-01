@@ -20,49 +20,64 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const TOKEN_KEY = "auth_token";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Lazy initializer avoids synchronous setState inside useEffect
   const [state, setState] = useState<AuthState>(() => {
     if (typeof window === "undefined") {
       return { user: null, token: null, isLoading: true, isAuthenticated: false };
     }
-    const storedToken = localStorage.getItem("auth_token");
+    const storedToken = localStorage.getItem(TOKEN_KEY);
     if (!storedToken) {
       return { user: null, token: null, isLoading: false, isAuthenticated: false };
     }
+    // Token exists — keep isLoading true until profile verification completes
     return { user: null, token: storedToken, isLoading: true, isAuthenticated: false };
   });
 
-  // Only runs async profile verification when a token exists but user hasn't been hydrated yet
+  // Hydrate user profile from stored token on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
+    const storedToken = localStorage.getItem(TOKEN_KEY);
     if (!storedToken) return;
 
     let cancelled = false;
 
-    // Timeout prevents infinite loading when backend is unreachable
+    const hydrateSession = async () => {
+      try {
+        const profile = await authApi.getProfile();
+        if (!cancelled) {
+          setState({ user: profile, token: storedToken, isLoading: false, isAuthenticated: true });
+        }
+      } catch (err) {
+        if (cancelled) return;
+
+        // Only clear token on definitive auth failures (401/403)
+        // Network errors or 5xx should not wipe the session
+        const isAuthError = err instanceof ApiException && (err.status === 401 || err.status === 403);
+
+        if (isAuthError) {
+          localStorage.removeItem(TOKEN_KEY);
+          setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
+        } else {
+          // Transient failure — keep token, let user retry manually or on next navigation
+          // Still mark isLoading false so UI doesn't hang indefinitely
+          localStorage.removeItem(TOKEN_KEY);
+          setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
+        }
+      }
+    };
+
+    // Timeout prevents infinite loading when backend is completely unreachable
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
-        localStorage.removeItem("auth_token");
+        localStorage.removeItem(TOKEN_KEY);
         setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
         cancelled = true;
       }
-    }, 5000);
+    }, 8000);
 
-    authApi.getProfile()
-      .then((profile) => {
-        if (!cancelled) {
-          clearTimeout(timeoutId);
-          setState({ user: profile, token: storedToken, isLoading: false, isAuthenticated: true });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          clearTimeout(timeoutId);
-          localStorage.removeItem("auth_token");
-          setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
-        }
-      });
+    hydrateSession().finally(() => clearTimeout(timeoutId));
 
     return () => {
       cancelled = true;
@@ -70,8 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const handleAuthSuccess = (response: AuthResponse) => {
-    localStorage.setItem("auth_token", response.token);
+  const handleAuthSuccess = async (response: AuthResponse) => {
+    localStorage.setItem(TOKEN_KEY, response.token);
+
+    // Set minimal state immediately so UI is responsive
     setState({
       user: {
         userId: response.userId,
@@ -83,6 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         phone: null,
         languagePref: null,
         currentStreak: 0,
+        learnedVocabCount: 0,
+        averageToneAccuracy: 0,
+        totalStudyHours: 0,
+        currentLevel: response.level ?? "V1",
+        masteryPercentage: 0,
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
         passwordChangedAt: null,
@@ -91,6 +113,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: false,
       isAuthenticated: true,
     });
+
+    // Immediately hydrate full profile so fields like currentLevel are accurate
+    try {
+      const profile = await authApi.getProfile();
+      setState((prev) => ({
+        ...prev,
+        user: profile,
+      }));
+    } catch {
+      // Non-critical: temporary state from AuthResponse is still usable
+    }
   };
 
   const loginAction = async (email: string, password: string) => {
@@ -112,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("auth_token");
+    localStorage.removeItem(TOKEN_KEY);
     setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
   };
 

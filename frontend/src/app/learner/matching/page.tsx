@@ -41,6 +41,9 @@ export default function MatchingPage() {
   const [jobFilter, setJobFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Track broken avatar URLs to show fallback
+  const [brokenAvatars, setBrokenAvatars] = useState<Set<string>>(new Set());
+
   // ── Per-button loading state for "Nhắn tin" ──
   const [sendingTo, setSendingTo] = useState<string | null>(null);
 
@@ -361,21 +364,25 @@ export default function MatchingPage() {
               >
                 {/* Avatar */}
                 <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-surface-container">
-                  {p.avatarUrl ? (
-                    <Image
-                      alt={p.displayName}
-                      className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
-                      src={p.avatarUrl}
-                      width={400}
-                      height={400}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="material-symbols-outlined text-4xl text-outline-variant">
-                        person
-                      </span>
-                    </div>
-                  )}
+                  {(() => {
+                    const url = p.avatarUrl;
+                    const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(p.displayName)}&backgroundColor=c0aede`;
+                    return url && !brokenAvatars.has(url) ? (
+                      <img
+                        alt={p.displayName}
+                        className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
+                        src={url}
+                        onError={() => setBrokenAvatars((prev) => new Set(prev).add(url))}
+                      />
+                    ) : (
+                      <img
+                        alt={p.displayName}
+                        className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
+                        src={dicebearUrl}
+                        onError={() => {}}
+                      />
+                    );
+                  })()}
                 </div>
 
                 {/* Info */}

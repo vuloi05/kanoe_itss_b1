@@ -44,7 +44,10 @@ public class LessonController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<LessonDetailDto>> GetLessonById(Guid id)
     {
-        var lesson = await _lessonService.GetLessonByIdAsync(id);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = userIdClaim != null && Guid.TryParse(userIdClaim, out var uid) ? uid : Guid.Empty;
+
+        var lesson = await _lessonService.GetLessonByIdAsync(id, userId);
         if (lesson == null)
             return NotFound(new { message = "Lesson not found." });
 

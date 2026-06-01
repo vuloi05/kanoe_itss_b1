@@ -19,6 +19,7 @@ import {
 } from "@/lib/chatUtils";
 import ChatArea from "./components/ChatArea";
 import SchedulePanel from "./components/SchedulePanel";
+import MessagePreviewRow from "@/components/messages/MessagePreviewRow";
 
 export default function PartnerMessagesPage() {
   const [activeConvIdx, setActiveConvIdx] = useState(0);
@@ -445,8 +446,21 @@ export default function PartnerMessagesPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold">
-                        {conv.learnerName.charAt(0)}
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center text-primary font-bold">
+                        {(() => {
+                          const avatarSrc = conv.partnerAvatarUrl
+                            || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(conv.learnerName)}&backgroundColor=c0aede`;
+                          return (
+                            <img
+                              alt={conv.learnerName}
+                              className="w-full h-full object-cover"
+                              src={avatarSrc}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          );
+                        })()}
                       </div>
                       <span className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-white rounded-full ${
                         isUserOnline(conv.learnerId) ? "bg-emerald-500" : "bg-gray-400"
@@ -478,15 +492,13 @@ export default function PartnerMessagesPage() {
                         </span>
                         </div>
                       </div>
-                      <p
-                        className={`text-xs truncate ${
-                          activeConvIdx === idx
-                            ? "text-on-surface-variant"
-                            : "text-outline"
-                        } ${conv.unreadCount > 0 ? "font-bold text-primary" : ""}`}
-                      >
-                        {conv.lastMessage || t("Chưa có tin nhắn", "メッセージなし")}
-                      </p>
+                      <MessagePreviewRow
+                        lastMessage={conv.lastMessage}
+                        lastMessageType={conv.lastMessageType}
+                        unreadCount={conv.unreadCount}
+                        active={activeConvIdx === idx}
+                        t={t}
+                      />
                     </div>
                   </div>
                 </button>

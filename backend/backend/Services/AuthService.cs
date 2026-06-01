@@ -48,13 +48,16 @@ public class AuthService : IAuthService
             ["v5"] = "advanced",
         };
 
+        // Normalize level string for storage (e.g. "v2" → "V2")
+        var normalizedLevel = request.Level?.Trim().ToUpperInvariant();
+        var isValidLevel = normalizedLevel is not null && levelMap.ContainsKey(normalizedLevel);
+
         var learnerProfile = new LearnerProfile
         {
             UserId = user.UserId,
             NativeLanguage = "ja",
-            Goals = request.Level is not null && levelMap.TryGetValue(request.Level, out var _)
-                ? request.Level
-                : null,
+            CurrentLevel = isValidLevel ? normalizedLevel! : "V1",
+            Goals = isValidLevel ? normalizedLevel : null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -300,6 +303,22 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync();
     }
 
+    // Target vocabulary count per level — used by Weighted Mastery algorithm
+    private static readonly Dictionary<string, int> TargetVocabByLevel = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["V1"] = 500,
+        ["V2"] = 1000,
+        ["V3"] = 1500,
+    };
+
+    // Map level string → content_levels.level_id
+    private static readonly Dictionary<string, int> LevelIdMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["V1"] = 1,
+        ["V2"] = 2,
+        ["V3"] = 3,
+    };
+
     public async Task<UserProfileResponse> GetProfileAsync(Guid userId)
     {
         var user = await _db.Users
@@ -307,6 +326,60 @@ public class AuthService : IAuthService
             .Include(u => u.PartnerProfile)
             .FirstOrDefaultAsync(u => u.UserId == userId && u.DeletedAt == null)
             ?? throw new KeyNotFoundException("Không tìm thấy tài khoản.");
+
+        // Count unique vocabulary words only for learner accounts
+        var vocabCount = user.LearnerProfile != null
+            ? await _db.LearnerVocabularies
+                .CountAsync(v => v.LearnerProfileId == user.LearnerProfile.ProfileId)
+            : 0;
+
+        // Safely compute average tone accuracy from Voice Lab records.
+        // Cast to (double?) so SQL returns NULL for empty set instead of throwing.
+        var avgToneAccuracy = 0;
+        if (user.Role == "learner")
+        {
+            double? avgResult = await _db.VoiceLabRecords
+                .Where(v => v.UserId == user.UserId && v.AccuracyScore != null)
+                .AverageAsync(v => (double?)v.AccuracyScore);
+
+            avgToneAccuracy = (int)Math.Round(avgResult ?? 0);
+        }
+
+        // ── Weighted Mastery Calculation (40-40-20) ──────────────────────
+        var currentLevel = user.LearnerProfile?.CurrentLevel ?? "V1";
+        var masteryPercentage = 0;
+
+        if (user.Role == "learner")
+        {
+            var levelId = LevelIdMap.TryGetValue(currentLevel, out var lid) ? lid : 1;
+
+            // Var 1 — LessonProgress (40%): completed / total lessons in current level
+            var totalLessons = await _db.Lessons
+                .CountAsync(l => l.Chapter.LevelId == levelId);
+
+            var completedLessons = totalLessons > 0
+                ? await _db.LessonProgresses
+                    .CountAsync(p => p.UserId == userId
+                                  && p.IsCompleted
+                                  && p.Lesson.Chapter.LevelId == levelId)
+                : 0;
+
+            double lessonProgress = totalLessons > 0
+                ? completedLessons * 100.0 / totalLessons
+                : 0;
+
+            // Var 2 — ToneAccuracy (40%): reuse avgToneAccuracy already queried above
+            double toneAccuracy = avgToneAccuracy;
+
+            // Var 3 — VocabCoverage (20%): reuse vocabCount already queried above
+            var targetVocab = TargetVocabByLevel.TryGetValue(currentLevel, out var tv) ? tv : 500;
+            double vocabCoverage = targetVocab > 0
+                ? Math.Min(vocabCount * 100.0 / targetVocab, 100.0)
+                : 0;
+
+            double mastery = (lessonProgress * 0.4) + (toneAccuracy * 0.4) + (vocabCoverage * 0.2);
+            masteryPercentage = Math.Clamp((int)Math.Round(mastery), 0, 100);
+        }
 
         return new UserProfileResponse(
             UserId: user.UserId.ToString(),
@@ -319,6 +392,11 @@ public class AuthService : IAuthService
             LanguagePref: user.LanguagePref,
             Bio: user.PartnerProfile?.Bio,
             CurrentStreak: user.LearnerProfile?.CurrentStreak ?? 0,
+            LearnedVocabCount: vocabCount,
+            AverageToneAccuracy: avgToneAccuracy,
+            TotalStudyHours: user.LearnerProfile?.TotalStudySeconds / 3600 ?? 0,
+            CurrentLevel: currentLevel,
+            MasteryPercentage: masteryPercentage,
             CreatedAt: user.CreatedAt,
             LastLoginAt: user.LastLoginAt,
             PasswordChangedAt: user.PasswordChangedAt

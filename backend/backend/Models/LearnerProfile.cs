@@ -21,6 +21,9 @@ public partial class LearnerProfile
     [Precision(6, 2)]
     public decimal? TotalStudyHours { get; set; }
 
+    [Column("total_study_seconds")]
+    public int TotalStudySeconds { get; set; }
+
     [Column("videos_completed")]
     public int? VideosCompleted { get; set; }
 
@@ -29,6 +32,10 @@ public partial class LearnerProfile
 
     [Column("longest_streak")]
     public int? LongestStreak { get; set; }
+
+    [Column("current_level")]
+    [StringLength(10)]
+    public string CurrentLevel { get; set; } = "V1";
 
     [Column("goals")]
     public string? Goals { get; set; }
@@ -49,4 +56,7 @@ public partial class LearnerProfile
     [ForeignKey("UserId")]
     [InverseProperty("LearnerProfile")]
     public virtual User User { get; set; } = null!;
+
+    [InverseProperty("LearnerProfile")]
+    public virtual ICollection<LearnerVocabulary> LearnerVocabularies { get; set; } = new List<LearnerVocabulary>();
 }
