@@ -58,6 +58,8 @@ public class AuthService : IAuthService
             NativeLanguage = "ja",
             CurrentLevel = isValidLevel ? normalizedLevel! : "V1",
             Goals = isValidLevel ? normalizedLevel : null,
+            DailyStudySeconds = 0,
+            DailyStudyDate = DateOnly.FromDateTime(DateTime.UtcNow),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -381,6 +383,30 @@ public class AuthService : IAuthService
             masteryPercentage = Math.Clamp((int)Math.Round(mastery), 0, 100);
         }
 
+        // Calculate daily study hours
+        // If daily_study_date != today, reset to 0 and update date
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var learnerProfile = user.LearnerProfile;
+
+        if (learnerProfile != null)
+        {
+            // Reset counter if it's a new day
+            if (learnerProfile.DailyStudyDate != today)
+            {
+                learnerProfile.DailyStudySeconds = 0;
+                learnerProfile.DailyStudyDate = today;
+                learnerProfile.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+
+                // Reload from DB to get fresh data
+                await _db.Entry(learnerProfile).ReloadAsync();
+            }
+        }
+
+        // Always recalculate from current learnerProfile value
+        var dailyStudyHours = learnerProfile?.DailyStudySeconds / 3600.0 ?? 0;
+        var currentStreak = learnerProfile?.CurrentStreak ?? 0;
+
         return new UserProfileResponse(
             UserId: user.UserId.ToString(),
             Email: user.Email,
@@ -391,10 +417,10 @@ public class AuthService : IAuthService
             Phone: user.Phone,
             LanguagePref: user.LanguagePref,
             Bio: user.PartnerProfile?.Bio,
-            CurrentStreak: user.LearnerProfile?.CurrentStreak ?? 0,
+            CurrentStreak: currentStreak,
             LearnedVocabCount: vocabCount,
             AverageToneAccuracy: avgToneAccuracy,
-            TotalStudyHours: user.LearnerProfile?.TotalStudySeconds / 3600 ?? 0,
+            TotalStudyHours: (decimal)dailyStudyHours,
             CurrentLevel: currentLevel,
             MasteryPercentage: masteryPercentage,
             CreatedAt: user.CreatedAt,

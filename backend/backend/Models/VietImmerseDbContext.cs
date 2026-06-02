@@ -197,7 +197,6 @@ public partial class VietImmerseDbContext : DbContext
             entity.Property(e => e.CurrentStreak).HasDefaultValue(0);
             entity.Property(e => e.LongestStreak).HasDefaultValue(0);
             entity.Property(e => e.NativeLanguage).HasDefaultValueSql("'ja'::character varying");
-            entity.Property(e => e.TotalStudyHours).HasDefaultValue(0m);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.VideosCompleted).HasDefaultValue(0);
 

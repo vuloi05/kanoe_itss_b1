@@ -64,14 +64,16 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE TABLE IF NOT EXISTS learner_profiles (
     profile_id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id            UUID NOT NULL UNIQUE,
-    total_study_hours  NUMERIC(6,2) DEFAULT 0,
-    total_study_seconds INT NOT NULL DEFAULT 0,
+
     videos_completed   INT DEFAULT 0,
     current_streak     INT DEFAULT 0,
     longest_streak     INT DEFAULT 0,
     current_level      VARCHAR(10) NOT NULL DEFAULT 'V1',
     goals              TEXT,
     native_language    VARCHAR(10) DEFAULT 'ja',
+    daily_study_seconds INT NOT NULL DEFAULT 0,
+    daily_study_date   DATE,
+    last_study_date    TIMESTAMPTZ,
     created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT learner_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -442,11 +444,23 @@ ALTER TABLE lesson_progress ADD COLUMN IF NOT EXISTS progress INT DEFAULT 0;
 -- users.token_balance — token wallet for paid connections
 ALTER TABLE users ADD COLUMN IF NOT EXISTS token_balance INT NOT NULL DEFAULT 0;
 
--- learner_profiles.total_study_seconds — precise study time tracking in seconds
-ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS total_study_seconds INT NOT NULL DEFAULT 0;
+-- learner_profiles.daily_study_seconds — daily online time tracking in seconds (resets each day)
+ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS daily_study_seconds INT NOT NULL DEFAULT 0;
+
+-- learner_profiles.daily_study_date — date of the daily counter (for reset logic)
+ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS daily_study_date DATE;
+
+-- learner_profiles.last_study_date — last date user studied (for streak tracking)
+ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS last_study_date TIMESTAMPTZ;
 
 -- learner_profiles.current_level — tracks learner's current proficiency level (V1/V2/V3)
 ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS current_level VARCHAR(10) NOT NULL DEFAULT 'V1';
+
+-- Remove total_study_seconds column (no longer used, replaced by daily_study_seconds)
+ALTER TABLE learner_profiles DROP COLUMN IF EXISTS total_study_seconds;
+
+-- Remove total_study_hours column (legacy, never updated — value computed at runtime from daily_study_seconds)
+ALTER TABLE learner_profiles DROP COLUMN IF EXISTS total_study_hours;
 
 -- -----------------------------------------------------------------------------
 -- PASSWORD RESETS (OTP / Reset Tokens)

@@ -17,12 +17,8 @@ public partial class LearnerProfile
     [Column("user_id")]
     public Guid UserId { get; set; }
 
-    [Column("total_study_hours")]
-    [Precision(6, 2)]
-    public decimal? TotalStudyHours { get; set; }
 
-    [Column("total_study_seconds")]
-    public int TotalStudySeconds { get; set; }
+
 
     [Column("videos_completed")]
     public int? VideosCompleted { get; set; }
@@ -44,11 +40,17 @@ public partial class LearnerProfile
     [StringLength(10)]
     public string? NativeLanguage { get; set; }
 
-    [Column("created_at")]
-    public DateTime CreatedAt { get; set; }
+    [Column("daily_study_seconds")]
+    public int DailyStudySeconds { get; set; }
+
+    [Column("daily_study_date")]
+    public DateOnly? DailyStudyDate { get; set; }
 
     [Column("last_study_date")]
     public DateTime? LastStudyDate { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; }
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }

@@ -207,9 +207,9 @@ export default function LearnerSettingsPage() {
                   <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Phát âm", "声調精度")}</span>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm flex flex-col justify-center">
-                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">{user?.totalStudyHours ?? 0}</span>
-                  <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wide mt-1">HOURS</span>
-                  <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Thời gian", "学習時間")}</span>
+                  <span className="text-[28px] font-extrabold text-[#112340] dark:text-white leading-tight">{(user?.totalStudyHours ?? 0).toFixed(1)}</span>
+                  <span className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-wide mt-1">HOURS/DAY</span>
+                  <span className="text-[11px] text-[#64748B] dark:text-slate-400 mt-0.5">{t("Mỗi ngày", "毎日")}</span>
                 </div>
               </div>
             </div>
