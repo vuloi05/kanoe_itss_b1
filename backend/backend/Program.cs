@@ -118,6 +118,17 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
                      | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
 });
 
+// Global error handler — ensures CORS headers are present even on unhandled exceptions
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { error = "Đã xảy ra lỗi máy chủ." });
+    });
+});
+
 app.UseStaticFiles();
 
 // CORS must run before auth so preflight OPTIONS requests get proper headers
