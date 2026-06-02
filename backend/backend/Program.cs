@@ -111,11 +111,23 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// Required for reverse proxies (Render, Azure, etc.) to forward original scheme/IP
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                     | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+});
 
 app.UseStaticFiles();
 
+// CORS must run before auth so preflight OPTIONS requests get proper headers
 app.UseCors("AllowFrontend");
+
+// Only redirect in dev; reverse proxy (Render) already handles TLS termination
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
