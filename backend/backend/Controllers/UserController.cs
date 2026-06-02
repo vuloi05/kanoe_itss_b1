@@ -258,7 +258,7 @@ public class UserController : ControllerBase
 
     /// <summary>
     /// Record study time (heartbeat from learning pages).
-    /// Caps at 300s per call to mitigate abuse from stale browser tabs.
+    /// Updates daily_study_seconds and resets if it's a new day.
     /// </summary>
     [Authorize]
     [HttpPost("record-time")]
@@ -267,7 +267,6 @@ public class UserController : ControllerBase
         if (dto.Seconds <= 0)
             return BadRequest(new { message = "Seconds must be positive." });
 
-        var cappedSeconds = Math.Min(dto.Seconds, 300);
         var userId = GetCurrentUserId();
 
         var profile = await _db.LearnerProfiles
@@ -276,11 +275,20 @@ public class UserController : ControllerBase
         if (profile == null)
             return NotFound(new { message = "Learner profile not found." });
 
-        profile.TotalStudySeconds += cappedSeconds;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // Reset daily counter if it's a new day
+        if (profile.DailyStudyDate != today)
+        {
+            profile.DailyStudySeconds = 0;
+            profile.DailyStudyDate = today;
+        }
+
+        profile.DailyStudySeconds += dto.Seconds;
         profile.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
-        return Ok(new { totalStudySeconds = profile.TotalStudySeconds });
+        return Ok(new { dailyStudySeconds = profile.DailyStudySeconds });
     }
 
     private Guid GetCurrentUserId()

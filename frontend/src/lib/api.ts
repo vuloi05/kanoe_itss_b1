@@ -168,7 +168,7 @@ export const userApi = {
   recordStudyActivity: () =>
     api.post<{ currentStreak: number }>("/api/users/record-study"),
   recordStudyTime: (seconds: number) =>
-    api.post<{ totalStudySeconds: number }>("/api/users/record-time", { seconds }),
+    api.post<{ dailyStudySeconds: number }>("/api/users/record-time", { seconds }),
 };
 
 export interface ConversationDto {

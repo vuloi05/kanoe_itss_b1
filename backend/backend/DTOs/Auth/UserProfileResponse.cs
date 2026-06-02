@@ -13,7 +13,7 @@ public record UserProfileResponse(
     int CurrentStreak,
     int LearnedVocabCount,
     int AverageToneAccuracy,
-    int TotalStudyHours,
+    decimal TotalStudyHours,
     string CurrentLevel,
     int MasteryPercentage,
     DateTime CreatedAt,
