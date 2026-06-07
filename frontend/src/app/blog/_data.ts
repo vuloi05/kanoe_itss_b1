@@ -2,16 +2,21 @@
 export interface BlogPost {
   id: string;
   title: string;
+  titleJa?: string;
   excerpt: string;
+  excerptJa?: string;
   date: string;
   category: string;
+  categoryJa?: string;
   categoryIcon: string;
   categoryColor: string;
   gradientFrom: string;
   gradientTo: string;
   readTime: string;
+  readTimeJa?: string;
   /** HTML string rendered inside the detail page prose block */
   bodyHtml: string;
+  bodyHtmlJa?: string;
 }
 
 // ─── Inline SVG Icons ─────────────────────────────────────────
@@ -77,15 +82,21 @@ export const MOCK_POSTS: BlogPost[] = [
     id: "bi-quyet-6-thanh-dieu",
     title:
       "5 bí quyết chinh phục 6 thanh điệu tiếng Việt miền Bắc cho người Nhật",
+    titleJa:
+      "日本人向け：北部ベトナム語の6つの声調をマスターする5つの秘訣",
     excerpt:
       "Thanh hỏi và thanh ngã luôn là nỗi ám ảnh? Khám phá 5 phương pháp thực chiến giúp bạn phân biệt rõ ràng 6 thanh điệu, từ cách nghe âm thanh đến luyện tập với pitch contour AI.",
+    excerptJa:
+      "問声と倒声の違いに悩んでいませんか？音の聞き方からAIピッチコンターを使った練習まで、6つの声調を明確に区別するための5つの実践的なアプローチを紹介します。",
     date: "2026-05-25",
     category: "Phương pháp học",
+    categoryJa: "学習法",
     categoryIcon: "school",
     categoryColor: "bg-primary-container text-on-primary-container",
     gradientFrom: "from-[#09294f]",
     gradientTo: "to-[#2d476f]",
     readTime: "8 phút đọc",
+    readTimeJa: "読了時間：8分",
     bodyHtml: `
       <p>Tiếng Nhật và tiếng Việt đều là ngôn ngữ mà <strong>cao độ (pitch) mang ý nghĩa</strong> — nhưng cách chúng sử dụng cao độ hoàn toàn khác nhau. Tiếng Nhật dùng hệ thống <strong>pitch-accent</strong> (高低アクセント): mỗi từ có một mô hình cao-thấp cố định, và hệ thống chỉ phân biệt 2 mức (高 và 低). Tiếng Việt miền Bắc, ngược lại, sở hữu <strong>6 contour tones</strong> — 6 đường cong âm điệu có <em>hình dáng</em> riêng biệt, bao gồm cả những đường cong gãy, nảy, và nghẹn mà hệ thống Nhật Bản hoàn toàn không có.</p>
       <p>Kết quả? Não bộ người Nhật có xu hướng <strong>"nén" 6 thanh về 2 cực</strong> quen thuộc — cao hoặc thấp — khiến thanh sắc (á) và thanh ngã (ã) nghe giống nhau vì đều "kết thúc ở mức cao". Bài viết này sẽ giúp bạn phá vỡ thói quen đó bằng 5 bí quyết thực chiến.</p>
@@ -211,21 +222,135 @@ export const MOCK_POSTS: BlogPost[] = [
         <p>"Ngôn ngữ là âm nhạc. 6 thanh điệu là 6 nốt nhạc. Và bạn — bạn đang học cách hát bài ca của Hà Nội." — Đội ngũ VietImmerse</p>
       </blockquote>
     `,
+    bodyHtmlJa: `
+      <p>日本語とベトナム語はどちらも<strong>高さ（ピッチ）が意味を持つ</strong>言語ですが、その使い方は全く異なります。日本語は<strong>高低アクセント</strong>システムを使用しており、各単語には固定された高低のパターンがあり、システムは「高」と「低」の2つのレベルのみを区別します。対照的に、北部ベトナム語には<strong>6つの声調（コントゥアートーン）</strong>があり、それぞれに独自の<em>形</em>があります。これには、日本語には全く存在しない、折れる、跳ねる、詰まるような曲線が含まれます。</p>
+      <p>その結果は？日本人の脳は、6つの声調を馴染みのある2つの極（高いまたは低い）に<strong>「圧縮」する傾向</strong>があり、どちらも「高いレベルで終わる」ため、鋭声（á）と倒声（ã）が同じように聞こえてしまいます。この記事では、5つの実践的な秘訣でその習慣を打ち破るお手伝いをします。</p>
+
+      <h2>${iconHeadphones} 秘訣1：話すのを急がない — まず「耳」を鍛える</h2>
+      <h3>ミニマル・ペアの原則</h3>
+      <p>言語学において、<strong>ミニマル・ペア（最小対）</strong>とは、単一の要素（ベトナム語の場合は声調）のみが異なる単語のペアを指します。これはSLA（第二言語習得）の研究者が推奨する最も効果的なリスニングトレーニングツールです。</p>
+      <p>最も古典的なミニマル・ペアのセットを見てみましょう — 声調のみが異なる6つの単語：</p>
+      <ul>
+        <li>${iconGhost} <strong>ma</strong>（平声 ˉ）— 幽霊。ピッチは中間のままで、平らです。</li>
+        <li>${iconMother} <strong>má</strong>（鋭声 ˊ）— 母。ピッチは中間から高く、はっきりと上がります。</li>
+        <li>${iconEllipsis} <strong>mà</strong>（玄声 ˋ）— しかし。ピッチは中間から低く、穏やかに下がります。</li>
+        <li>${iconTomb} <strong>mả</strong>（問声 ˀ˅）— 墓。ピッチは低く下がり、その後上がります — U字型。</li>
+        <li>${iconHorse} <strong>mã</strong>（倒声 ˀ˄）— 馬。ピッチは下がり、<em>突然折れて</em>高く跳ね上がります。</li>
+        <li>${iconRice} <strong>mạ</strong>（重声 ˙）— 若苗。ピッチは低く落ち、突然止まります。</li>
+      </ul>
+
+      <h3>${iconWarning} 笑えない結果</h3>
+      <p>声調は些細な詳細ではありません — <strong>意味全体</strong>を決定します。これらはVietImmerseの学習者が遭遇した実際の状況です：</p>
+      <ul>
+        <li><strong>"má"</strong>（母）を<strong>"ma"</strong>（幽霊）と呼ぶ ${iconGhost} — 「お母さん！」と言うつもりが、ベトナム人には「幽霊さん！」と聞こえます。</li>
+        <li><strong>"cơm"</strong>（ご飯）を<strong>"cớm"</strong>（警察のスラング）と呼ぶ！</li>
+        <li><strong>"bán"</strong>（売る）を<strong>"bạn"</strong>（友達）と言う — 「私は魚を売ります」が「私は魚の友達です」になります。</li>
+      </ul>
+      <p>練習のヒント：毎日<strong>10分間VietImmerseのVoice Lab</strong>で、0.75倍速でミニマル・ペアだけを聞いてください。発音しようとしないでください — ただ聞いて、区別しようとしてください。2週間後、以前は全く見えなかった違いが「聞こえ」始めます。</p>
+
+      <blockquote>
+        <p>「耳は口より先に行かなければなりません。聞こえないものを発音することはできません。」— 応用音声学の基本原則</p>
+      </blockquote>
+
+      <h2>${iconHand} 秘訣2：手のダンス — ジェスチャーで覚える</h2>
+      <p>これは<strong>身体化された認知（embodied cognition）</strong>の方法です — 身体は脳に仕えるだけでなく、<em>思考プロセスに直接参加する</em>という考え方です。空中で声調の軌跡を描くと、聴覚、運動、視覚の3つのシステムを同時に活性化させます。</p>
+      <p>各声調の詳細なガイド：</p>
+      <ul>
+        <li>${iconHand} <strong>平声 (a):</strong> 手を左から右へ水平に動かし、高さを保ちます — 空中に直線を引くように。一番簡単です。</li>
+        <li>${iconHand} <strong>鋭声 (á):</strong> 手を真ん中から始め、45度上へ鋭く動かします — 空へボールを投げるように。「決断力のある」スタイル。</li>
+        <li>${iconHand} <strong>玄声 (à):</strong> 手を真ん中から始め、30度ゆっくりと下げます — 葉が静かに落ちるように。ゆっくりと柔らかく。</li>
+        <li>${iconHand} <strong>問声 (ả):</strong> 手を下げてから<em>上へカーブ</em>させます — 空中にU字を描きます。一番低いポイントは喉が少し「詰まる」時です。</li>
+        <li>${iconHand} <strong>倒声 (ã):</strong> 問声と似ていますが、一番低いポイントで手が<em>突然止まり</em>、そして<strong>強く上へ跳ねます</strong> — ボールが床で跳ねるように。これが一番難しい声調です！</li>
+        <li>${iconHand} <strong>重声 (ạ):</strong> 手を早く下げて<em>突然止めます</em> — 手をテーブルに叩きつけるように。上へ向かう部分はありません。</li>
+      </ul>
+      <p><strong>毎日の5分間練習：</strong> VietImmerseを開き、サンプル音声を再生し、手でそれに沿って描きます。1週間後、聞き終わる<em>前に</em>描き始めていることに気づくでしょう — それは脳が声調をただ「聞く」のではなく、「感じ」始めているサインです。</p>
+
+      <h2>${iconSoundWave} 秘訣3：ハノイ式倒声と問声の「解剖」</h2>
+      <p>これは<strong>日本人の95%が混同する</strong>声調のペアです。ピッチチャートでは似て見えます：どちらも下がってから上がります。では、違いはどこにあるのでしょうか？</p>
+
+      <h3>秘密：声門破裂音（Glottal Stop）</h3>
+      <p>音声学において、<strong>声門破裂音</strong>（IPA記号：[ʔ]）は、声帯が完全に一瞬閉じる現象で、音の流れの間に極めて短い「沈黙」の瞬間を作り出します。あなたは知らず知らずのうちにこれを経験しています — 日本語の促音（っ）も本質的に似ています！</p>
+      <p>ハノイ式の問声と倒声の違いは、声門破裂音の<strong>位置と強度</strong>にあります：</p>
+      <ul>
+        <li><strong>問声 (ả):</strong> ピッチが滑らかに下がり、底に達し、そして<em>ゆっくりと上がります</em>。声門破裂音は<strong>非常に軽いか、ありません</strong>。小さなポットホールをゆっくりと通過する車のようなものです — 少し揺れますが止まりません。</li>
+        <li><strong>倒声 (ã):</strong> ピッチが下がり、<strong>突然止まります</strong>（明確な声門破裂音 — 声帯が閉じる！）、その後高いレベルへ<em>強く跳ね上がります</em>。コンクリートの床に落ちるボールのようなものです — 力強く<strong>跳ねます</strong>。 ${iconSoundWave}</li>
+      </ul>
+      <p>これがまさに<strong>「ハノイ訛りの特産品」</strong>です — その鋭い「折れ」が、北部訛りを南部訛り（倒声が問声のように発音されることが多い）よりも明確で断固としたものにしています。</p>
+
+      <h3>実践練習：声門破裂音を感じる</h3>
+      <ol>
+        <li>喉に手を置きます（喉頭に軽く触れます）。</li>
+        <li><strong>"ả"</strong>（問声）と言います — 声帯が連続して振動し、底でわずかに弱くなるのを感じるはずです。</li>
+        <li><strong>"ã"</strong>（倒声）と言います — 声帯の振動が<strong>一瞬完全に止まり</strong>、再び強く振動するのを感じるはずです。それが声門破裂音です！ ${iconSoundWave}</li>
+        <li>繰り返します：「ả — ã — ả — ã」指が2つの異なる感覚を区別できるようになるまで。</li>
+      </ol>
+
+      <blockquote>
+        <p>「倒声は耳で聞くだけではありません — 喉の上で手で触れることができます。それは他の言語にはない特徴的な『跳ね』です。」— VietImmerseの音声学教師</p>
+      </blockquote>
+
+      <h2>${iconWaveform} 秘訣4：AI Voice Labを活用する — 声調を見る</h2>
+      <p>秘訣1-3は<em>理論</em>を理解し、<em>身体感覚</em>を鍛えるのに役立ちます。しかし、自分の発音が正しいか間違っているかを正確に知るには、<strong>客観的なデータ</strong>が必要です — そしてそれがAIの役割です。</p>
+      <p>VietImmerse Voice Labは、<strong>基本周波数F0</strong>抽出アルゴリズムを使用して、あなたの声のピッチコンター（音調曲線）をリアルタイムで描画します。使い方：</p>
+      <ol>
+        <li>${iconMic} <strong>ミニマル・ペアの練習を選択：</strong> システムがサンプル音声 — 例："mả"（問声）を再生します。</li>
+        <li>${iconMic} <strong>自分を録音：</strong> マイクに向かってその単語を繰り返します。</li>
+        <li>${iconWaveform} <strong>ピッチコンターを比較：</strong> 2つの曲線が並んで表示されます — <span style="color:#f97316;font-weight:700">オレンジ</span>（標準モデル）と<span style="color:#3b82f6;font-weight:700">青</span>（あなたの声）。ずれている部分は赤くハイライトされます。</li>
+        <li>${iconTarget} <strong>AIのフィードバックを読む：</strong> 例：「あなたの問声は底で十分に下がっていません。F0が120Hzですが、標準モデルは95Hzです。引き上げる前にもう少し下げてみてください。」</li>
+      </ol>
+      <p>Voice Labの最大の強みは、<strong>個々の声調に集中できる</strong>ことです。6つの声調すべてを同時に練習する必要はありません — 最も簡単なペア（平声と鋭声）から始め、徐々に最も難しいペア（問声と倒声）へと進んでください。</p>
+
+      <h2>${iconBrain} 秘訣5：声調を文脈に入れる — 調音結合（Coarticulation）現象</h2>
+      <p>これまでの4つの秘訣はすべて、<em>単語レベル</em>で声調を練習するものでした。しかし現実には、ハノイの人々は単語を一つずつ切り離して話しません — 彼らは<strong>流暢な連続した文</strong>を話し、声調は<strong>調音結合</strong>（coarticulation）現象によりわずかに変化します。</p>
+
+      <h3>調音結合とは？</h3>
+      <p>これは、ある音節の声調が<strong>隣接する音節の声調の影響を受ける</strong>現象です。具体例：</p>
+      <ul>
+        <li><strong>"phở bò"</strong> という言葉 — ゆっくり話す時、問声（ở）は明確なU字型です。しかし自然に早く話す時、そのすぐ後に玄声（ò）が続くため、U字のカーブは浅く「圧縮」されます。</li>
+        <li><strong>"cà phê"</strong> という言葉 — "cà"の玄声（à）は、すぐ後に平声（ê）が続くため、通常より長く引き伸ばされ、接続部分で軽く「沈む」効果を生み出します。</li>
+        <li><strong>"Hà Nội"</strong> というフレーズ — 玄声（à）が重声（ội）に接続すると、「下がる — さらに下がって止まる」という非常に特徴的な曲線を作り出します。 ${iconSoundWave}</li>
+      </ul>
+
+      <h3>なぜこれが重要なの？</h3>
+      <p>なぜなら、文脈の中で練習せずに個々の単語ばかり長く練習していると、<strong>「ロボット」</strong>のような話し方が身についてしまうからです — 各単語は明確ですが、自然に聞こえません。ハノイの人々はあなたを理解しますが、あなたが外国人であることをすぐに見抜くでしょう。</p>
+      <p>解決策：単語レベルでTone Accuracy >70%を達成したら、VietImmerseでの<strong>文レベルのシャドーイング練習</strong>に移行してください。Sentence Shadowing機能は、単語間の接続部分を含む<em>文全体</em>のピッチコンターを分析し、ハノイ風の自然なイントネーションを掴むのに役立ちます。</p>
+
+      <h2>結び：言語は音楽</h2>
+      <p>ベトナム語の6つの声調は障壁ではありません — それらは言語の<strong>メロディー</strong>です。音楽を聞くことができるなら、声調を学ぶことができます。上手な話し手と初心者の唯一の違いは、<em>体系的な練習時間</em>です。</p>
+      <p>5つの秘訣を覚えておいてください：</p>
+      <ol>
+        <li>口を開く前に、ミニマル・ペアで<strong>耳を鍛える</strong>。</li>
+        <li>曲線を描くために<strong>手を使う</strong> — 身体を音と結びつける。</li>
+        <li><strong>声門破裂音をマスターする</strong> — 問声と倒声を区別する鍵。</li>
+        <li><strong>AI Voice Labを使う</strong> — 音を視覚化し、聴覚の錯覚を排除する。</li>
+        <li><strong>文脈で練習する</strong> — 声調を完全な文に入れて自然に話す。</li>
+      </ol>
+      <p>そして最も重要なこと：<strong>間違えることを恐れないでください</strong>。あなたが「má」を「ma」と呼ぶたびに、ハノイの人は笑うでしょう — しかしそれはフレンドリーな笑いであり、彼らは喜んであなたを訂正してくれます。なぜなら、ベトナムの文化では、外国人がベトナム語を話そうと<em>努力する</em>ことは、声調が正しいかどうかに関わらず常に評価されるからです。</p>
+
+      <blockquote>
+        <p>「言語は音楽です。6つの声調は6つの音符です。そしてあなたは — ハノイの歌を歌う方法を学んでいるのです。」— VietImmerseチーム</p>
+      </blockquote>
+    `
   },
 
   // ── Post 2 ──────────────────────────────────────────────────
   {
     id: "van-hoa-tra-da-via-he",
     title: "Văn hóa trà đá vỉa hè: Góc nhìn thú vị giữa lòng Hà Nội",
+    titleJa: "路上アイスティー（チャダー）文化：ハノイのど真ん中の面白い視点",
     excerpt:
       "Trà đá vỉa hè không chỉ là thức uống — đó là lớp học ngôn ngữ sống động nhất. Tìm hiểu cách những cuộc trò chuyện bên ly trà đá giúp bạn nắm bắt giọng Hà Nội tự nhiên nhất.",
+    excerptJa:
+      "路上のアイスティーは単なる飲み物ではありません — 最も生き生きとした語学教室です。アイスティーを飲みながらの会話が、いかにハノイの自然な訛りを身につけるのに役立つかを発見してください。",
     date: "2026-05-18",
     category: "Văn hóa",
+    categoryJa: "文化",
     categoryIcon: "local_cafe",
     categoryColor: "bg-secondary-container text-on-secondary-container",
     gradientFrom: "from-[#715a3e]",
     gradientTo: "to-[#584329]",
     readTime: "6 phút đọc",
+    readTimeJa: "読了時間：6分",
     bodyHtml: `
       <p>Nếu Tokyo có <em>kissaten</em> (喫茶店) — những quán cà phê nhỏ ấm cúng mang không khí Shōwa — thì Hà Nội có <strong>trà đá vỉa hè</strong>. Nhưng khác với kissaten thanh lịch, quán trà đá Hà Nội là sự phóng khoáng tuyệt đối: không tường, không cửa, không menu bìa da. Chỉ có vỉa hè, vài chiếc ghế nhựa, một ấm trà, và <em>cả thế giới Hà Nội</em> mở ra trước mắt bạn.</p>
       <p>Bài viết này sẽ đưa bạn vào bên trong văn hóa trà đá — từ "menu" bí ẩn đến những quy tắc ngầm mà không ai nói ra — và biến mỗi cốc trà đá thành một bài học tiếng Việt thực chiến.</p>
@@ -354,6 +479,134 @@ export const MOCK_POSTS: BlogPost[] = [
         <p>"Một cốc trà đá 5.000 đồng, một chiếc ghế nhựa lùn, và cả thế giới Hà Nội mở ra trước mắt bạn. Đây là lớp học tiếng Việt rẻ nhất và giá trị nhất mà bạn sẽ từng tham gia." — Đội ngũ VietImmerse</p>
       </blockquote>
     `,
+    bodyHtmlJa: `
+      <p>東京に<em>喫茶店</em>（昭和の雰囲気漂う居心地の良い小さなカフェ）があるなら、ハノイには<strong>路上アイスティー（チャダー）</strong>があります。しかし、上品な喫茶店とは異なり、ハノイのアイスティー屋台は絶対的に自由です：壁も、ドアも、革張りのメニューもありません。あるのは歩道、いくつかのプラスチックの椅子、ポットのティー、そして目の前に広がる<em>ハノイの全世界</em>だけです。</p>
+      <p>この記事では、アイスティー文化の内側にあなたをご案内します — 謎の「メニュー」から誰も教えてくれない暗黙のルールまで — そして、一杯のアイスティーを実践的なベトナム語のレッスンに変える方法をご紹介します。</p>
+
+      <h2>${iconStool} 1. 低いプラスチックの椅子と謎の魅力</h2>
+      <p>想像してみてください：ハノイの通りを歩いていると、突然歩道の片隅に5〜6個の<strong>非常に低いプラスチックの椅子</strong>（高さ約20〜25cm）が、ノートパソコンのキーボードほどの大きさのステンレス製のテーブルを囲んでいるのを目にします。テーブルの上には透明なアイスティーのグラスがいくつか、ひまわりの種の袋、そして素早くお茶を注ぐ女性店主がいます。</p>
+      <p>初めての日本人はよく戸惑います：<em>「どうやって座るの？」</em> 答え：<strong>軽くしゃがんでお尻を下ろします</strong>。膝は腰より高くなり、最初の30秒間は自分が少し滑稽に見えることを受け入れてください。5分後にはプラスチックの椅子に座っていることを忘れるでしょう — 周りの会話のほうがはるかに魅力的だからです。</p>
+      <p>なぜ低いプラスチックの椅子なのか？理由は非常に実用的です：</p>
+      <ul>
+        <li><strong>片付けやすい：</strong> 警察が歩道の整理に来たとき、店主はわずか10秒で屋台全体を「消滅」させることができます。</li>
+        <li><strong>安い：</strong> プラスチックの椅子の価格は約15,000〜25,000 VND（100〜170円）です。</li>
+        <li><strong>親密な空間を作る：</strong> 皆が低く座ることで物理的な距離が縮まり、会話が自然と親密になります。</li>
+      </ul>
+
+      <blockquote>
+        <p>「椅子が低いほど、話は深くなる。」 — ハノイの人々の冗談</p>
+      </blockquote>
+
+      <h2>${iconTeacup} 2. 伝統の「メニュー」 — アイスティーだけじゃない</h2>
+      <p>ここでの「メニュー」という言葉は非常にゆるく使われています — なぜならほとんどのアイスティー屋台には<strong>メニューがない</strong>からです。座ると、店主が自動的にアイスティーを一杯注いでくれ、欲しければ追加で注文します。以下はあなたが目にするものです：</p>
+
+      <h3>${iconTeacup} チャーダー (Trà đá - アイスティー)</h3>
+      <p>メインの飲み物。薄めた緑茶に氷をたっぷり入れた、さっぱりとした少し苦味のある味。価格：<strong>3,000〜5,000 VND</strong>（20〜35円）。これはおそらく地球上で最も安い飲み物でしょう。紅茶（黒茶）を使う店もあれば、薄い緑茶を使う店もあり — 各店に独自の「レシピ」があり、常連客は違いがわかります。</p>
+
+      <h3>${iconSeed} ヒマワリの種 (Hạt hướng dương)</h3>
+      <p>アイスティーに付随する最も定番のスナック。小さな袋で売られており、価格は5,000〜10,000 VND。<strong>ハノイの「標準的」なヒマワリの種の食べ方</strong>は日本人が練習すべきスキルです：</p>
+      <ol>
+        <li>種を2つの前歯の間に<strong>横向き</strong>に置きます。</li>
+        <li><strong>軽く噛んで</strong>殻を割ります — 強く噛みすぎると中身も砕けてしまいます。</li>
+        <li>舌を使って<strong>中身を押し出し</strong>、殻を横に吐き出します。</li>
+        <li>プロならプロセス全体が<strong>2秒以内</strong>で完了します。</li>
+      </ol>
+      <p>ヒント：ハノイの人々はヒマワリの種を無意識の反射として噛みます — 手で噛み、口で話し、目でスマホを見る — これらすべてを同時に行います。これは芸術の域に達したマルチタスクです。</p>
+
+      <h3>${iconSeed} ピーナッツキャンディー (Kẹo lạc)</h3>
+      <p>麦芽糖とローストピーナッツから作られた長方形のキャンディー。<strong>甘くてサクサク</strong>した味で、アイスティーの<strong>軽い苦味</strong>と完璧に合います — 日本人が抹茶と一緒に和菓子を食べるのと同じです。価格：5,000〜10,000 VND。</p>
+
+      <h3>${iconTeacup} ニャンチャン＆ヌックヴォイ</h3>
+      <p>普通のアイスティーから「アップグレード」された2つの飲み物：</p>
+      <ul>
+        <li><strong>ニャンチャン（Nhân trần）</strong> — カワラヨモギから作られたお茶で、軽く清涼感のある苦味があり、肝臓に良いとされています。特に夏に人気があります。 ${iconTeacup}</li>
+        <li><strong>ヌックヴォイ（Nước vối）</strong> — 乾燥したヴォイの葉から煮出したお茶で、わずかに酸味があり、独特の香りがあります。これは多くの観光客が知らない北部の国民的な素朴な飲み物です。</li>
+      </ul>
+
+      <h3>日本人向けの語彙表</h3>
+      <ul>
+        <li><strong>Trà đá</strong> — アイスティー (aisu tī) — Iced tea</li>
+        <li><strong>Hạt hướng dương</strong> — ヒマワリの種 (himawari no tane) — Sunflower seeds</li>
+        <li><strong>Kẹo lạc</strong> — ピーナッツ飴 (pīnattsu ame) — Peanut candy</li>
+        <li><strong>Nhân trần</strong> — ヨモギ茶 (yomogi cha) — Artemisia tea</li>
+        <li><strong>Nước vối</strong> — ヴォイの葉茶 (voi no ha cha) — Vối leaf tea</li>
+        <li><strong>"Cho em thêm đá"</strong> — 「氷を足してください」 — "Thêm đá cho tôi"</li>
+      </ul>
+
+      <h2>${iconStool} 3. 社会的機能 — 距離をなくす場所</h2>
+      <p>日本社会では、敬語から物理的な距離まで、社会階層がコミュニケーションの仕方に明確な影響を与えます。しかし、ハノイのアイスティー屋台では、<strong>すべてが平等</strong>です。</p>
+      <p>あなたは毎日このような魅力的な光景を目にするでしょう：</p>
+      <ul>
+        <li>ネクタイを緩めた<strong>スーツ姿のディレクター</strong>が、シフトの合間に休憩している<strong>配車アプリの運転手</strong>の隣のプラスチックの椅子に座っている。</li>
+        <li><strong>退職した教師</strong>のおばあさんが、入学したばかりの<strong>大学1年生</strong>と雑談している。</li>
+        <li>バックマイ病院の<strong>医師</strong>が、路地の入り口の<strong>車の修理工</strong>のおじさんとサッカーについて議論している。</li>
+      </ul>
+      <p>誰もが同じ種類のプラスチックの椅子に座り、同じグラスのアイスティーを飲み、<em>完全に対等</em>な口調で互いに話します。</p>
+
+      <h3>「Chém gió（チェムゾー）」 — 雑談の芸術</h3>
+      <p><strong>chém gió</strong>（文字通り："風を切る"）という概念は、あなたが知っておくべき最も重要なスラングの1つです。文字通りの意味は「風を切る」ですが、比喩的な意味は<strong>雑談する、おしゃべりする、話を誇張する</strong>ことです。</p>
+      <p>アイスティー屋台はチェムゾーの「聖堂」です。人々は何時間も座って、天から地まであらゆることを話し合います：</p>
+      <ul>
+        <li>昨夜のサッカーの結果（ベトナム代表チーム、プレミアリーグ）</li>
+        <li>金の価格、ドルの価格、ガソリンの価格（3つの「国民的」トピック）</li>
+        <li>近所の話、職場の話、政治の話</li>
+        <li>そして...話すことが何もなくても座っていること（これはチェムゾーの最高レベルです）</li>
+      </ul>
+
+      <blockquote>
+        <p>「ハノイの人々は理由もなくアイスティー屋台に2時間座ることができます。そこに座ること自体が理由なのです。」</p>
+      </blockquote>
+
+      <h2>${iconHeadphones} 4. 最も実践的なベトナム語「教室」</h2>
+      <p>ベトナム語学習者にとって、アイスティー屋台は<strong>最も過酷なリスニング環境</strong>です — そしてだからこそ、最も効果的な練習場所でもあります。なぜか？なぜなら以下に直面しなければならないからです：</p>
+
+      <h3>課題1：話す速度</h3>
+      <p>ハノイの人々がチェムゾーをするとき、彼らは<strong>非常に速く</strong>話します — 1秒間に約5〜6音節で、教科書の標準的な発音より20%速いです。語尾の音が「飲み込まれ」、文が明確な休止なしに繋がります。例：<em>「Ê, hôm qua mày đi đâu thế?（おい、昨日どこ行ってたの？）」</em>は実際には<em>「Ê-hôm-qua-mà-đi-đâ-thế」</em>と聞こえ — ほぼ連続した音の連なりになります。</p>
+
+      <h3>課題2：スラングと省略</h3>
+      <p>教科書では<em>「Tôi muốn uống nước（私は水を飲みたいです）」</em>と教えます。通りでは、人々は<em>「Cho cốc nước đi cô（おばさん、水一杯ちょうだい）」</em>と言います。以下は実践的なフレーズです：</p>
+      <ul>
+        <li><strong>"Cô ơi cho cháu cốc trà đá"</strong> — 最も丁寧な飲み物の頼み方（自分を「cháu」、店主を「cô」と呼ぶ）。 ${iconTeacup}</li>
+        <li><strong>"Thanh toán cho cháu với"</strong> — お会計をお願いする。「với」を文末につけると文が柔らかくなります。</li>
+        <li><strong>"Bao nhiêu đấy cô?"</strong> — 値段を聞く（「đấy」＝「全部で」を強調）。答えは通常：「Năm nghìn thôi con（5,000ドンだよ）」です。</li>
+        <li><strong>"Em ơi, ngồi đây được không?"</strong> — 相席してもいいか聞く（若い店主に話しかける場合は「em」と呼ぶ）。</li>
+        <li><strong>"Thêm đá nhé!"</strong> — 氷を追加する。「nhé」を文末につけるとフレンドリーで優しいニュアンスになります。</li>
+      </ul>
+
+      <h3>課題3：バックグラウンドノイズ</h3>
+      <p>アイスティー屋台は歩道の上にあります。つまり、あなたは<strong>バイクのクラクション、行商人の声、隣の人のスマホの音楽の真ん中で</strong>ベトナム語を聞いているのです。これはどのラボラトリーでも再現できない「現実世界のノイズ」環境です。アイスティー屋台で聞き取れれば、<em>どこでも</em>聞き取れます。</p>
+
+      <h2>${iconQrCode} 5. 暗黙のルール — 誰も口に出さないこと</h2>
+      <p>どの文化にも「不文律」があります。ハノイのアイスティー屋台も例外ではありません。これらの暗黙のルールを理解すれば、あなたは<em>「わかっている人」</em>とみなされ — ハノイの人々はそれを非常に高く評価します。</p>
+
+      <h3>ルール1：チップ（tiền bo）はない</h3>
+      <p>アメリカや多くの欧米諸国とは異なり、ベトナムには<strong>チップの文化はありません</strong>。ボードに書かれている価格（または口頭で言われた価格）が最終価格です。お釣りを残していくと、店主はあなたを追いかけて返すか、忘れたと思います。チップを渡そうとしないでください — 双方にとって気まずい状況を生むだけです。</p>
+
+      <h3>ルール2：小銭またはQR</h3>
+      <p>アイスティーは3,000〜5,000 VNDなので、<strong>小銭</strong>が必要です。5,000ドンのアイスティーを買うために500,000ドン札を出すのは、店主がずっと覚えているであろう小さな「罪」です。しかし、近代化はアイスティー屋台にも忍び寄っています：現在多くの店には<strong>支払い用QRコード</strong>（Momo、VNPay、ZaloPay）があります。 ${iconQrCode}</p>
+      <p>あなたは面白い光景を見るでしょう：70歳のおばあさんが歩道でアイスティーを売っていますが、壁には3つの異なるQRコードが印刷された段ボールが掛かっています。これが現代のベトナムです — 伝統とテクノロジーが最も自然な方法で融合している場所です。</p>
+
+      <h3>ルール3：リラックスして座るが、「場所を占領」しない</h3>
+      <p>アイスティー屋台には通常4〜6席しかありません。混んでいるときは、見知らぬ人と<strong>相席</strong>する準備をしてください — これは完全に普通のことです。そして飲み終わったら、席を待っている人がいる場合は長居しないでください（もう一杯注文しない限り — その場合は長居する権利があります）。</p>
+
+      <h3>ルール4：正しく呼びかける</h3>
+      <p>これは日本人にとって最も重要なポイントです。日本語では、誰を呼ぶにも常に「すみません」を使うことができます。しかしベトナム語では、年齢の関係に応じて<strong>必ず</strong>呼び方を変えなければなりません：</p>
+      <ul>
+        <li>年配の店主（50代〜）：<strong>"Cô/Bác"</strong>と呼び、自分を<strong>"cháu"</strong>と言う。</li>
+        <li>中年の店主（30〜50代）：<strong>"Chị/Anh"</strong>と呼び、自分を<strong>"em"</strong>と言う。</li>
+        <li>若い店主（〜30代）：<strong>"Em ơi"</strong>と呼び、自分を<strong>"anh/chị"</strong>と言う（あなたの性別による）。</li>
+      </ul>
+      <p>ヒント：年齢が確実でない場合は、<strong>一段階年上に呼ぶ</strong>ようにしてください — 「em」より「chị」と呼ぶ方が常に安全です。ベトナム人は間違っていれば自ら訂正してくれますし、あなたが正しく呼びかけようと努力していることをとても評価してくれます。</p>
+
+      <h2>${iconStool} 6. おわりに：座る勇気を持とう</h2>
+      <p>繊細さ、整頓、丁寧な距離感に慣れている日本人にとって、歩道のアイスティー屋台は<strong>コンフォートゾーン（安全地帯）を越えた</strong>体験かもしれません。小さなプラスチックの椅子、狭いテーブル、騒音、そしてベトナム語で自分で注文しなければなりません。</p>
+      <p>しかし、その「コンフォートゾーンを越える」ことこそが、アプリで学習するだけでなく、<strong>あなたが本当にベトナム語の中で生き始める瞬間</strong>なのです。低いプラスチックの椅子に座り、<em>「Cô ơi cho cháu cốc trà đá（おばさん、アイスティー一杯ちょうだい）」</em>と注文し、ハノイの生活の鼓動が流れていくのに耳を傾けるとき — その時、あなたはもう観光客ではありません。あなたはこの街の一部になりつつあるのです。</p>
+      <p>VietImmerseを開き、飲み物を注文して雑談するためのフレーズをいくつか練習して、通りに出てみましょう。どこでもいいのでアイスティー屋台を見つけて（どこにでもあります、特に旧市街の周辺）、座って、ハノイにベトナム語を教えてもらいましょう。</p>
+
+      <blockquote>
+        <p>「5,000ドンのアイスティー、低いプラスチックの椅子、そしてあなたの目の前に広がるハノイの全世界。これはあなたが参加するであろう、最も安く、最も価値のあるベトナム語のレッスンです。」 — VietImmerseチーム</p>
+      </blockquote>
+    `
   },
 
   // ── Post 3 ──────────────────────────────────────────────────
@@ -361,15 +614,21 @@ export const MOCK_POSTS: BlogPost[] = [
     id: "shadowing-cung-ai",
     title:
       "Phương pháp Shadowing cùng AI: Chìa khóa để nói tự nhiên như người bản xứ",
+    titleJa:
+      "AIを活用したシャドーイング法：ネイティブのように自然に話すための鍵",
     excerpt:
       "Shadowing kết hợp AI phân tích sóng âm giúp bạn bắt chước nhịp điệu, ngữ điệu Hà Nội chính xác đến từng chi tiết. Đây là cách VietImmerse biến công nghệ thành lợi thế học tập.",
+    excerptJa:
+      "音声波形を分析するAIと組み合わせたシャドーイングにより、ハノイのリズムとイントネーションを細部まで正確に模倣できます。VietImmerseがテクノロジーを学習の優位性に変える方法です。",
     date: "2026-05-10",
     category: "Công nghệ & EdTech",
+    categoryJa: "テクノロジー & EdTech",
     categoryIcon: "smart_toy",
     categoryColor: "bg-tertiary-container text-on-tertiary-container",
     gradientFrom: "from-[#3f2122]",
     gradientTo: "to-[#603d3e]",
     readTime: "10 phút đọc",
+    readTimeJa: "読了時間：10分",
     bodyHtml: `
       <p>Bạn đã từng trải qua cảm giác này chưa: tự tin nói một câu tiếng Việt trước gương, nhưng khi ra ngoài đường phố Hà Nội, người bản xứ lại nhíu mày hỏi lại <strong>"Bạn nói gì cơ?"</strong>. Đó không phải lỗi của bạn — đó là vì bạn đang thiếu một <em>tấm gương soi</em> thực sự cho giọng nói.</p>
       <p>Bài viết này sẽ đi sâu vào <strong>phương pháp Shadowing</strong> — kỹ thuật luyện phát âm được giới ngôn ngữ học đánh giá cao nhất — và cách VietImmerse kết hợp nó với AI phân tích sóng âm để tạo ra trải nghiệm luyện nói đột phá dành riêng cho tiếng Việt miền Bắc.</p>
@@ -504,6 +763,140 @@ export const MOCK_POSTS: BlogPost[] = [
         <p>"Công nghệ không thay thế người thầy — nó là tấm gương soi hoàn hảo nhất để bạn tự rèn luyện mỗi ngày. Và mỗi ngày luyện tập, bạn đến gần hơn một bước với nhịp điệu của Hà Nội." — Triết lý VietImmerse</p>
       </blockquote>
     `,
+    bodyHtmlJa: `
+      <p>こんな経験はありませんか：鏡の前で自信を持ってベトナム語の文を言ってみたものの、ハノイの通りに出ると、ネイティブの人に眉をひそめられて<strong>「え、何て言ったの？」</strong>と聞き返される。それはあなたのせいではありません — それは、あなたの声のための本物の<em>「鏡」</em>が欠けているからです。</p>
+      <p>この記事では、言語学界で高く評価されている発音練習テクニックである<strong>シャドーイング法</strong>と、VietImmerseがそれを音声波形分析AIと組み合わせて、北部ベトナム語に特化した画期的なスピーキング練習体験をどのように生み出しているかについて深く掘り下げます。</p>
+
+      <h2>${iconHeadphones} 1. 本当の痛み：なぜ日本人は「聞き取れる」のに「話せない」のか？</h2>
+      <p>日本語は<strong>ピッチアクセント</strong>言語です — 高さは相対的なレベル（高いか低いか）でのみ変化し、システムには明確な2つのレベルしかありません。一方、北部ベトナム語は<strong>6つの声調</strong>を持ち、それぞれが独自のピッチ曲線の形（コントゥア）を持っています：平、鋭、玄、問、倒、重。</p>
+      <p>これは日本人にとって同時に2つの課題を生み出します：</p>
+      <ul>
+        <li><strong>聴覚的な課題：</strong> 日本人の脳は、ピッチの6つの微妙な変化を区別することに慣れていません。例えば、問声（ả）と倒声（ã）は、訓練されていない耳にはほぼ同じに聞こえます — どちらも途中に「折れる」ポイントがありますが、倒声はより高く跳ね上がって終わります。</li>
+        <li><strong>運動的な課題：</strong> 耳が区別できたとしても、発声器官（喉頭、舌、唇）はその曲線を正確に再現するのに十分な訓練を受けていません。筋肉が<em>運動記憶（モーターメモリー）</em>を構築するには時間が必要です。</li>
+      </ul>
+      <p>結果は？自分では正しく話していると<em>思って</em>いても、実際のピッチ曲線はネイティブのものと大きくずれています。ここがシャドーイング法が必要となる場面です — しかし、伝統的な方法でのシャドーイングではありません。</p>
+
+      <h2>${iconBrain} 2. 伝統的なシャドーイングの致命的な限界</h2>
+      <p><strong>シャドーイング（Shadowing）</strong>は、ネイティブスピーカーが話すのを聞いた直後に繰り返す方法で、言語学者アレクサンダー・アルゲレスによって広く普及しました。文を聞き、すぐに声、リズム、ピッチを — 話者に付いていく影（<em>shadow</em>）のように — 模倣します。</p>
+      <p>この方法は多くの言語で効果的であることが証明されています。しかし、ベトナム語に適用した場合、<strong>致命的な抜け穴</strong>が明らかになります：</p>
+
+      <h3>「聴覚の錯覚」（Auditory Illusion）</h3>
+      <p>実験言語学では、この現象は<strong>「知覚-産出のギャップ（perception-production gap）」</strong>と呼ばれます — 自分が言っていると<em>思っている</em>ことと、実際に口から出ていることとの間のギャップです。</p>
+      <p>メカニズムは以下の通りです：</p>
+      <ol>
+        <li>サンプルの音声を聞く：<em>"Phở bò Hà Nội"</em>（問声「ở」と重声「ội」が含まれる）。</li>
+        <li>あなたはそれを繰り返し、自分の声を聞く。</li>
+        <li>脳が受け取った音声信号を<strong>自動的に「編集」</strong>し、正しく言えたと感じさせる。</li>
+        <li>しかし録音してソフトウェアで分析すると、実際のピッチ曲線では、あなたの問声は<strong>平坦すぎて十分に折れておらず</strong>、重声は<strong>十分に急激ではない</strong>ことが示される。</li>
+      </ol>
+      <p>日本人は特にこの錯覚に陥りやすいです。なぜなら、日本のピッチアクセントシステムは「高」と「低」のみを区別するため、脳はベトナム語の6つの異なる曲線を認識するのではなく、すべてのピッチの変動をこの2つの極にマッピングすることに慣れているからです。</p>
+
+      <blockquote>
+        <p>「あなたの耳は良い友人ですが、時には嘘をつきます。データだけが自分自身を決して欺きません。」 — VietImmerseの哲学</p>
+      </blockquote>
+
+      <h2>${iconWaveform} 3. 音声の「視覚化」 — AIのブレイクスルー</h2>
+      <p>VietImmerseは、聴覚の錯覚の問題を、シンプルかつ強力なアプローチで解決します：<strong>音声を視覚イメージに変換する</strong>ことです。自分の声を<em>見る</em>ことができれば、もはや耳に頼る必要はありません。</p>
+
+      <h3>ピッチコンター（音調曲線）とは？</h3>
+      <p>あなたが発するすべての音節は、<strong>基本周波数（F0 — Fundamental Frequency）</strong>を伴っています。これは声帯の振動周波数で、ヘルツ（Hz）を単位として測定されます。時間とともにF0が変化するとき、それは<em>曲線</em>を描きます — それがまさに<strong>ピッチコンター</strong>です。</p>
+      <p>6つの声調を持つ<em>"ma"</em>という単語の視覚的な例：</p>
+      <ul>
+        <li><strong>ma</strong>（平声）：中間のレベル（約150 Hz）の水平な直線。 ${iconWaveform}</li>
+        <li><strong>má</strong>（鋭声）：中間から上へ向かう線（約130 → 200 Hz）で、均等に傾斜している。</li>
+        <li><strong>mà</strong>（玄声）：中間から下へ向かう線（約150 → 100 Hz）で、緩やか。</li>
+        <li><strong>mả</strong>（問声）：「U」字型の曲線 — 下に下がってから上に向かう（約140 → 110 → 145 Hz）。これが最も難しい声調です！</li>
+        <li><strong>mã</strong>（倒声）：問声に似ているが、底で急に折れるポイントがあり、その後上に<em>跳ね上がる</em>（約140 → 105 → 180 Hz）。この微妙な違いが日本人の悩みの種です。</li>
+        <li><strong>mạ</strong>（重声）：下へ落ちて急に止まる線（約140 → 90 Hz）で、声門破裂音（glottal stop）で終わる。</li>
+      </ul>
+
+      <h3>AIの「スペクトルオーバーレイ」 — 直感的な比較</h3>
+      <p>VietImmerseの<strong>Voice Lab</strong>で録音すると、AIシステムは数ミリ秒以内に以下のステップを実行します：</p>
+      <ol>
+        <li>${iconMic} <strong>信号の取得：</strong> マイクがあなたの声をサンプリング周波数44.1 kHzのデジタル波形として録音します。</li>
+        <li>${iconWaveform} <strong>F0の抽出：</strong> CREPE（Convolutional Representation for Pitch Estimation）アルゴリズム — ディープラーニングモデル — が、複雑な信号から基本周波数F0を分離し、バックグラウンドノイズを除去します。</li>
+        <li>${iconTarget} <strong>オーバーレイ（重ね合わせ）：</strong> あなたのF0曲線（<span style="color:#3b82f6;font-weight:700">青色</span>で表示）が、教師の標準的なF0曲線（<span style="color:#f97316;font-weight:700">オレンジ色</span>で表示）の上に重ねられます。どこがずれているか一目でわかります。</li>
+        <li>${iconBrain} <strong>スコア計算：</strong> AIは動的時間伸縮法（DTW）アルゴリズムを使用して2つの曲線の類似度を計算し、0%から100%までのスコアを出します。</li>
+      </ol>
+      <p>重要なポイント：上記の専門用語を理解する必要はありません。VietImmerseはすべてを<strong>シンプルな直感的なグラフ</strong>として表示します — 2つの曲線、パーセンテージ、そして赤色でハイライトされたずれている領域。あなたはただ、2つの曲線を<em>一致させる</em>ことに集中すればよいのです。</p>
+
+      <blockquote>
+        <p>「声調を見ることができれば、よりはっきりと聞こえるようになります。視覚と聴覚は同じコインの表と裏です。」 — 神経言語学の研究、MIT（2021年）</p>
+      </blockquote>
+
+      <h2>${iconTarget} 4. Fluencyスコア計算アルゴリズム — ピッチだけじゃない</h2>
+      <p>多くの語学学習アプリは<em>声調の正確さ（pitch accuracy）</em>のみを評価します。しかしVietImmerseはさらに進んで、3次元の<strong>Fluency Score（流暢さスコア）</strong>システムを採用し、文全体の「メロディー」も分析します：</p>
+
+      <h3>次元1：Tone Accuracy（声調の正確さ） — 重み40%</h3>
+      <p>DTWを使用して各音節のピッチコンターを比較します。文中の各声調に対して個別にスコアが計算され、その後加重平均が取られます — 難しい声調（問声、倒声）は日本人が最もよく間違える箇所であるため、より高い重みが与えられます。</p>
+
+      <h3>次元2：Rhythm & Pacing（リズムとペース） — 重み35%</h3>
+      <p>AIはあなたの<strong>ポーズパターン（ngắt nghỉ）</strong>と<strong>音節を出す速度（syllable rate）</strong>を分析します。ハノイのベトナム語には独特のリズムがあります — 南部のベトナム語より速く、フレーズの間に短い休止があります。遅すぎたり、単語の間に休止が多すぎたり、強調せずに平坦に話したりすると、AIはそれを検出します。</p>
+      <p>分析される具体的な指標：</p>
+      <ul>
+        <li><strong>Syllable Rate：</strong> 1秒あたりの音節数。ネイティブのハノイ人は自然に約4.5〜5.5音節/秒で話します。</li>
+        <li><strong>Pause Duration：</strong> フレーズ間の平均ポーズ時間。長すぎる（単語間で500ms以上）＝まだ流暢ではない。</li>
+        <li><strong>Hesitation Ratio：</strong> 総発話時間に対する沈黙時間の割合。ネイティブスピーカーは約15-20%、初心者は通常40%以上です。</li>
+      </ul>
+
+      <h3>次元3：Naturalness（自然さ） — 重み25%</h3>
+      <p>これが最も微妙な分析の次元です。AIは、あなたが文中で<strong>声調をどのようにつなげているか</strong>を評価します。ハノイの人々は自然に話すとき、各単語を切り離して発音しません — 一つの声調から別の声調へと、シームレスな<em>メロディー</em>に沿って「流れて」いきます。AIは文レベルのイントネーション・コンター（抑揚の曲線）を分析してこの次元を評価します。</p>
+
+      <h2>${iconMic} 5. VietImmerseでの「標準的な」シャドーイング練習の3ステップ</h2>
+      <p><em>第二言語習得（Second Language Acquisition）</em>の研究と何千人もの学習者からのフィードバックに基づき、VietImmerseはシャドーイングのプロセスを<strong>科学的な3つのステップ</strong>に洗練させました：</p>
+
+      <h3>ステップ1：アクティブリスニング（Nghe ngấm） ${iconHeadphones}</h3>
+      <p>これはほとんどの人がスキップするか適当に済ませるステップですが、最も重要です。</p>
+      <ul>
+        <li><strong>リスニング1回目 — 全体を聞く：</strong> 意味を理解する必要はなく、文の全体的な「メロディー」だけを感じ取ります。文は上がっていますか、下がっていますか？テンポは速いですか、遅いですか？</li>
+        <li><strong>リスニング2回目 — 音節ごとに聞く：</strong> VietImmerseでは遅く（0.75倍速）再生して、各声調をはっきりと聞くことができます。問声と倒声を持つ単語に集中してください。</li>
+        <li><strong>リスニング3回目 — 聞いてイメージする：</strong> 目を閉じ、通常の速度でもう一度聞き、頭の中でピッチ曲線を<em>想像</em>してください。研究によると、頭の中の視覚化は運動計画を最大23%向上させることがわかっています。</li>
+      </ul>
+      <p><strong>推奨時間：</strong> 各サンプル文につき60〜90秒。このステップを急いで飛ばしてはいけません。</p>
+
+      <h3>ステップ2：シャドーイングと録音 ${iconMic}</h3>
+      <p>十分に「吸収」したら、実践を始めます：</p>
+      <ul>
+        <li><strong>1回目 — 同時シャドーイング（Simultaneous）：</strong> 「Play」を押し、サンプル音声と<em>同時に</em>話します。ついていけなくても心配しないでください — 目的は、脳と発声器官にネイティブのリズムを「追いつかせる」ことです。</li>
+        <li><strong>2回目 — 遅延シャドーイング（Delayed）：</strong> フレーズを聞き終えたら一時停止し、その後繰り返します。VietImmerseは各フレーズの後に自動的にポーズを作成します。</li>
+        <li><strong>3回目 — 独立録音：</strong> 録音ボタンを押し、<em>サンプル音声なし</em>で話します。これがあなたの運動記憶を本当にテストする時です。</li>
+      </ul>
+      <p>重要なヒント：シャドーイングするときは、ハノイの人々の<strong>体のジェスチャーも真似</strong>してください。問声を話すときは頭を軽く傾け、重声を話すときは軽く頷きます。奇妙に聞こえるかもしれませんが、身体化認知（embodied cognition）の研究によると、体のジェスチャーは声調の記憶を30%向上させることが示されています。</p>
+
+      <h3>ステップ3：スペクトル分析とエラー修正 ${iconWaveform}</h3>
+      <p>ここでAIが真に輝き、VietImmerseを伝統的なシャドーイングと完全に差別化します：</p>
+      <ol>
+        <li><strong>オーバーレイグラフを見る：</strong> 2つのピッチ曲線 — あなたのものと教師のもの — が並んで表示されます。20%以上ずれている領域は赤でハイライトされます。</li>
+        <li><strong>具体的なフィードバックを読む：</strong> AIはただ「間違っている」と言うだけでなく、どこが間違っているかを<em>正確に</em>指摘します。例：「『bở』という単語の問声が十分に折れていません。上に引き上げる前にもう少しピッチを下げてみてください。」</li>
+        <li><strong>Fluency Scoreを見る：</strong> 3次元の総合スコア（Tone 40% + Rhythm 35% + Naturalness 25%）が全体像を示します。</li>
+        <li><strong>選択的に繰り返す：</strong> 文全体を繰り返す代わりに、<em>間違えた単語</em>だけを練習することができます。VietImmerseでは各音節を切り離して修正に集中できます。</li>
+      </ol>
+
+      <h2>6. 実際のデータ：30日間の前後</h2>
+      <p>私たちは、3ステップのプロセスを30日間継続して（1日15分）使用した<strong>500人の日本人学習者</strong>を追跡しました。平均Fluency Scoreで測定した結果：</p>
+      <ul>
+        <li>${iconTarget} <strong>Tone Accuracy：</strong> 48% → 79%（+31ポイント）。問声と倒声で最も顕著な改善が見られました。</li>
+        <li>${iconWaveform} <strong>Rhythm & Pacing：</strong> 41% → 72%（+31ポイント）。音節を出す速度が2.8から4.1音節/秒に向上しました。</li>
+        <li>${iconBrain} <strong>Naturalness：</strong> 35% → 68%（+33ポイント）。最も改善幅が大きかった次元であり、シャドーイングが自然なイントネーションの構築に特に効果的であることを示しています。</li>
+        <li>${iconHeadphones} <strong>総合Fluency Score：</strong> <strong>42%から74%</strong>に。70%を超えると「日常の状況でネイティブスピーカーと自然にコミュニケーションが取れる」と見なされます。</li>
+      </ul>
+      <p>注目すべき点：<strong>92%</strong>の学習者が、練習前は38%だったのに対し、ハノイの人々が初回で自分が言っていることを理解してくれたと報告しています。</p>
+
+      <h2>${iconBrain} 7. 結論：AIは鏡であり、教師ではない</h2>
+      <p>こう考えてみてください：優秀なバレエダンサーは教師のおかげだけで優れているわけではありません — 自分の体が正確にどのように動いているかを見るために、スタジオの<strong>大きな鏡</strong>が必要です。VietImmerseのAIは、まさに声のためのその鏡なのです。</p>
+      <p>テクノロジーはネイティブスピーカーに取って代わることはできません。旧市街で売り手のおばさんとアイスティーを飲みながら座る感覚や、うっかり声調を間違えて「phở bò（牛肉のフォー）」を「phỡ bồ」にしてしまったときの笑い声を再現できるアルゴリズムはありません。しかしAIは、あなたが現実世界に足を踏み出す前に、<strong>可能な限り最善の準備</strong>をする手助けをすることができます。</p>
+      <p>VietImmerseでのシャドーイング練習の毎分は、あなたが以下を行っている1分間です：</p>
+      <ul>
+        <li>発声器官の<strong>運動記憶（モーターメモリー）</strong>を鍛える。</li>
+        <li>脳内の<strong>聴覚マップ</strong>を調整する。</li>
+        <li>主観的な感覚ではなく、実際のデータに基づいて<strong>自信</strong>を築く。</li>
+      </ul>
+      <p>そしてFluency Scoreが80%を超えたら、自分にご褒美をあげてください — 通りに出てエッグコーヒーを注文し、あなたが鍛え上げたハノイ訛りを使ってこう言いましょう：<strong>「Cho em một cà phê trứng nóng ạ!（温かいエッグコーヒーを1つお願いします！）」</strong></p>
+
+      <blockquote>
+        <p>「テクノロジーは教師に取って代わるものではありません — それはあなたが毎日自ら鍛錬するための最も完璧な鏡なのです。そして練習を重ねるごとに、あなたはハノイのリズムに一歩近づくのです。」 — VietImmerseの哲学</p>
+      </blockquote>
+    `
   },
 
   // ── Post 4 ──────────────────────────────────────────────────

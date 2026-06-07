@@ -424,7 +424,7 @@ export default function HelpPage() {
       {/* Footer */}
       <footer className="bg-surface-container-lowest border-t border-surface-container-high py-8 px-6 mt-8">
         <p className="text-center text-xs text-on-surface-variant">
-          © 2024 VietImmerse. Bảo lưu mọi quyền.
+          © {new Date().getFullYear()} VietImmerse. Bảo lưu mọi quyền.
         </p>
       </footer>
     </div>

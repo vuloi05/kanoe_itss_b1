@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using PayOS;
 
 // Load .env from project root (shared config for all services)
 var rootEnvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
@@ -82,6 +83,20 @@ builder.Services.AddHostedService<OtpCleanupBackgroundService>();
 
 // SignalR (Realtime Messaging — replaces Supabase Realtime)
 builder.Services.AddSignalR();
+
+builder.Services.AddMemoryCache();
+
+// PayOS setup
+var payOSClientId = Environment.GetEnvironmentVariable("PAYOS_CLIENT_ID") ?? "";
+var payOSApiKey = Environment.GetEnvironmentVariable("PAYOS_API_KEY") ?? "";
+var payOSChecksumKey = Environment.GetEnvironmentVariable("PAYOS_CHECKSUM_KEY") ?? "";
+var payOSOptions = new PayOSOptions
+{
+    ClientId = payOSClientId,
+    ApiKey = payOSApiKey,
+    ChecksumKey = payOSChecksumKey
+};
+builder.Services.AddSingleton(new PayOSClient(payOSOptions));
 
 // CORS: read allowed origins from env var (comma-separated), fallback to localhost for dev
 var corsOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")

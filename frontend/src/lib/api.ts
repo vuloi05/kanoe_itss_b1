@@ -432,3 +432,23 @@ export const matchingApi = {
   getTransactions: () =>
     api.get<TransactionHistoryDto[]>("/api/matching/transactions"),
 };
+
+// ─── Payment / PayOS ──────────────────────────────────────────
+
+export interface CreatePaymentLinkResponse {
+  isFree?: boolean;
+  message?: string;
+  checkoutUrl?: string;
+  qrCode?: string;
+  bin?: string;
+  accountNumber?: string;
+  accountName?: string;
+  amount?: number;
+  description?: string;
+  orderCode?: number;
+}
+
+export const paymentApi = {
+  createPaymentLink: (tokens: number, method: string = "bank_transfer", discountCode?: string) =>
+    api.post<CreatePaymentLinkResponse>("/api/payment/create-payment-link", { tokens, method, discountCode }),
+};

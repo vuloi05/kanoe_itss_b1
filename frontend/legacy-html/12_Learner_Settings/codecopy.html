@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-tertiary-fixed-variant": "#603d3e",
+            "secondary-fixed": "#fdddb9",
+            "secondary-container": "#fdddb9",
+            "primary-fixed-dim": "#adc7f7",
+            "primary-fixed": "#d6e3ff",
+            "outline": "#74777d",
+            "on-background": "#1a1c1b",
+            "surface-container-low": "#f4f4f2",
+            "on-tertiary-container": "#ce9f9f",
+            "on-secondary": "#ffffff",
+            "on-secondary-container": "#786044",
+            "tertiary-container": "#583637",
+            "surface-container-highest": "#e2e3e1",
+            "surface-container-high": "#e8e8e6",
+            "error": "#ba1a1a",
+            "tertiary": "#3f2122",
+            "background": "#f9f9f7",
+            "secondary": "#715a3e",
+            "on-primary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-primary-fixed": "#001b3c",
+            "surface-variant": "#e2e3e1",
+            "primary": "#09294f",
+            "surface-dim": "#dadad8",
+            "surface-container-lowest": "#ffffff",
+            "secondary-fixed-dim": "#e0c29f",
+            "on-tertiary-fixed": "#2f1314",
+            "surface-bright": "#f9f9f7",
+            "on-tertiary": "#ffffff",
+            "on-surface-variant": "#44474d",
+            "inverse-primary": "#adc7f7",
+            "on-primary-fixed-variant": "#2d476f",
+            "on-error": "#ffffff",
+            "inverse-on-surface": "#f1f1ef",
+            "tertiary-fixed": "#ffdad9",
+            "on-secondary-fixed-variant": "#584329",
+            "tertiary-fixed-dim": "#ecbbba",
+            "on-primary-container": "#91abd9",
+            "primary-container": "#243f67",
+            "on-secondary-fixed": "#281803",
+            "surface-tint": "#455f88",
+            "outline-variant": "#c4c6cd",
+            "on-surface": "#1a1c1b",
+            "inverse-surface": "#2f3130",
+            "surface-container": "#eeeeec",
+            "surface": "#f9f9f7",
+            "on-error-container": "#93000a"
+          },
+          fontFamily: {
+            "headline": ["Be Vietnam Pro"],
+            "body": ["Manrope"],
+            "label": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .engawa-blur {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    body {
+      background-color: #f9f9f7;
+      color: #1a1c1b;
+      font-family: 'Manrope', sans-serif;
+    }
+    .lotus-gradient {
+      background: linear-gradient(135deg, #09294f 0%, #243f67 100%);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-[#f9f9f7] dark:bg-slate-900 flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-[#09294f] dark:text-blue-200 font-['Be_Vietnam_Pro'] tracking-wide" style="">VietImmerse</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-[#715a3e] dark:text-stone-400 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 transition-colors duration-300 font-['Be_Vietnam_Pro'] tracking-wide" href="#" style="">Trang chủ/ホーム</a>
+<a class="text-[#715a3e] dark:text-stone-400 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 transition-colors duration-300 font-['Be_Vietnam_Pro'] tracking-wide" href="#" style="">Ghép cặp/マッチング</a>
+<a class="text-[#715a3e] dark:text-stone-400 hover:bg-[#f4f4f2] dark:hover:bg-slate-800 transition-colors duration-300 font-['Be_Vietnam_Pro'] tracking-wide" href="#" style="">Luyện tập/ラボ</a>
+<a class="text-[#09294f] dark:text-blue-400 font-bold font-['Be_Vietnam_Pro'] tracking-wide" href="#" style="">Cài đặt/設定</a>
+</nav>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-5xl mx-auto">
+<!-- Screen Title -->
+<div class="mb-12">
+<h1 class="font-headline text-3xl font-extrabold tracking-tight text-primary mb-2" style="">Cài Đặt / 設定</h1>
+<p class="font-body text-secondary text-lg" style="">Manage your linguistic journey in Hanoi.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Profile Section -->
+<section class="md:col-span-7 bg-surface-container-lowest rounded-xl p-8 flex flex-col md:flex-row gap-8 items-center border-none transition-all duration-300">
+<div class="relative group">
+<div class="w-32 h-32 rounded-full overflow-hidden">
+<img alt="Profile Picture" class="w-full h-full object-cover" data-alt="portrait of a young Japanese man with a friendly expression in a soft-lit indoor setting with wooden textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3LJdnfFo99KXNViAV84SQNoOUexa_uCm2MmlQRScmlgXM7QBfpSHhh92AEpBSW9yqxaMZvLQfrpf3UODbD0pzW_aKAfpI9XbpGIm__loqtQr-Q7C1g9yKZytfh_WiiNWeeVttdL3TM7nPTFeJ9fwQ1Nw7cr9hAoxPrM8g7MhWtOC8M9mS-HLhNjUoDf3kPqRVo3g2MJ3Advp8nrZA-KhCkglDivnix3JOXbLN18gdUHS0ZqGEJ6Lok_2gV6VA-buiBXeMc_VoiVBL" style=""/>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg" style="">
+<span class="material-symbols-outlined text-sm" data-icon="edit" style="">edit</span>
+</button>
+</div>
+<div class="flex-1 space-y-4 w-full">
+<div>
+<label class="block font-label text-xs text-on-surface-variant mb-1 uppercase tracking-widest" style="">Họ và Tên / 氏名</label>
+<input class="w-full bg-transparent border-none border-b border-outline-variant focus:ring-0 focus:border-primary font-headline text-xl font-bold py-2 px-0 transition-all duration-300" type="text" value="Kenji Sato"/>
+</div>
+<div>
+<label class="block font-label text-xs text-on-surface-variant mb-1 uppercase tracking-widest" style="">Email / メール</label>
+<p class="font-body text-on-surface" style="">kenji.sato@vietimmerse.com</p>
+</div>
+</div>
+</section>
+<!-- Proficiency Level Selection -->
+<section class="md:col-span-5 bg-surface-container-low rounded-xl p-8 space-y-6">
+<h2 class="font-headline text-xl font-bold text-primary" style="">Trình độ / レベル</h2>
+<div class="grid gap-2 grid-cols-3"><button class="flex flex-col items-center justify-center p-3 rounded-xl bg-surface-container-lowest text-secondary font-bold hover:bg-primary-container hover:text-on-primary transition-all">
+<span class="text-xs">V1</span>
+<span class="text-[10px] opacity-60">Basic</span>
+</button>
+<button class="flex flex-col items-center justify-center p-3 rounded-xl bg-primary-container text-on-primary font-bold shadow-md">
+<span class="text-xs">V2</span>
+<span class="text-[10px] opacity-80">Inter</span>
+</button>
+<button class="flex flex-col items-center justify-center p-3 rounded-xl bg-surface-container-lowest text-secondary font-bold hover:bg-primary-container hover:text-on-primary transition-all">
+<span class="text-xs">V3</span>
+<span class="text-[10px] opacity-60">Adv</span>
+</button></div>
+<div class="pt-4 border-t border-outline-variant opacity-20"></div>
+<div class="flex items-center justify-between">
+<span class="font-body text-sm text-secondary" style="">Hanoi Dialect Mastery</span>
+<span class="font-headline font-bold text-primary" style="">64%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full lotus-gradient w-[64%]"></div>
+</div>
+</section>
+<!-- Learning History / Results -->
+<section class="md:col-span-8 bg-surface-container-low rounded-xl p-8 relative overflow-hidden">
+<div class="relative z-10 flex flex-col h-full justify-between">
+<div class="mb-8">
+<h2 class="font-headline text-xl font-bold text-primary mb-2" style="">Kết quả học tập / 学習履歴</h2>
+<p class="font-body text-sm text-secondary" style="">Summary of your progress in Northern Tones.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-xl">
+<span class="block text-2xl font-bold text-primary" style="">12</span>
+<span class="block text-xs text-secondary font-label uppercase tracking-tighter leading-tight" style="">Days Streak<br/>継続日数</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl">
+<span class="block text-2xl font-bold text-primary" style="">840</span>
+<span class="block text-xs text-secondary font-label uppercase tracking-tighter leading-tight" style="">Vocab<br/>単語数</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl">
+<span class="block text-2xl font-bold text-primary" style="">92%</span>
+<span class="block text-xs text-secondary font-label uppercase tracking-tighter leading-tight" style="">Tone Acc.<br/>声調精度</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl">
+<span class="block text-2xl font-bold text-primary" style="">24</span>
+<span class="block text-xs text-secondary font-label uppercase tracking-tighter leading-tight" style="">Hours<br/>学習時間</span>
+</div>
+</div>
+</div>
+<!-- Decorative subtle lotus background -->
+<div class="absolute -right-12 -bottom-12 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-[16rem]" data-icon="eco" style="">eco</span>
+</div>
+</section><section class="md:col-span-4 bg-surface-container-low rounded-xl p-8 flex flex-col justify-between space-y-4">
+<div>
+<h2 class="font-headline text-xl font-bold text-primary mb-2">Số dư Token / トークン残高</h2>
+<p class="font-body text-sm text-secondary">Your virtual balance for premium sessions.</p>
+</div>
+<div class="py-4">
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-extrabold text-primary font-headline">1,250</span>
+<span class="text-lg font-bold text-secondary font-headline uppercase tracking-wide">Tokens</span>
+</div>
+</div>
+<div class="space-y-4">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-3 px-6 rounded-xl font-bold font-headline hover:bg-primary-container hover:text-on-primary transition-all shadow-md group">
+<span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">add_circle</span>
+<span>Nạp Token / チャージする</span>
+</button>
+<div class="flex items-center gap-2 text-[11px] text-secondary opacity-60 font-medium">
+<span class="material-symbols-outlined text-sm">info</span>
+<span>1 Token = 1,000 VNĐ / 1トークン = 1,000ドン</span>
+</div>
+</div>
+</section>
+<!-- Security / Actions -->
+<section class="md:col-span-4 space-y-4">
+<div class="bg-surface-container-lowest rounded-xl p-6 border border-outline-variant border-opacity-10 hover:shadow-sm transition-all group">
+<div class="flex items-center gap-4 cursor-pointer">
+<div class="p-2 rounded-lg bg-secondary-container text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="lock" style="">lock</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-primary text-sm" style="">Đổi mật khẩu / パスワード変更</h3>
+<p class="text-[10px] text-secondary" style="">Last changed 3 months ago</p>
+</div>
+<span class="material-symbols-outlined text-secondary opacity-40 group-hover:translate-x-1 transition-transform" data-icon="chevron_right" style="">chevron_right</span>
+</div>
+</div>
+<div class="bg-error-container rounded-xl p-6 hover:shadow-sm transition-all group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="p-2 rounded-lg bg-on-error-container bg-opacity-10 text-error">
+<span class="material-symbols-outlined" data-icon="logout" style="">logout</span>
+</div>
+<div class="flex-1 text-on-error-container font-headline font-bold text-sm" style="">
+              Đăng xuất / ログアウト
+            </div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#f9f9f7] dark:bg-slate-950 border-t border-[#f4f4f2] dark:border-slate-800 shadow-[0_-12px_32px_-4px_rgba(9,41,79,0.06)]">
+<button class="flex flex-col items-center justify-center text-[#715a3e] dark:text-stone-500 px-3 py-1 hover:text-[#09294f] dark:hover:text-blue-200 transition-all scale-95 active:scale-90 duration-300" style="">
+<span class="material-symbols-outlined" data-icon="home" style="">home</span>
+<span class="font-['Manrope'] text-[10px] leading-tight" style="">Home/ホーム</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#715a3e] dark:text-stone-500 px-3 py-1 hover:text-[#09294f] dark:hover:text-blue-200 transition-all scale-95 active:scale-90 duration-300" style="">
+<span class="material-symbols-outlined" data-icon="group" style="">group</span>
+<span class="font-['Manrope'] text-[10px] leading-tight" style="">Match/マッチ</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#715a3e] dark:text-stone-500 px-3 py-1 hover:text-[#09294f] dark:hover:text-blue-200 transition-all scale-95 active:scale-90 duration-300" style="">
+<span class="material-symbols-outlined" data-icon="mic" style="">mic</span>
+<span class="font-['Manrope'] text-[10px] leading-tight" style="">Lab/ラボ</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-[#ffffff] dark:bg-slate-800 text-[#09294f] dark:text-blue-300 rounded-xl px-3 py-1 hover:text-[#09294f] dark:hover:text-blue-200 transition-all scale-95 active:scale-90 duration-300" style="">
+<span class="material-symbols-outlined" data-icon="settings" style="">settings</span>
+<span class="font-['Manrope'] text-[10px] leading-tight" style="">Settings/設定</span>
+</button>
+</nav>
+</body></html>

@@ -181,7 +181,7 @@ export default function Home() {
             <Link className="hover:text-primary transition-colors" href="/help">{t("Trung tâm trợ giúp", "ヘルプ")}</Link>
             <Link className="hover:text-primary transition-colors" href="/blog">{t("Blog", "ブログ")}</Link>
           </div>
-          <p className="text-xs text-on-surface-variant">{t("© 2024 VietImmerse. Bảo lưu mọi quyền.", "© 2024 VietImmerse. All rights reserved.")}</p>
+          <p className="text-xs text-on-surface-variant">{t(`© ${new Date().getFullYear()} VietImmerse. Bảo lưu mọi quyền.`, `© ${new Date().getFullYear()} VietImmerse. All rights reserved.`)}</p>
         </div>
       </footer>
 
