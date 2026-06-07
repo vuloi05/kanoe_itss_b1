@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { authApi, type AuthResponse, type UserProfile, ApiException } from "./api";
+import { warmUpBackend } from "./warmup";
 
 interface AuthState {
   user: UserProfile | null;
@@ -23,6 +24,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const TOKEN_KEY = "auth_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  // Wake up Render backend ASAP (fire-and-forget, runs once per session)
+  warmUpBackend();
+
   // Lazy initializer avoids synchronous setState inside useEffect
   const [state, setState] = useState<AuthState>(() => {
     if (typeof window === "undefined") {
@@ -75,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState({ user: null, token: null, isLoading: false, isAuthenticated: false });
         cancelled = true;
       }
-    }, 8000);
+    }, 15_000);
 
     hydrateSession().finally(() => clearTimeout(timeoutId));
 

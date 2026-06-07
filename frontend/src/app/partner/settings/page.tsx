@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { useState, useEffect, useRef } from "react";
-import { authApi, userApi } from "@/lib/api";
+import { authApi, userApi, matchingApi } from "@/lib/api";
 
 /**
  * Compute a human-readable relative time string from a UTC ISO date.
@@ -52,6 +52,9 @@ export default function PartnerSettingsPage() {
     ja: string;
   } | null>(null);
 
+  // ── Token balance state ──
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+
   // ── Profile inline editing state ──
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [nameText, setNameText] = useState("");
@@ -81,6 +84,15 @@ export default function PartnerSettingsPage() {
       })
       .catch(() => {
         // Silently fail – fallback values stay
+      });
+
+    matchingApi
+      .getBalance()
+      .then((data) => {
+        if (!cancelled) setTokenBalance(data.tokenBalance);
+      })
+      .catch(() => {
+        // Silently fail – balance will show skeleton
       });
 
     return () => {
@@ -418,29 +430,6 @@ export default function PartnerSettingsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Token Wallet Card */}
-                <Link
-                  href="/partner/wallet"
-                  className="p-6 bg-surface-container-lowest rounded-xl engawa-shadow flex items-center justify-between group cursor-pointer hover:bg-primary transition-colors duration-300 md:col-span-2"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/20 flex items-center justify-center group-hover:bg-primary-container transition-colors">
-                      <span className="text-2xl">🪙</span>
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-primary group-hover:text-white">
-                        {t("Ví Token", "トークンウォレット")}
-                      </h3>
-                      <p className="text-xs text-secondary group-hover:text-white/70">
-                        {t("Xem số dư & lịch sử nhận tiền", "残高と受取履歴を確認")}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-outline-variant group-hover:text-white">
-                    chevron_right
-                  </span>
-                </Link>
-
                 {/* Email Card (Read-only) */}
                 <div className="p-6 bg-surface-container-lowest rounded-xl engawa-shadow flex items-center justify-between cursor-default">
                   <div className="flex items-center gap-4">
@@ -486,6 +475,55 @@ export default function PartnerSettingsPage() {
                     chevron_right
                   </span>
                 </Link>
+
+                {/* ── Rút Token Card ── */}
+                <div className="p-6 bg-surface-container-lowest rounded-xl engawa-shadow space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined">payments</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-primary font-headline">
+                        {t("Rút Token", "トークンの換金")}
+                      </h3>
+                      <p className="text-xs text-secondary">
+                        {t("Rút Token thành tiền", "トークンの換金")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Balance */}
+                  <div className="bg-surface-container-low p-4 rounded-xl">
+                    <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1 font-label">
+                      {t("Số dư hiện tại", "現在の残高")}
+                    </p>
+                    <p className="text-2xl font-bold text-primary tabular-nums">
+                      {tokenBalance !== null ? (
+                        <>{tokenBalance.toLocaleString()} Tokens</>
+                      ) : (
+                        <span className="inline-block w-32 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Withdraw button */}
+                  <Link
+                    href="/partner/wallet"
+                    className="block w-full text-center bg-primary text-white py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-primary/90 transition-all duration-300 font-label"
+                    id="btn-withdraw-token"
+                  >
+                    {t("Rút tiền", "換金する")}
+                  </Link>
+
+                  {/* Info note */}
+                  <p className="text-[10px] text-center text-on-surface-variant italic">
+                    {t(
+                      "1 Token = 1,000 VNĐ. Xử lý trong 24-48h.",
+                      "1トークン = 1,000 VNĐ。24〜48時間以内に処理されます。"
+                    )}
+                  </p>
+                </div>
               </div>
             </section>
           </div>

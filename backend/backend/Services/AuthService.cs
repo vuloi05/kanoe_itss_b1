@@ -405,6 +405,23 @@ public class AuthService : IAuthService
 
         // Always recalculate from current learnerProfile value
         var dailyStudyHours = learnerProfile?.DailyStudySeconds / 3600.0 ?? 0;
+
+        // ── Streak Expiry Check ──────────────────────────────────────
+        // If the learner hasn't studied today or yesterday, their streak is broken → reset to 0.
+        if (learnerProfile is not null)
+        {
+            var lastStudyDay = learnerProfile.LastStudyDate?.Date;
+            var todayDate = DateTime.UtcNow.Date;
+            var yesterdayDate = todayDate.AddDays(-1);
+
+            if (lastStudyDay is not null && lastStudyDay != todayDate && lastStudyDay != yesterdayDate)
+            {
+                learnerProfile.CurrentStreak = 0;
+                learnerProfile.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+            }
+        }
+
         var currentStreak = learnerProfile?.CurrentStreak ?? 0;
 
         return new UserProfileResponse(

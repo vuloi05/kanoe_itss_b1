@@ -6,7 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect } from "react";
-import { matchingApi, type TransactionHistoryDto } from "@/lib/api";
+import { matchingApi, paymentApi, type TransactionHistoryDto, type CreatePaymentLinkResponse } from "@/lib/api";
+import TopUpTokenModal from "@/components/common/TopUpTokenModal";
+import PaymentCheckoutModal from "@/components/common/PaymentCheckoutModal";
 
 // ─── Date formatter ────────────────────────────────────────────
 function formatTxDate(iso: string, locale: "vi" | "ja"): string {
@@ -41,6 +43,9 @@ export default function WalletPage() {
   const [transactions, setTransactions] = useState<TransactionHistoryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTopUp, setShowTopUp] = useState(false);
+  const [showPaymentCheckout, setShowPaymentCheckout] = useState(false);
+  const [paymentData, setPaymentData] = useState<CreatePaymentLinkResponse | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -109,8 +114,8 @@ export default function WalletPage() {
               <span className="text-3xl">🪙</span>
             </div>
 
-            {/* Quick stats */}
-            <div className="flex flex-wrap gap-4">
+            {/* Quick stats + Top-up button */}
+            <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl">
                 <span className="material-symbols-outlined text-amber-300 text-lg">
                   toll
@@ -129,6 +134,17 @@ export default function WalletPage() {
                   <span className="text-green-300 font-bold ml-1">70%</span>
                 </span>
               </div>
+
+              {/* ── Nạp Token button ── */}
+              <button
+                onClick={() => setShowTopUp(true)}
+                className="ml-auto flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-[#112340] font-headline font-bold text-sm rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined text-lg">
+                  add_circle
+                </span>
+                {t("Nạp Token", "チャージ")}
+              </button>
             </div>
           </div>
         </div>
@@ -290,6 +306,52 @@ export default function WalletPage() {
           )}
         </div>
       </main>
+
+      {/* ── Top-up Token Modal ── */}
+      <TopUpTokenModal
+        isOpen={showTopUp}
+        tokenBalance={balance ?? 0}
+        onClose={() => setShowTopUp(false)}
+        onConfirm={async (amount, method, discountCode) => {
+          if (method === "bank_transfer") {
+            try {
+              const res = await paymentApi.createPaymentLink(amount, method, discountCode);
+              if (res.isFree) {
+                // Update balance immediately
+                const newBalance = await matchingApi.getBalance();
+                setBalance(newBalance.tokenBalance);
+                alert(res.message || "Áp dụng mã thành công!");
+              } else if (res.qrCode) {
+                setPaymentData(res);
+                setShowPaymentCheckout(true);
+              } else if (res.checkoutUrl) {
+                window.location.href = res.checkoutUrl;
+              }
+            } catch (err) {
+              console.error("Lỗi khi tạo payment link:", err);
+              alert("Có lỗi xảy ra khi tạo link thanh toán.");
+            }
+          } else {
+            console.log(`Top-up: ${amount} tokens via ${method}`);
+            alert(t(`Đã gửi yêu cầu nạp ${amount} tokens qua ${method}`, `${method}経由で${amount}トークンのチャージをリクエストしました`));
+          }
+          setShowTopUp(false);
+        }}
+      />
+
+      {/* ── Payment Checkout Modal ── */}
+      <PaymentCheckoutModal
+        isOpen={showPaymentCheckout}
+        paymentData={paymentData}
+        initialTokenBalance={balance ?? 0}
+        onClose={() => setShowPaymentCheckout(false)}
+        onSuccess={(newBalance) => {
+          setBalance(newBalance);
+          setShowPaymentCheckout(false);
+          alert(t("Nạp Token thành công! Số dư của bạn đã được cập nhật.", "トークンのチャージが完了しました！残高が更新されました。"));
+        }}
+      />
+
       <LearnerBottomNav />
     </div>
   );

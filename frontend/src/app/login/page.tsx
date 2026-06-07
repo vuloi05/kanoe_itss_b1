@@ -153,7 +153,7 @@ export default function LoginPage() {
       </main>
       <footer className="mt-auto py-8 text-center hidden md:block">
         <p className="text-[10px] font-label text-outline tracking-widest uppercase">
-          {t("© 2024 VietImmerse. Nhịp cầu kết nối Hà Nội và Tokyo.", "© 2024 VietImmerse. ハノイと東京を繋ぐ架け橋")}
+          {t(`© ${new Date().getFullYear()} VietImmerse. Nhịp cầu kết nối Hà Nội và Tokyo.`, `© ${new Date().getFullYear()} VietImmerse. ハノイと東京を繋ぐ架け橋`)}
         </p>
       </footer>
     </div>
