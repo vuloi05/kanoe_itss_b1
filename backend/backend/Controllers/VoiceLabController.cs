@@ -3,12 +3,15 @@ using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace backend.Controllers;
 
 [ApiController]
 [Route("api/voicelab")]
+[EnableRateLimiting("VoiceLabPolicy")]
 public class VoiceLabController : ControllerBase
 {
     // Fallback user_id for anonymous requests (demo learner from seed_data.sql)
@@ -16,17 +19,20 @@ public class VoiceLabController : ControllerBase
         Guid.Parse("a0000000-0000-0000-0000-000000000001");
 
     private readonly IAsrService _asrService;
+    private readonly AzurePronunciationService _azureService;
     private readonly IVoiceScoringService _scoringService;
     private readonly VietImmerseDbContext _dbContext;
     private readonly ILogger<VoiceLabController> _logger;
 
     public VoiceLabController(
         IAsrService asrService,
+        AzurePronunciationService azureService,
         IVoiceScoringService scoringService,
         VietImmerseDbContext dbContext,
         ILogger<VoiceLabController> logger)
     {
         _asrService = asrService;
+        _azureService = azureService;
         _scoringService = scoringService;
         _dbContext = dbContext;
         _logger = logger;
@@ -44,34 +50,64 @@ public class VoiceLabController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // 1. Read audio file into byte array
-        byte[] audioBytes;
-        await using (var ms = new MemoryStream())
-        {
-            await request.AudioFile.CopyToAsync(ms);
-            audioBytes = ms.ToArray();
-        }
+        // 1. Open read stream directly from IFormFile (Streaming, no RAM buffering)
+        using var audioStream = request.AudioFile.OpenReadStream();
 
         _logger.LogInformation(
-            "Voice Lab: received {Size} bytes, expectedText='{Expected}', duration={Duration}s",
-            audioBytes.Length, request.ExpectedText, request.DurationSeconds);
+            "Voice Lab: received {Size} bytes (stream), expectedText='{Expected}', duration={Duration}s",
+            request.AudioFile.Length, request.ExpectedText, request.DurationSeconds);
 
-        // 2. Call ASR service to get recognized text (pass expected text as a prompt to guide Whisper)
-        var actualText = await _asrService.RecognizeAsync(audioBytes, request.ExpectedText);
+        string actualText;
+        VoiceScoreResult scores;
+        List<AssessmentWordDto>? assessmentWords = null;
 
-        if (string.IsNullOrWhiteSpace(actualText))
+        // Try Azure Pronunciation Assessment First
+        var azureResult = await _azureService.EvaluateAsync(audioStream, request.ExpectedText);
+        
+        if (azureResult.Scores != null && !string.IsNullOrWhiteSpace(azureResult.ActualText))
         {
-            _logger.LogWarning("ASR returned empty result — scoring with empty actual text");
-            actualText = string.Empty;
+            _logger.LogInformation("Azure Speech Assessment successful.");
+            actualText = azureResult.ActualText;
+            scores = azureResult.Scores;
+            assessmentWords = azureResult.Words;
         }
+        else
+        {
+            // Reset stream position if Azure failed/unconfigured
+            if (audioStream.CanSeek) audioStream.Position = 0;
+            
+            _logger.LogWarning("Azure Speech Assessment skipped or failed. Falling back to local pipeline (OpenAI -> FPT).");
+            
+            actualText = await _asrService.RecognizeAsync(audioStream, request.ExpectedText) ?? string.Empty;
 
-        // 3. Calculate scores using real algorithms
-        var scores = _scoringService.CalculateScores(
-            request.ExpectedText, actualText, request.DurationSeconds);
+            if (string.IsNullOrWhiteSpace(actualText))
+            {
+                _logger.LogWarning("ASR returned empty result — scoring with empty actual text");
+            }
+
+            scores = _scoringService.CalculateScores(
+                request.ExpectedText, actualText, request.DurationSeconds);
+        }
 
         // 4. Resolve user_id: from JWT if authenticated, fallback to demo user
         Guid? userId = null;
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+            if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = authHeader.Substring(7).Trim();
+                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                if (handler.CanReadToken(token))
+                {
+                    var jwtToken = handler.ReadJwtToken(token);
+                    userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                }
+            }
+        }
+
         if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var parsedId))
         {
             userId = parsedId;
@@ -86,6 +122,7 @@ public class VoiceLabController : ControllerBase
         {
             RecordId = Guid.NewGuid(),
             UserId = userId,
+            SentenceId = request.SentenceId,
             ExpectedText = request.ExpectedText,
             ActualText = actualText,
             CompletenessScore = (decimal)scores.Completeness,
@@ -110,7 +147,44 @@ public class VoiceLabController : ControllerBase
             Completeness = scores.Completeness,
             Accuracy = scores.Accuracy,
             Fluency = scores.Fluency,
-            Prosody = scores.Prosody
+            Prosody = scores.Prosody,
+            AssessmentWords = assessmentWords
         });
+    }
+
+    /// <summary>
+    /// Retrieve the most recent pronunciation score for a specific sentence.
+    /// Used by the frontend to render previous scores when re-selecting a completed dialogue line.
+    /// </summary>
+    [HttpGet("records/{sentenceId}")]
+    [Authorize]
+    public async Task<IActionResult> GetRecord(Guid sentenceId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var record = await _dbContext.VoiceLabRecords
+            .AsNoTracking()
+            .Where(r => r.UserId == userId && r.SentenceId == sentenceId)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new
+            {
+                ActualText = r.ActualText,
+                Completeness = r.CompletenessScore ?? 0m,
+                Accuracy = r.AccuracyScore ?? 0m,
+                Fluency = r.FluencyScore ?? 0m,
+                Prosody = r.ProsodyScore ?? 0m
+            })
+            .FirstOrDefaultAsync();
+
+        if (record == null)
+        {
+            return NotFound(new { message = "Record not found" });
+        }
+
+        return Ok(record);
     }
 }

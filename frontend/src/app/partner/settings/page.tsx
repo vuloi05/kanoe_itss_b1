@@ -46,6 +46,11 @@ export default function PartnerSettingsPage() {
   const { user, updateUser } = useAuth();
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [activeSection, setActiveSection] = useState<SidebarSection>("profile");
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
+  const [bankName, setBankName] = useState<string>("Vietcombank");
+  const [accountNumber, setAccountNumber] = useState<string>("");
+  const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
 
   const [passwordChangedLabel, setPasswordChangedLabel] = useState<{
     vi: string;
@@ -287,8 +292,8 @@ export default function PartnerSettingsPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Avatar */}
-                <div className="lg:col-span-1">
-                  <div className="aspect-square rounded-full overflow-hidden bg-surface-container relative group cursor-pointer border-4 border-surface-container-lowest engawa-shadow">
+                <div className="lg:col-span-1 flex flex-col items-center">
+                  <div className="w-48 h-48 rounded-full overflow-hidden bg-surface-container relative group cursor-pointer border-4 border-surface-container-lowest engawa-shadow">
                     <Image
                       src={
                         user?.avatarUrl ||
@@ -508,13 +513,13 @@ export default function PartnerSettingsPage() {
                   </div>
 
                   {/* Withdraw button */}
-                  <Link
-                    href="/partner/wallet"
+                  <button
+                    onClick={() => setIsWithdrawModalOpen(true)}
                     className="block w-full text-center bg-primary text-white py-3 rounded-full font-bold text-xs tracking-widest uppercase hover:bg-primary/90 transition-all duration-300 font-label"
                     id="btn-withdraw-token"
                   >
                     {t("Rút tiền", "換金する")}
-                  </Link>
+                  </button>
 
                   {/* Info note */}
                   <p className="text-[10px] text-center text-on-surface-variant italic">
@@ -543,7 +548,7 @@ export default function PartnerSettingsPage() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-xl shadow-2xl text-white text-sm font-medium transition-all duration-500 animate-[slideUp_0.4s_ease-out] ${
+          className={`fixed top-6 right-6 z-[999] flex items-center gap-3 px-6 py-3 rounded-xl shadow-2xl text-white text-sm font-medium transition-all duration-500 animate-[slideInRight_0.4s_ease-out] ${
             toast.type === "success" ? "bg-emerald-600" : "bg-red-600"
           }`}
         >
@@ -551,6 +556,139 @@ export default function PartnerSettingsPage() {
             {toast.type === "success" ? "check_circle" : "error"}
           </span>
           {toast.message}
+        </div>
+      )}
+
+      {/* Withdraw Modal */}
+      {isWithdrawModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#111418]/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-[24px] w-full max-w-[420px] p-8 relative shadow-2xl animate-[fadeInUp_0.3s_ease-out]">
+            {/* Close */}
+            <button 
+              onClick={() => setIsWithdrawModalOpen(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 transition-colors"
+            >
+              <span className="material-symbols-outlined text-xl">close</span>
+            </button>
+
+            {/* Title */}
+            <div className="mb-6">
+              <h2 className="text-[28px] font-bold text-[#142c48] mb-1 leading-tight">{t("Rút Token", "トークンの換金")}</h2>
+              <p className="text-[13px] text-[#142c48]/70 font-medium">{t("Rút Token thành tiền", "トークンを現金に換金します")}</p>
+            </div>
+
+            {/* Balance Card */}
+            <div className="bg-[#fcfcfa] border-l-[3px] border-[#a67c52] rounded-xl p-4 flex gap-4 items-center mb-6 shadow-sm">
+              <div className="w-10 h-10 rounded-full bg-[#f4ebd8] flex items-center justify-center text-[#a67c52]">
+                <span className="material-symbols-outlined text-xl">toll</span>
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-[#a67c52] uppercase mb-1 tracking-wider">
+                  {t("Số dư hiện tại", "現在の残高")}
+                </p>
+                <p className="text-[15px] font-bold text-[#142c48]">
+                  {tokenBalance?.toLocaleString() || "1,250"} {t("Tokens", "トークン")}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-6 mb-8">
+              {/* Amount */}
+              <div>
+                <p className="text-[9px] font-bold text-[#142c48]/50 mb-2 uppercase tracking-wider">{t("Số lượng muốn rút", "換金額")}</p>
+                <div className="flex justify-between items-end border-b border-gray-200 pb-2">
+                  <input 
+                    type="number" 
+                    value={withdrawAmount} 
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    placeholder="0"
+                    min="0"
+                    className="text-lg font-semibold text-[#142c48] bg-transparent outline-none w-full"
+                  />
+                  <span className="text-[10px] font-bold text-[#a67c52] uppercase tracking-wider mb-1">{t("TOKENS", "トークン")}</span>
+                </div>
+              </div>
+
+              {/* Bank Name */}
+              <div className="relative">
+                <p className="text-[9px] font-bold text-[#142c48]/50 mb-2 uppercase tracking-wider">{t("Tên ngân hàng", "銀行名")}</p>
+                <div 
+                  className="border-b border-gray-200 pb-2 flex items-center justify-between cursor-pointer group"
+                  onClick={() => setIsBankDropdownOpen(!isBankDropdownOpen)}
+                >
+                  <span className="text-base font-semibold text-[#142c48]">
+                    {bankName}
+                  </span>
+                  <span 
+                    className="material-symbols-outlined text-[#142c48]/50 text-xl transition-transform duration-200 group-hover:text-[#142c48]" 
+                    style={{ transform: isBankDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  >
+                    expand_more
+                  </span>
+                </div>
+
+                {/* Custom Dropdown List */}
+                {isBankDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsBankDropdownOpen(false)}></div>
+                    <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 max-h-48 overflow-y-auto animate-[fadeInUp_0.15s_ease-out]">
+                      {["Vietcombank", "Techcombank", "MBBank", "BIDV", "VietinBank", "Agribank"].map((bank) => (
+                        <div 
+                          key={bank}
+                          className={`px-4 py-3 text-sm font-semibold cursor-pointer hover:bg-primary/5 transition-colors ${bank === bankName ? 'text-primary bg-primary/5' : 'text-[#142c48]/80'}`}
+                          onClick={() => {
+                            setBankName(bank);
+                            setIsBankDropdownOpen(false);
+                          }}
+                        >
+                          {bank}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Account Number */}
+              <div>
+                <p className="text-[9px] font-bold text-[#142c48]/50 mb-2 uppercase tracking-wider">{t("Số tài khoản", "口座番号")}</p>
+                <div className="border-b border-gray-200 pb-2">
+                  <input 
+                    type="text" 
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder={t("Nhập số tài khoản", "口座番号を入力")}
+                    className="text-base font-semibold text-[#142c48] bg-transparent outline-none w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Exchange Value */}
+            <div className="bg-[#1e3a5f] rounded-xl p-4 text-center mb-8 shadow-inner">
+              <p className="text-[10px] text-white/60 uppercase tracking-widest mb-1.5 font-medium">{t("Giá trị quy đổi", "換算額")}</p>
+              <p className="text-[22px] font-bold text-white tracking-wide">{(parseInt(withdrawAmount || "0", 10) * 1000).toLocaleString()} VNĐ</p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setIsWithdrawModalOpen(false)}
+                className="flex-1 py-3.5 rounded-xl border border-gray-200 bg-white text-[#8a684b] text-xs font-bold transition-all hover:bg-gray-50 text-center shadow-sm"
+              >
+                {t("Hủy", "キャンセル")}
+              </button>
+              <button 
+                onClick={() => {
+                  showToast("error", t("Tính năng đang phát triển!", "この機能は開発中です！"));
+                }}
+                className="flex-[1.5] py-3.5 rounded-xl bg-[#1e3a5f] text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-[#1e3a5f]/90 transition-all shadow-md"
+              >
+                <span className="material-symbols-outlined text-base">check_circle</span>
+                <span className="text-left leading-tight text-[12px]">{t("Xác nhận rút tiền", "換金を確定する")}</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

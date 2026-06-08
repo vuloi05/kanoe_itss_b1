@@ -26,9 +26,9 @@ public class OpenAiWhisperService : IAsrService
         _logger = logger;
     }
 
-    public async Task<string?> RecognizeAsync(byte[] audioData, string? prompt = null)
+    public async Task<string?> RecognizeAsync(Stream audioStream, string? prompt = null)
     {
-        if (audioData.Length == 0)
+        if (audioStream == null || audioStream.Length == 0)
             return null;
 
         try
@@ -49,7 +49,7 @@ public class OpenAiWhisperService : IAsrService
             using var content = new MultipartFormDataContent();
 
             // Add audio file content
-            var fileContent = new ByteArrayContent(audioData);
+            var fileContent = new StreamContent(audioStream);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
             content.Add(fileContent, "file", "audio.wav");
 

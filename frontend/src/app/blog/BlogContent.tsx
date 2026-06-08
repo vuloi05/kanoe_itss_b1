@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import { MOCK_POSTS, formatDate, type BlogPost } from "./_data";
@@ -67,16 +68,21 @@ function ArticleCard({ post }: { post: BlogPost }) {
 // ─── Page Content ─────────────────────────────────────────────
 export default function BlogContent() {
   const { t } = useLanguage();
+  const [activeCategory, setActiveCategory] = useState("Tất cả");
 
   const categoryPills = [
-    { label: t("Tất cả", "すべて"), icon: "apps", active: true },
-    { label: t("Phương pháp học", "学習法"), icon: "school", active: false },
-    { label: t("Văn hóa", "文化"), icon: "local_cafe", active: false },
-    { label: t("Công nghệ & EdTech", "テクノロジー & EdTech"), icon: "smart_toy", active: false },
-    { label: t("Ẩm thực", "グルメ"), icon: "ramen_dining", active: false },
-    { label: t("Thủ tục & Đời sống", "手続き & 生活"), icon: "description", active: false },
-    { label: t("Du lịch & Văn hóa", "旅行 & 文化"), icon: "tour", active: false },
+    { label: t("Tất cả", "すべて"), id: "Tất cả", icon: "apps" },
+    { label: t("Phương pháp học", "学習法"), id: "Phương pháp học", icon: "school" },
+    { label: t("Văn hóa", "文化"), id: "Văn hóa", icon: "local_cafe" },
+    { label: t("Công nghệ & EdTech", "テクノロジー & EdTech"), id: "Công nghệ & EdTech", icon: "smart_toy" },
+    { label: t("Ẩm thực", "グルメ"), id: "Ẩm thực", icon: "ramen_dining" },
+    { label: t("Thủ tục & Đời sống", "手続き & 生活"), id: "Thủ tục & Đời sống", icon: "description" },
+    { label: t("Du lịch & Văn hóa", "旅行 & 文化"), id: "Du lịch & Văn hóa", icon: "tour" },
   ];
+
+  const filteredPosts = activeCategory === "Tất cả"
+    ? MOCK_POSTS
+    : MOCK_POSTS.filter(post => post.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -127,8 +133,9 @@ export default function BlogContent() {
             {categoryPills.map((pill) => (
               <button
                 key={pill.icon}
+                onClick={() => setActiveCategory(pill.id)}
                 className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  pill.active
+                  activeCategory === pill.id
                     ? "bg-primary text-on-primary shadow-md"
                     : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high"
                 }`}
@@ -144,7 +151,7 @@ export default function BlogContent() {
 
         {/* Post Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MOCK_POSTS.map((post) => (
+          {filteredPosts.map((post) => (
             <ArticleCard key={post.id} post={post} />
           ))}
         </section>

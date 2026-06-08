@@ -41,10 +41,12 @@ public class PartnerController : ControllerBase
                 pp => pp.UserId,
                 (u, pp) => new { User = u, Profile = pp }
             )
+            .AsNoTracking()
             .ToListAsync();
 
         // Get existing conversations for this learner
         var conversations = await _db.Conversations
+            .AsNoTracking()
             .Where(c => c.LearnerId == learnerId)
             .ToDictionaryAsync(c => c.PartnerId, c => c.ConversationId);
 
@@ -78,12 +80,13 @@ public class PartnerController : ControllerBase
         var learnerId = GetCurrentUserId();
 
         // Validate partner exists and has correct role
-        var partner = await _db.Users.FirstOrDefaultAsync(u => u.UserId == partnerId && u.Role == "partner");
+        var partner = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == partnerId && u.Role == "partner");
         if (partner == null)
             return NotFound(new { message = "Partner not found." });
 
         // Check for existing conversation
         var existing = await _db.Conversations
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.LearnerId == learnerId && c.PartnerId == partnerId);
 
         if (existing != null)

@@ -25,9 +25,9 @@ public class FptAsrService : IAsrService
         _logger = logger;
     }
 
-    public async Task<string?> RecognizeAsync(byte[] audioData, string? prompt = null)
+    public async Task<string?> RecognizeAsync(Stream audioStream, string? prompt = null)
     {
-        if (audioData.Length == 0)
+        if (audioStream == null || audioStream.Length == 0)
             return null;
 
         try
@@ -45,7 +45,7 @@ public class FptAsrService : IAsrService
             client.Timeout = TimeSpan.FromSeconds(30);
             client.DefaultRequestHeaders.Add("api-key", apiKey);
 
-            var content = new ByteArrayContent(audioData);
+            var content = new StreamContent(audioStream);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
             var response = await client.PostAsync(FptAsrEndpoint, content);

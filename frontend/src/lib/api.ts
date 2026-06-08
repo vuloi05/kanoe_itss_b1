@@ -149,8 +149,7 @@ export const authApi = {
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.post<{ message: string }>("/api/auth/change-password", data),
 
-  getProfile: () =>
-    api.get<UserProfile>("/api/auth/me"),
+  getProfile: () => api.get<UserProfile>("/api/auth/me", { cache: "no-store" }),
 };
 
 export const userApi = {
@@ -288,6 +287,7 @@ export interface ChapterDto {
 }
 
 export interface DialogueDto {
+  dialogueId: string;
   speaker: string;
   speakerJp: string;
   lineVi: string;
@@ -332,6 +332,9 @@ export const lessonApi = {
   completeLesson: (id: string) =>
     api.post<{ message: string; newLevel?: string | null }>(`/api/lesson/${id}/complete`),
 
+  updateLessonProgress: (id: string, progress: number) =>
+    api.post<{ message: string }>(`/api/lesson/${id}/progress`, { progress }),
+
   getContinueLesson: () =>
     api.get<ContinueLessonDto | undefined>("/api/lesson/continue"),
 };
@@ -355,11 +358,17 @@ export interface VoiceLabEvaluateResponse {
   accuracy: number;
   fluency: number;
   prosody: number;
+  assessmentWords?: {
+    word: string;
+    errorType: "None" | "Omission" | "Insertion" | "Mispronunciation";
+  }[];
 }
 
 export const voiceLabApi = {
   evaluate: (formData: FormData) =>
     uploadRequest<VoiceLabEvaluateResponse>("/api/voicelab/evaluate", formData),
+  getRecord: (sentenceId: string) =>
+    api.get<{ actualText: string | null; completeness: number; accuracy: number; fluency: number; prosody: number }>(`/api/voicelab/records/${sentenceId}`),
 };
 
 // ─── Vocabulary Tracking ──────────────────────────────────────

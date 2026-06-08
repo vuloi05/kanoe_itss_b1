@@ -904,15 +904,21 @@ export const MOCK_POSTS: BlogPost[] = [
     id: "bun-cha-obama-ha-noi",
     title:
       'Bún chả Hương Liên và câu chuyện "Obama Bún Chả" chấn động Hà Nội',
+    titleJa:
+      'フオンリエンのブンチャーとハノイを揺るがした「オバマ・ブンチャー」の物語',
     excerpt:
       "Năm 2016, Tổng thống Obama và đầu bếp Anthony Bourdain ngồi ăn bún chả tại một quán nhỏ ở Hà Nội. Câu chuyện đó đã thay đổi cách thế giới nhìn nhận ẩm thực Việt Nam như thế nào?",
+    excerptJa:
+      "2016年、オバマ大統領とシェフのアンソニー・ボーデインはハノイの小さな店でブンチャーを食べました。その出来事は、世界がベトナム料理を見る目をどのように変えたのでしょうか？",
     date: "2026-05-03",
     category: "Văn hóa ẩm thực",
+    categoryJa: "食文化",
     categoryIcon: "ramen_dining",
     categoryColor: "bg-secondary-container text-on-secondary-container",
     gradientFrom: "from-[#92400e]",
     gradientTo: "to-[#b45309]",
     readTime: "7 phút đọc",
+    readTimeJa: "読了時間：7分",
     bodyHtml: `
       <p>Vào một buổi tối tháng 5 năm 2016, hình ảnh Tổng thống Mỹ Barack Obama ngồi ăn bún chả trên chiếc ghế nhựa thấp tại quán <strong>Bún chả Hương Liên</strong> (26 Lê Văn Hưu, Hà Nội) đã khiến cả thế giới sửng sốt. Bữa ăn bình dị ấy cùng đầu bếp huyền thoại Anthony Bourdain đã trở thành biểu tượng của ngoại giao ẩm thực.</p>
 
@@ -1007,6 +1013,100 @@ export const MOCK_POSTS: BlogPost[] = [
         <p>"Muốn hiểu một nền văn hóa, hãy bắt đầu từ bàn ăn. Muốn yêu Hà Nội, hãy bắt đầu từ bát bún chả." — Anthony Bourdain</p>
       </blockquote>
     `,
+    bodyHtmlJa: `
+      <p>2016年5月のある夜、アメリカのバラク・オバマ大統領が<strong>フオンリエン・ブンチャー（Bún chả Hương Liên）</strong>（ハノイ、レヴァンフウ通り26番地）の低いプラスチックの椅子に座ってブンチャーを食べる画像は、世界中を驚かせました。伝説的なシェフ、アンソニー・ボーデインとのその素朴な食事は、美食外交の象徴となりました。</p>
+
+      <blockquote>
+        <p>「食事の請求書？6ドルだ。本気だよ。ブンチャー2人前、ビール2本で、合計6ドルだ。そして、それは私の人生で最高の食事の一つだった。」 — アンソニー・ボーデイン、<em>『Parts Unknown』</em></p>
+      </blockquote>
+
+      <h2>${iconStar} 1. フオンリエンでの歴史的な夜</h2>
+      <p>アンソニー・ボーデインがフオンリエンを選んだのは偶然ではありません。ここは<strong>1990年代から営業している</strong>大衆的なブンチャー店で、地元の人々には有名でしたが、国際的な旅行雑誌には一切掲載されていませんでした。ボーデインは、ベトナムのストリートフードは「アップグレード」する必要がないこと — 歩道にある状態ですでに完璧であること — を世界に示したかったのです。</p>
+      <p>この物語は『Parts Unknown』シーズン8の<em>ハノイ</em>編で放送され、放送から数時間でオバマ大統領がブンチャーを食べる画像は世界中に広まり、最初の1週間で<strong>5000万回以上</strong>再生されました。地元の料理だったハノイのブンチャーは、突突如として<strong>世界的な美食の象徴</strong>となったのです。</p>
+
+      <h2>${iconBowl} 2. 「オバマ・コンボ」を解読する</h2>
+      <p>歴史的な出来事の後、フオンリエン店はオバマ大統領の食事を正確に再現した<strong>「オバマ・コンボ」</strong>を作りました。コンボの内容：</p>
+
+      <h3>${iconBowl} スペシャル・ブンチャー 1人前</h3>
+      <p>細い米麺（ブン）、肉団子（豚ひき肉）、豚バラ肉の炭火焼き（チャール）、そして魚醤（ヌクマム）、酢、砂糖、ニンニク、唐辛子、千切りの青パパイヤから作られたつけ汁のセット。付け合わせの生野菜には、レタス、シソ、パクチーが含まれます。 ${iconBowl}</p>
+
+      <h3>海鮮揚げ春巻き（ネムクアベー） 1皿</h3>
+      <p>エビとカニの身が詰まったサクサクの揚げ春巻き。これは<strong>ハイフォンの特産品</strong>ですが、ハノイでも広く愛されています。サクサクの皮、滑らかな海鮮の餡、そして甘酸っぱいつけ汁の組み合わせは — ブンチャーの香ばしい炭火焼きの味と完璧なコントラストをなします。</p>
+
+      <h3>${iconBeer} ハノイビール 1本</h3>
+      <p>ハイネケンでもタイガーでもなく — <strong>ハノイビール</strong>（生ビールの場合は「Bia Hơi」と呼ばれます）です。軽くて爽やかな、苦味の少ない450mlの緑色のボトルは、濃厚な味のブンチャーとの理想的な組み合わせです。1本の価格は約<strong>15,000〜20,000 VND</strong>（100〜140円）。</p>
+      <p>オバマ・コンボの合計価格：約<strong>85,000〜100,000 VND</strong>（600〜700円）。ボーデインが言った通り — 世界がベトナム料理を見る目を変えた食事に6ドルです。</p>
+
+      <h2>${iconStar} 3. 「ガラスケース展示」現象 — ハノイの誇り</h2>
+      <p>歴史的な食事の後、フオンリエン店の家族は、おそらくベトナムでしか起こらないであろうことを行いました：彼らはオバマ大統領が使ったテーブルと椅子、食器一式を<strong>ガラスケースに入れて保存</strong>したのです。</p>
+      <p>今日フオンリエン店に入ると、そのコーナーがすぐに見えます — 2つのプラスチックの椅子がある小さなテーブル、食器、2本のビールが元の位置に置かれ、オバマとボーデインの写真とともに<strong>透明なガラスケース</strong>に収められています。誰もその角に座ることはできません — それは「博物館の展示品」になりました。</p>
+      <p>これはベトナムの文化について何を語っているのでしょうか？それは<strong>アイデンティティの誇り</strong>です。ハノイの人々は有名になった後に「レベルアップ」するために店を変えたりしませんでした — 彼らはプラスチックの椅子を保ち、炭火焼きを保ち、同じレシピを保っています。なぜなら、その<em>本物らしさ</em>こそが彼らのブンチャーを特別なものにしていると理解しているからです。</p>
+
+      <blockquote>
+        <p>「ハノイの人々は6ドルの食器一式をガラスケースに入れました — それは物質的な価値のためではなく、彼らの大衆的な食事が世界中の敬意に値するという誇りのためなのです。」</p>
+      </blockquote>
+
+      <h2>${iconGarlic} 4. ネイティブの「正しい」ブンチャーの食べ方</h2>
+      <p>厳格な食事のルール（箸の持ち方、懐石料理の順序）に慣れている日本人にとって、ブンチャーは単純に見えるかもしれません。しかし実際には独自の「作法」があり、多くの観光客が間違えています：</p>
+
+      <h3>${iconWarning} 最もよくある間違い：つけ汁を麺にかける</h3>
+      <p>多くの観光客は、麺の鉢とつけ汁の鉢が別々になっているのを見て、ラーメンのように<strong>麺につけ汁をかけます</strong>。これは<em>完全に間違った</em>食べ方です！つけ汁が薄まり、麺がふやけて、味のコントロールができなくなります。</p>
+
+      <h3>正しい食べ方（ステップバイステップ）</h3>
+      <ol>
+        <li>${iconGarlic} <strong>つけ汁の調整：</strong> 食べる前に、つけ汁の鉢に加えます：<strong>生唐辛子1〜2切れ</strong>（注意 — ベトナムの唐辛子は日本のものよりはるかに辛いです！）、<strong>刻みニンニク小さじ1</strong>、そして数滴の<strong>ニンニク酢</strong>（ニンニクを漬けた酢 — ハノイの「秘密の」調味料）。</li>
+        <li>${iconBowl} <strong>麺をつけ汁に入れる：</strong> 箸で少量の麺をつかみ、肉と一緒につけ汁の鉢に<strong>浸します</strong>。<em>全部入れないでください</em> — 一口分だけを入れます。</li>
+        <li><strong>生野菜を挟む：</strong> <strong>シソ（tía tô）</strong>（日本の紫蘇によく似ているのでおなじみの味です！）の葉をちぎり、レタスの葉を少し加え、麺と肉と一緒に包みます。</li>
+        <li><strong>同時に食べる：</strong> 麺＋肉＋野菜＋つけ汁 — 全てを一口で。ここで味覚が爆発します：焼いた肉の甘み、酢の酸味、唐辛子の辛味、そしてハーブの爽やかさ。 ${iconBowl}</li>
+      </ol>
+      <p><strong>専門家のヒント：</strong> ハノイの人々は数口食べた後、スープを飲むようにつけ汁を直接鉢から少しすすることがよくあります。甘酸っぱい味が味覚を刺激し、次の一口への準備を整えてくれます。</p>
+
+      <h2>${iconTeacup} 5. 実戦のための語彙と注文フレーズ</h2>
+      <p>ブンチャー店に入り、ベトナム語で自分で注文することは、言語学習の旅における重要な<strong>マイルストーン</strong>です。以下はあなたが必要とするフレーズです：</p>
+
+      <h3>注文する</h3>
+      <ul>
+        <li>${iconBowl} <strong>"Cô ơi cho cháu 2 suất Obama"（おばさん、オバマコンボを2人前ください）</strong> — フオンリエンでの最速の注文方法。店主はすぐに理解します。</li>
+        <li>${iconBowl} <strong>"Cho cháu một suất bún chả"（ブンチャーを1人前ください）</strong> — 1人前を注文する。"suất" = 完全な1人前。</li>
+        <li>${iconBeer} <strong>"Cho cháu một chai bia Hà Nội"（ハノイビールを1本ください）</strong> — ビールを注文する。生ビールが欲しい場合："Cho cháu một cốc bia hơi"（生ビールを1杯ください）。</li>
+      </ul>
+
+      <h3>追加の要求</h3>
+      <ul>
+        <li><strong>"Cho cháu thêm bún"（麺を追加してください）</strong> — 麺のおかわり（通常は無料または5,000 VND）。</li>
+        <li><strong>"Cho cháu thêm rau"（野菜を追加してください）</strong> — 生野菜のおかわり（通常は無料）。</li>
+        <li>${iconGarlic} <strong>"Cho cháu thêm nước chấm"（つけ汁を追加してください）</strong> — つけ汁のおかわり（無料）。</li>
+        <li>${iconTeacup} <strong>"Trà đá không đá"（氷なしのアイスティーをください）</strong> — 氷抜きの冷たいお茶（胃腸が敏感な場合に便利）。面白く聞こえるかもしれませんが、非常によく使われるフレーズです！</li>
+      </ul>
+
+      <h3>お会計</h3>
+      <ul>
+        <li><strong>"Thanh toán cho cháu với"（お会計をお願いします）</strong> — お会計を頼む。"với"は文を柔らかくします。</li>
+        <li><strong>"Bao nhiêu tất cả ạ?"（全部でいくらですか？）</strong> — 合計金額を聞く。文末の"ạ"は敬意を表します。</li>
+        <li><strong>"Chuyển khoản được không ạ?"（振り込みは可能ですか？）</strong> — スマホ（Momo/VNPay）での振り込みが可能か聞く。 ${iconQrCode}</li>
+      </ul>
+
+      <h3>日本人向けの食文化語彙表</h3>
+      <ul>
+        <li><strong>Bún chả（ブンチャー）</strong> — 豚肉の炭火焼きと米麺</li>
+        <li><strong>Chả viên（チャールヴィエン）</strong> — 肉団子</li>
+        <li><strong>Chả miếng（チャールミエン）</strong> — 豚バラ焼き</li>
+        <li><strong>Nước chấm（ヌオックチャム）</strong> — タレ</li>
+        <li><strong>Rau sống（ラウソン）</strong> — 生野菜</li>
+        <li><strong>Tía tô（ティアトー）</strong> — シソ</li>
+        <li><strong>Nem（ネム）</strong> — 揚げ春巻き</li>
+        <li><strong>Dấm tỏi（ザムトイ）</strong> — ガーリック酢 ${iconGarlic}</li>
+      </ul>
+
+      <h2>${iconStool} 6. 結論：ブンチャーは単なる料理ではなく、文化である</h2>
+      <p>オバマ大統領がブンチャーを食べた物語は単なるメディアのイベントではありません — それは<strong>ベトナムのストリートフードが、文化の距離や社会的地位に関係なく人々を結びつける力を持っている</strong>という証拠なのです。大統領とシェフが、低いプラスチックの椅子に座り、普通の人々と同じブンチャーの鉢を食べる — 彼らの間に壁はありませんでした。</p>
+      <p>ベトナム語を学ぶ日本人にとって、ブンチャー店は最高の「実践室」です。<em>自然でフレンドリーな</em>環境の中で、注文、値段の確認、追加の要求、お会計の練習ができます。声調を間違えても誰も笑いません — 外国人がブンチャーを食べているのを見て嬉しくて笑うだけです。</p>
+      <p>VietImmerseを開き、<em>"Cô ơi cho cháu một suất bún chả"（おばさん、ブンチャーを1人前ください）</em>というフレーズを練習して、ハノイの通りにあるブンチャー店に入ってみてください。炭火から焼肉の匂いが漂い、甘酸っぱいつけ汁が運ばれてきて、あなたがベトナム語で最初のフレーズを話したとき — その時、なぜ大統領が6ドルのブンチャーに涙したのかがわかるでしょう。</p>
+
+      <blockquote>
+        <p>「ある文化を理解したいなら、食卓から始めなさい。ハノイを愛したいなら、ブンチャーの鉢から始めなさい。」 — アンソニー・ボーデイン</p>
+      </blockquote>
+    `
   },
 
   // ── Post 5 ──────────────────────────────────────────────────
@@ -1014,73 +1114,195 @@ export const MOCK_POSTS: BlogPost[] = [
     id: "huong-dan-visa-ha-noi",
     title:
       "Hướng dẫn chi tiết cách xin visa và gia hạn tạm trú tại Hà Nội cho người Nhật",
+    titleJa:
+      "日本人向け：ハノイでのビザ申請と一時滞在延長の詳細ガイド",
     excerpt:
       "Từ e-Visa đến gia hạn visa tại chỗ, bài viết này tổng hợp toàn bộ quy trình, hồ sơ cần thiết và mẹo giúp bạn xử lý thủ tục hành chính tại Hà Nội một cách nhanh gọn nhất.",
+    excerptJa:
+      "e-Visaから現地でのビザ延長まで、この記事ではハノイでの行政手続きを最も迅速に処理するためのすべての手順、必要書類、ヒントをまとめています。",
     date: "2026-04-28",
     category: "Thủ tục & Đời sống",
+    categoryJa: "手続きと生活",
     categoryIcon: "description",
     categoryColor: "bg-primary-container text-on-primary-container",
     gradientFrom: "from-[#1e3a5f]",
     gradientTo: "to-[#2c5282]",
     readTime: "12 phút đọc",
+    readTimeJa: "読了時間：12分",
     bodyHtml: `
-      <p>Đối với người Nhật Bản muốn sống và học tiếng Việt tại Hà Nội, việc nắm rõ thủ tục visa và tạm trú là <strong>bước đầu tiên không thể bỏ qua</strong>. Bài viết này tổng hợp toàn bộ quy trình cập nhật mới nhất, giúp bạn xử lý thủ tục một cách nhanh gọn.</p>
+      <p>Đối với người Nhật Bản muốn sống, làm việc hoặc học tiếng Việt tại Hà Nội, việc nắm rõ thủ tục xuất nhập cảnh và lưu trú là <strong>bước đầu tiên và quan trọng nhất</strong>. Nhiều người thường gặp khó khăn vì rào cản ngôn ngữ và thủ tục hành chính phức tạp. Bài viết này sẽ là cuốn cẩm nang toàn diện nhất, tổng hợp toàn bộ quy trình cập nhật mới nhất, giúp bạn xử lý mọi thủ tục tại Hà Nội một cách nhanh gọn, hợp pháp và tiết kiệm nhất.</p>
 
-      <h2>1. Chính sách miễn visa cho công dân Nhật Bản</h2>
-      <p>Tin vui: Công dân Nhật Bản được <strong>miễn visa nhập cảnh Việt Nam</strong> với thời hạn lưu trú tối đa <strong>45 ngày</strong> (kể từ năm 2023). Điều này có nghĩa là bạn chỉ cần hộ chiếu còn hạn ít nhất 6 tháng để nhập cảnh.</p>
-      <p>Tuy nhiên, nếu bạn dự định ở lâu hơn 45 ngày — ví dụ theo học một khóa tiếng Việt dài hạn — bạn sẽ cần xin visa trước hoặc gia hạn tại Hà Nội.</p>
-
-      <h2>2. Các loại visa phổ biến</h2>
+      <h2>1. Chính sách miễn thị thực (Visa) cho công dân Nhật Bản</h2>
+      <p>Một tin cực kỳ vui dành cho người mang quốc tịch Nhật Bản là bạn được hưởng đặc quyền <strong>miễn thị thực (visa) nhập cảnh vào Việt Nam</strong> với thời gian lưu trú khá dài.</p>
       <ul>
-        <li><strong>e-Visa (Visa điện tử):</strong> Thời hạn 90 ngày, một lần hoặc nhiều lần nhập cảnh. Xin online tại <em>evisa.xuatnhapcanh.gov.vn</em>, phí khoảng 25 USD, xử lý trong 3 ngày làm việc.</li>
-        <li><strong>Visa du lịch (DL):</strong> 30 – 90 ngày. Có thể xin tại Đại sứ quán Việt Nam tại Tokyo hoặc qua công ty dịch vụ visa tại Hà Nội.</li>
-        <li><strong>Visa doanh nghiệp (DN):</strong> Dành cho người làm việc hoặc thực tập. Cần thư bảo lãnh từ công ty Việt Nam.</li>
-        <li><strong>Visa du học (DH):</strong> Dành cho học viên theo học tại cơ sở giáo dục tại Việt Nam. Cần giấy xác nhận từ trường/trung tâm.</li>
+        <li><strong>Thời hạn lưu trú:</strong> Tối đa <strong>45 ngày</strong> liên tục kể từ ngày nhập cảnh (chính sách mới cập nhật từ năm 2023).</li>
+        <li><strong>Điều kiện:</strong> Hộ chiếu của bạn phải còn thời hạn sử dụng ít nhất <strong>6 tháng</strong> tính từ thời điểm nhập cảnh và còn ít nhất 02 trang trống để đóng dấu.</li>
+        <li><strong>Mục đích:</strong> Có thể áp dụng cho du lịch, công tác ngắn hạn, thăm thân hoặc khảo sát thị trường.</li>
+      </ul>
+      <p>Tuy nhiên, nếu bạn dự định ở lại Việt Nam lâu hơn 45 ngày (ví dụ: tham gia một khóa học tiếng Việt chuyên sâu kéo dài 3-6 tháng, hoặc làm việc dài hạn), bạn bắt buộc phải xin visa trước khi đến hoặc thực hiện thủ tục gia hạn/cấp mới khi đang ở Việt Nam.</p>
+
+      <h2>2. Các loại Visa phổ biến cho người Nhật tại Việt Nam</h2>
+      <p>Hệ thống thị thực Việt Nam được phân chia thành nhiều ký hiệu khác nhau tùy theo mục đích. Dưới đây là những loại visa mà người Nhật thường xin nhất:</p>
+      <ul>
+        <li><strong>e-Visa (Thị thực điện tử - EV):</strong> Cấp cho người nước ngoài vào Việt Nam với thời hạn lưu trú tối đa <strong>90 ngày</strong> (có giá trị 1 lần hoặc nhiều lần). Đây là lựa chọn tiện lợi nhất cho du khách hoặc người sang Việt Nam ngắn hạn chưa có công ty bảo lãnh. Bạn có thể tự xin online 100%.</li>
+        <li><strong>Visa du lịch (DL):</strong> Cấp cho người vào Việt Nam du lịch, thời hạn từ 1 đến 3 tháng. Thường xin qua đại lý du lịch hoặc e-Visa.</li>
+        <li><strong>Visa doanh nghiệp/Lao động (DN1, DN2, LĐ1, LĐ2):</strong> Cấp cho người vào làm việc với doanh nghiệp tại Việt Nam. Bắt buộc phải có công ty/tổ chức tại Việt Nam đứng ra làm thủ tục bảo lãnh tại Cục Quản lý xuất nhập cảnh trước khi bạn nhập cảnh.</li>
+        <li><strong>Visa thăm thân (TT, VR):</strong> Cấp cho người nước ngoài là vợ, chồng, con dưới 18 tuổi của người Việt Nam hoặc của người nước ngoài đã có thẻ tạm trú. Thời hạn có thể lên tới 1 năm.</li>
+        <li><strong>Visa du học (DH):</strong> Cấp cho sinh viên/học viên vào Việt Nam học tập. Bạn cần có giấy tiếp nhận hoặc bảo lãnh từ trường học, trung tâm giáo dục được cấp phép.</li>
       </ul>
 
-      <h2>3. Quy trình xin e-Visa (khuyến nghị)</h2>
-      <p>e-Visa là cách đơn giản nhất. Quy trình gồm 4 bước:</p>
+      <h2>3. Quy trình xin e-Visa (Thị thực điện tử) từng bước</h2>
+      <p>Nếu bạn tự túc sang Hà Nội để trải nghiệm văn hóa và học tập dưới 3 tháng, e-Visa là con đường nhanh nhất. Quy trình hoàn toàn trực tuyến:</p>
       <ol>
-        <li><strong>Truy cập cổng thông tin:</strong> Vào trang web chính thức của Cục Quản lý xuất nhập cảnh.</li>
-        <li><strong>Điền đơn online:</strong> Cung cấp thông tin hộ chiếu, ảnh chụp (4x6cm nền trắng), và ảnh chụp trang hộ chiếu có thông tin cá nhân.</li>
-        <li><strong>Thanh toán:</strong> Phí 25 USD bằng thẻ tín dụng quốc tế (Visa/Mastercard).</li>
-        <li><strong>Nhận kết quả:</strong> Sau 3 ngày làm việc, bạn sẽ nhận e-Visa qua email. In ra và mang theo khi nhập cảnh.</li>
+        <li><strong>Chuẩn bị hồ sơ:</strong> Một ảnh chân dung 4x6cm (mắt nhìn thẳng, không đeo kính, phông nền trắng) và một ảnh chụp trang thông tin hộ chiếu (rõ nét, không lóa). Định dạng file .jpg.</li>
+        <li><strong>Truy cập cổng thông tin:</strong> Vào trang web chính thức của Cục Quản lý xuất nhập cảnh: <em>https://evisa.xuatnhapcanh.gov.vn/</em>.</li>
+        <li><strong>Khai báo thông tin:</strong> Chọn mục dành cho người nước ngoài tự xin e-Visa. Tải ảnh lên và điền đầy đủ các thông tin cá nhân, ngày dự định nhập cảnh, địa chỉ dự kiến lưu trú tại Hà Nội.</li>
+        <li><strong>Thanh toán phí:</strong> Nhận "Mã hồ sơ điện tử". Sau đó thanh toán lệ phí (khoảng 25 USD cho loại 1 lần và 50 USD cho loại nhiều lần) bằng thẻ tín dụng quốc tế (Visa/Mastercard). Lệ phí này không được hoàn trả nếu bị từ chối.</li>
+        <li><strong>Tra cứu và in e-Visa:</strong> Sau khoảng 3 ngày làm việc, dùng "Mã hồ sơ điện tử" để tra cứu kết quả trên website. Nếu được duyệt, hãy in e-Visa ra giấy (kích thước A4) để xuất trình tại sân bay Nội Bài cùng hộ chiếu.</li>
       </ol>
 
-      <h2>4. Gia hạn visa tại Hà Nội</h2>
-      <p>Nếu bạn đang ở Hà Nội và muốn ở lại thêm, có hai cách gia hạn:</p>
-      <h3>Cách 1: Qua công ty dịch vụ visa</h3>
-      <p>Đây là cách phổ biến nhất cho người nước ngoài. Bạn chỉ cần đưa hộ chiếu cho công ty dịch vụ, trả phí, và nhận lại hộ chiếu đã gia hạn sau 5-7 ngày làm việc.</p>
+      <h2>4. Thủ tục Gia hạn Visa và Tạm trú tại Hà Nội</h2>
+      <p>Nếu bạn nhập cảnh bằng diện miễn thị thực 45 ngày hoặc e-Visa và muốn tiếp tục ở lại, bạn cần làm thủ tục xin cấp visa mới hoặc gia hạn. Việc này phải được thực hiện trước khi visa/thời hạn lưu trú hiện tại hết hạn để tránh bị phạt nặng (phạt tiền từ 1.250.000 VND đến hàng chục triệu đồng, thậm chí trục xuất).</p>
+
+      <h3>Cách 1: Tự nộp hồ sơ tại Cục Quản lý xuất nhập cảnh (Dành cho diện có bảo lãnh)</h3>
+      <p>Nếu bạn có công ty bảo lãnh (xin visa DN) hoặc vợ/chồng là người Việt (xin visa TT), công ty hoặc người thân của bạn sẽ chuẩn bị hồ sơ và nộp tại Hà Nội.</p>
       <ul>
-        <li>Phí gia hạn: khoảng <strong>400.000 – 700.000 VND</strong> tùy thời hạn.</li>
-        <li>Thời gian xử lý: <strong>5-7 ngày</strong> làm việc.</li>
-        <li>Thời hạn gia hạn: tối đa 30 ngày (cho visa du lịch).</li>
+        <li><strong>Địa chỉ nộp hồ sơ:</strong> Cục Quản lý xuất nhập cảnh - Số 44-46 Trần Phú, Ba Đình, Hà Nội. Hoặc Phòng Quản lý xuất nhập cảnh Công an TP Hà Nội - Số 44 Phạm Ngọc Thạch, Đống Đa.</li>
+        <li><strong>Thời gian làm việc:</strong> Sáng (08:00 – 11:30), Chiều (13:30 – 16:00), từ Thứ Hai đến sáng Thứ Bảy (trừ ngày lễ).</li>
+        <li><strong>Hồ sơ cơ bản:</strong> Hộ chiếu gốc, Tờ khai đề nghị cấp thị thực/gia hạn tạm trú (Mẫu NA5) có xác nhận của công an phường nơi đang tạm trú và chữ ký/dấu của cơ quan bảo lãnh, cùng các giấy tờ pháp nhân của công ty.</li>
+        <li><strong>Thời gian xử lý:</strong> Thông thường từ 5 ngày làm việc.</li>
       </ul>
 
-      <h3>Cách 2: Xuất cảnh và nhập cảnh lại (Visa Run)</h3>
-      <p>Một số người chọn cách bay đến một nước lân cận (Lào, Campuchia, Thái Lan) rồi quay lại Việt Nam để được cấp miễn visa 45 ngày mới. Tuy nhiên, cách này <strong>không được khuyến khích</strong> vì:</p>
+      <h3>Cách 2: Thông qua các Đại lý/Công ty Dịch vụ (Lựa chọn phổ biến cho du khách)</h3>
+      <p>Nếu bạn ở Hà Nội bằng e-Visa hoặc miễn thị thực du lịch, việc tự xin gia hạn tại Cục thường gặp khó khăn do yêu cầu phải có đơn vị lữ hành bảo lãnh. Do đó, 90% người Nhật chọn cách thông qua các công ty dịch vụ uy tín tại Hà Nội (thường nằm ở khu vực phố cổ, Ba Đình hoặc Cầu Giấy).</p>
       <ul>
-        <li>Tốn chi phí vé máy bay và thời gian.</li>
-        <li>Cơ quan xuất nhập cảnh có thể từ chối nếu phát hiện bạn thực hiện visa run thường xuyên.</li>
+        <li><strong>Ưu điểm:</strong> Chỉ cần giao hộ chiếu gốc và địa chỉ tạm trú. Họ sẽ lo toàn bộ thủ tục pháp lý.</li>
+        <li><strong>Chi phí:</strong> Dao động từ 40 USD – 100 USD tùy thuộc vào loại visa và thời gian bạn muốn gia hạn.</li>
+        <li><strong>Lưu ý:</strong> Hãy chọn công ty minh bạch, hỏi rõ tổng chi phí và thời gian trả hộ chiếu.</li>
       </ul>
 
-      <h2>5. Đăng ký tạm trú (rất quan trọng!)</h2>
-      <p>Theo luật Việt Nam, người nước ngoài lưu trú tại bất kỳ địa chỉ nào đều phải <strong>đăng ký tạm trú trong vòng 24 giờ</strong> kể từ khi đến. Nếu bạn ở khách sạn, họ sẽ làm giúp. Nếu thuê nhà riêng, chủ nhà có trách nhiệm khai báo cho công an phường.</p>
+      <h3>Cách 3: Thực hiện "Visa Run" (Xuất cảnh và Nhập cảnh lại)</h3>
+      <p>Đối với e-Visa hiện nay, khi hết hạn 90 ngày, bạn không thể gia hạn thêm từ bên trong Việt Nam. Giải pháp là thực hiện "Visa run" - bay ra khỏi Việt Nam (sang Thái Lan, Lào, Campuchia, hoặc về Nhật Bản) vài ngày, sau đó nhập cảnh lại với một e-Visa mới hoặc bằng quyền miễn thị thực 45 ngày.</p>
 
-      <h2>6. Từ vựng tiếng Việt hữu ích về thủ tục</h2>
-      <p>VietImmerse có bài học chuyên đề về từ vựng hành chính. Dưới đây là một số từ cơ bản:</p>
+      <h2>5. Khai báo tạm trú: Quy định bắt buộc không thể bỏ qua</h2>
+      <p>Rất nhiều người nước ngoài sơ ý bỏ qua bước này và gặp rắc rối lớn khi làm thủ tục gia hạn visa. Theo luật pháp Việt Nam, mọi người nước ngoài phải <strong>đăng ký khai báo tạm trú trong vòng 24 giờ</strong> kể từ khi đến nơi ở.</p>
+      <ul>
+        <li><strong>Nếu bạn ở Khách sạn/Căn hộ dịch vụ:</strong> Lễ tân sẽ quét hộ chiếu của bạn và tự động khai báo lên hệ thống trực tuyến của công an. Bạn chỉ cần yêu cầu họ in hoặc chụp lại ảnh chụp màn hình "Xác nhận khai báo tạm trú" để giữ làm bằng chứng.</li>
+        <li><strong>Nếu bạn thuê nhà riêng (Căn hộ/Nhà dân):</strong> Chủ nhà có trách nhiệm khai báo cho bạn qua trang web của Phòng Quản lý Xuất nhập cảnh Công an TP Hà Nội (https://hanoi.xuatnhapcanh.gov.vn/). Hãy nhắc chủ nhà làm việc này ngay trong ngày đầu tiên bạn dọn đến.</li>
+      </ul>
+      <p><em>Mẹo: Khi nộp đơn xin gia hạn visa hoặc xin các giấy tờ hành chính khác, bạn luôn cần xuất trình "Giấy xác nhận tạm trú" có đóng dấu của Công an phường, hoặc bản hiện từ hệ thống khai báo online.</em></p>
+
+      <h2>6. Những mẹo "sống còn" khi làm thủ tục hành chính tại Việt Nam</h2>
+      <ul>
+        <li><strong>Luôn mang theo tiền mặt:</strong> Cơ quan nhà nước thường thu lệ phí bằng tiền mặt (VNĐ hoặc USD tùy loại phí), ít nơi chấp nhận quẹt thẻ quốc tế hay chuyển khoản QR code.</li>
+        <li><strong>Ăn mặc lịch sự:</strong> Khi đến các cơ quan như Cục Quản lý xuất nhập cảnh, bạn bắt buộc phải mặc trang phục lịch sự (không mặc quần đùi, váy ngắn, áo ba lỗ). Bảo vệ có quyền từ chối bạn ở cổng.</li>
+        <li><strong>Sử dụng tiếng Việt cơ bản:</strong> Nhân viên hành chính không phải ai cũng thạo tiếng Anh, và gần như không ai nói tiếng Nhật. Chuẩn bị sẵn một vài câu tiếng Việt đơn giản hoặc nhờ bạn bè người Việt đi cùng.</li>
+      </ul>
+
+      <h2>7. Từ vựng tiếng Việt thực chiến tại Cục Xuất Nhập Cảnh</h2>
+      <p>Để tự tin hơn, hãy luyện tập các từ vựng sau đây:</p>
       <ul>
         <li><strong>Hộ chiếu</strong> — パスポート (pasupōto)</li>
-        <li><strong>Visa / Thị thực</strong> — ビザ (biza)</li>
-        <li><strong>Gia hạn</strong> — 延長 (enchō)</li>
-        <li><strong>Đăng ký tạm trú</strong> — 一時滞在届 (ichiji taizai todoke)</li>
-        <li><strong>Công an phường</strong> — 地区の警察 (chiku no keisatsu)</li>
+        <li><strong>Thị thực / Visa</strong> — ビザ (biza)</li>
+        <li><strong>Gia hạn visa</strong> — ビザの延長 (biza no enchō)</li>
+        <li><strong>Khai báo tạm trú</strong> — 一時滞在届 (ichiji taizai todoke)</li>
+        <li><strong>Cục quản lý xuất nhập cảnh</strong> — 出入国管理局 (shutsunyūkoku kanrikyoku)</li>
+        <li><strong>Tờ khai</strong> — 申告書/申請書 (shinkokusho/shinseisho)</li>
+        <li><em>"Tôi muốn gia hạn visa."</em> — 「ビザを延長したいです。」</li>
+        <li><em>"Lệ phí hết bao nhiêu tiền?"</em> — 「手数料はいくらですか？」</li>
       </ul>
 
       <blockquote>
-        <p>"Chuẩn bị tốt thủ tục giấy tờ, để tâm trí thoải mái tập trung vào việc học. Hà Nội luôn chào đón bạn." — Đội ngũ VietImmerse</p>
+        <p>"Thủ tục hành chính có thể là một thử thách, nhưng cũng là cơ hội tuyệt vời để bạn thực hành tiếng Việt và hiểu thêm về văn hóa Việt Nam. Chuẩn bị giấy tờ kỹ lưỡng, giữ thái độ niềm nở, Hà Nội sẽ luôn chào đón bạn!" — Đội ngũ VietImmerse</p>
       </blockquote>
     `,
+    bodyHtmlJa: `
+      <p>ハノイで生活、仕事、またはベトナム語を学びたい日本人にとって、出入国と滞在の手続きを理解することは<strong>最初で最も重要なステップ</strong>です。言葉の壁や複雑な行政手続きにより、多くの人が困難に直面します。この記事は、最新のプロセス全体をまとめた最も包括的なハンドブックであり、ハノイでのすべての手続きを迅速、合法的、そして最も費用効果高く処理するのに役立ちます。</p>
+
+      <h2>1. 日本国籍者のためのビザ免除政策</h2>
+      <p>日本国籍を持つ方にとって非常に良いニュースは、かなり長い滞在期間で<strong>ベトナムへの入国ビザが免除される</strong>特権を享受できることです。</p>
+      <ul>
+        <li><strong>滞在期間：</strong> 入国日から最大<strong>45日間</strong>（2023年からの新しいポリシー）。</li>
+        <li><strong>条件：</strong> パスポートの有効期間が入国時から少なくとも<strong>6ヶ月</strong>残っており、スタンプ用の空白ページが少なくとも2ページあること。</li>
+        <li><strong>目的：</strong> 観光、短期出張、親族訪問、または市場調査に適用できます。</li>
+      </ul>
+      <p>ただし、45日以上ベトナムに滞在する予定がある場合（例えば、3〜6ヶ月の集中ベトナム語コースに参加する場合や、長期就労する場合）、到着前にビザを申請するか、ベトナム滞在中に延長/新規発行の手続きを行う必要があります。</p>
+
+      <h2>2. ベトナムにいる日本人向けの一般的なビザの種類</h2>
+      <p>ベトナムのビザシステムは、目的に応じて多くの異なる記号に分かれています。以下は、日本人が最もよく申請するビザです：</p>
+      <ul>
+        <li><strong>e-Visa（電子ビザ - EV）：</strong> 最大<strong>90日間</strong>の滞在期間（シングルまたはマルチプルエントリー有効）でベトナムに入国する外国人に発行されます。これは、スポンサー企業を持たない観光客や短期滞在者にとって最も便利な選択肢です。100%オンラインで申請できます。</li>
+        <li><strong>観光ビザ（DL）：</strong> 観光目的でベトナムに入国する人に発行され、期間は1〜3ヶ月です。通常、旅行代理店やe-Visaを通じて申請します。</li>
+        <li><strong>ビジネス/労働ビザ（DN1, DN2, LĐ1, LĐ2）：</strong> ベトナムの企業で働く人に発行されます。入国前に、ベトナムの企業/組織が出入国管理局で保証手続き（スポンサー）を行う必要があります。</li>
+        <li><strong>家族訪問ビザ（TT, VR）：</strong> ベトナム人、またはすでに一時滞在カード（TRC）を持っている外国人の配偶者や18歳未満の子供に発行されます。期間は最長1年です。</li>
+        <li><strong>留学ビザ（DH）：</strong> ベトナムで学ぶ学生/受講生に発行されます。認可された学校や教育センターからの受け入れ証明書または保証が必要です。</li>
+      </ul>
+
+      <h2>3. e-Visa（電子ビザ）申請のステップバイステップ</h2>
+      <p>ハノイの文化を体験したり、3ヶ月未満の学習を自費で行う場合、e-Visaが最も速い方法です。プロセスは完全にオンラインです：</p>
+      <ol>
+        <li><strong>書類の準備：</strong> 4x6cmのポートレート写真（正面を向き、眼鏡なし、白背景）1枚と、パスポートの個人情報ページの写真（鮮明で反射がないこと）1枚。ファイル形式は.jpgです。</li>
+        <li><strong>ポータルへのアクセス：</strong> 出入国管理局の公式ウェブサイトにアクセスします：<em>https://evisa.xuatnhapcanh.gov.vn/</em>。</li>
+        <li><strong>情報の申告：</strong> 外国人向けの自力e-Visa申請セクションを選択します。写真をアップロードし、個人情報、入国予定日、ハノイでの予定滞在先住所を完全に記入します。</li>
+        <li><strong>手数料の支払い：</strong> 「電子ファイルコード（Mã hồ sơ điện tử）」を受け取ります。その後、国際クレジットカード（Visa/Mastercard）で手数料（シングルエントリーで約25ドル、マルチプルで50ドル）を支払います。拒否された場合、この手数料は返金されません。</li>
+        <li><strong>検索と印刷：</strong> 約3営業日後、「電子ファイルコード」を使用してウェブサイトで結果を検索します。承認された場合は、e-Visaを紙（A4サイズ）に印刷し、パスポートと一緒にノイバイ空港で提示してください。</li>
+      </ol>
+
+      <h2>4. ハノイでのビザ延長と一時滞在の手続き</h2>
+      <p>45日間のビザ免除またはe-Visaで入国し、さらに長く滞在したい場合は、新しいビザの申請または延長の手続きを行う必要があります。重い罰金（1,250,000VNDから数千万VND、さらには強制送還）を避けるために、これは現在のビザ/滞在期限が切れる前に行う必要があります。</p>
+
+      <h3>方法1：出入国管理局に自分で申請書を提出する（スポンサーがいる場合）</h3>
+      <p>スポンサー企業（DNビザ申請）またはベトナム人の配偶者（TTビザ申請）がいる場合、会社または親族が書類を準備し、ハノイで提出します。</p>
+      <ul>
+        <li><strong>提出先住所：</strong> 出入国管理局（Cục Quản lý xuất nhập cảnh） - 44-46 Trần Phú, Ba Đình, Hà Nội。またはハノイ市公安出入国管理室（Phòng Quản lý xuất nhập cảnh Công an TP Hà Nội） - 44 Phạm Ngọc Thạch, Đống Đa。</li>
+        <li><strong>営業時間：</strong> 午前（08:00 – 11:30）、午後（13:30 – 16:00）、月曜日から土曜日の午前中（祝日を除く）。</li>
+        <li><strong>基本書類：</strong> パスポート原本、滞在先の地区警察の確認と保証機関の署名/印鑑があるビザ発行/一時滞在延長申請書（フォームNA5）、および会社の法人書類。</li>
+        <li><strong>処理時間：</strong> 通常5営業日から。</li>
+      </ul>
+
+      <h3>方法2：代理店/ビザサービス会社を利用する（観光客に一般的な選択肢）</h3>
+      <p>e-Visaまたは観光ビザ免除でハノイにいる場合、旅行会社の保証が求められるため、局で自分で延長申請をするのは難しいことがよくあります。そのため、日本人の90%は、ハノイにある評判の良いサービス会社（通常は旧市街、バーディン、またはカウザイエリアにあります）を通す方法を選びます。</p>
+      <ul>
+        <li><strong>メリット：</strong> パスポート原本と一時滞在先の住所を渡すだけです。彼らがすべての法的手続きを処理します。</li>
+        <li><strong>費用：</strong> ビザの種類や延長したい期間によって、40ドル〜100ドルの幅があります。</li>
+        <li><strong>注意：</strong> 透明性のある会社を選び、総費用とパスポートの返却時間について明確に尋ねてください。</li>
+      </ul>
+
+      <h3>方法3：「ビザラン（Visa Run）」（出国と再入国）を実行する</h3>
+      <p>現在、e-Visaの場合、90日間の期限が切れた後、ベトナム国内からさらに延長することはできません。解決策は「ビザラン」を実行することです。ベトナムから数日間（タイ、ラオス、カンボジア、または日本へ）飛行機で出国し、その後新しいe-Visaまたは45日間のビザ免除の権利で再入国します。</p>
+
+      <h2>5. 一時滞在届：無視できない必須規定</h2>
+      <p>多くの外国人がうっかりこのステップを飛ばし、ビザ延長の手続きをする際に大きなトラブルに巻き込まれます。ベトナムの法律によると、すべての外国人は居住地に到着してから<strong>24時間以内に一時滞在申告を登録</strong>しなければなりません。</p>
+      <ul>
+        <li><strong>ホテル/サービスアパートメントに滞在する場合：</strong> 受付係がパスポートをスキャンし、警察のオンラインシステムに自動的に申告します。「一時滞在申告の確認」画面を印刷するかスクリーンショットを撮って証拠として保管するよう依頼するだけで済みます。</li>
+        <li><strong>個人宅（アパート/民家）を借りる場合：</strong> 家主は、ハノイ市公安出入国管理室のウェブサイト（https://hanoi.xuatnhapcanh.gov.vn/）を通じてあなたのために申告する責任があります。引っ越してきた初日に、家主にこれを必ず行うよう伝えてください。</li>
+      </ul>
+      <p><em>ヒント：ビザの延長申請やその他の行政手続きを行う際、常に地区警察の印鑑がある「一時滞在確認書」、またはオンラインシステムからのプリントアウトの提示が求められます。</em></p>
+
+      <h2>6. ベトナムでの行政手続きにおける「サバイバル」のヒント</h2>
+      <ul>
+        <li><strong>常に現金を持ち歩く：</strong> 国家機関は通常、手数料を現金（料金の種類に応じてVNDまたはUSD）で徴収し、国際クレジットカードのスワイプやQRコードの送金を受け入れる場所はほとんどありません。</li>
+        <li><strong>きちんとした服装をする：</strong> 出入国管理局などの機関に行くときは、きちんとした服装をすることが義務付けられています（ショートパンツやタンクトップ、ミニスカートは不可）。警備員はゲートであなたを拒否する権利があります。</li>
+        <li><strong>基本的なベトナム語を使用する：</strong> 行政職員全員が英語に堪能というわけではなく、日本語を話せる人はほとんどいません。いくつかの簡単なベトナム語のフレーズを準備するか、ベトナム人の友人に同行してもらいましょう。</li>
+      </ul>
+
+      <h2>7. 出入国管理局での実践的なベトナム語の語彙</h2>
+      <p>自信をつけるために、以下の語彙を練習しましょう：</p>
+      <ul>
+        <li><strong>Hộ chiếu</strong> — パスポート (pasupōto)</li>
+        <li><strong>Thị thực / Visa</strong> — ビザ (biza)</li>
+        <li><strong>Gia hạn visa</strong> — ビザの延長 (biza no enchō)</li>
+        <li><strong>Khai báo tạm trú</strong> — 一時滞在届 (ichiji taizai todoke)</li>
+        <li><strong>Cục quản lý xuất nhập cảnh</strong> — 出入国管理局 (shutsunyūkoku kanrikyoku)</li>
+        <li><strong>Tờ khai</strong> — 申告書/申請書 (shinkokusho/shinseisho)</li>
+        <li><em>"Tôi muốn gia hạn visa."</em> — 「ビザを延長したいです。」</li>
+        <li><em>"Lệ phí hết bao nhiêu tiền?"</em> — 「手数料はいくらですか？」</li>
+      </ul>
+
+      <blockquote>
+        <p>「行政手続きは挑戦かもしれませんが、ベトナム語を練習し、ベトナム文化をより深く理解するための素晴らしい機会でもあります。書類をしっかり準備し、明るい態度を保てば、ハノイはいつもあなたを歓迎してくれます！」 — VietImmerseチーム</p>
+      </blockquote>
+    `
   },
 
   // ── Post 6 ──────────────────────────────────────────────────
@@ -1088,77 +1310,171 @@ export const MOCK_POSTS: BlogPost[] = [
     id: "5-quan-ca-phe-trung-ha-noi",
     title:
       '5 quán cà phê trứng "chuẩn vị" Hà Nội bạn không nên bỏ lỡ',
+    titleJa:
+      '見逃せないハノイの「本格的」なエッグコーヒー店5選',
     excerpt:
       "Cà phê trứng — thức uống huyền thoại của Hà Nội. Khám phá 5 quán cà phê trứng nổi tiếng nhất, từ quán gốc 70 năm tuổi đến những không gian hiện đại mang hồn Hà Nội.",
+    excerptJa:
+      "エッグコーヒー — ハノイの伝説的な飲み物。70年の歴史を持つ老舗から、ハノイの魂を宿すモダンな空間まで、最も有名な5つのエッグコーヒー店を探求します。",
     date: "2026-04-20",
     category: "Ẩm thực",
+    categoryJa: "飲食",
     categoryIcon: "coffee",
     categoryColor: "bg-secondary-container text-on-secondary-container",
     gradientFrom: "from-[#5d3a1a]",
     gradientTo: "to-[#7c5a3a]",
     readTime: "6 phút đọc",
+    readTimeJa: "読了時間：6分",
     bodyHtml: `
-      <p>Cà phê trứng (<em>egg coffee</em>) là một trong những phát minh ẩm thực độc đáo nhất của Hà Nội. Ra đời từ những năm 1940, thức uống này đã trở thành <strong>biểu tượng văn hóa</strong> không thể thiếu khi nói đến thủ đô Việt Nam.</p>
+      <p>Cà phê trứng (<em>egg coffee</em>) là một trong những phát minh ẩm thực độc đáo nhất của Hà Nội. Ra đời từ những năm 1940, thức uống này đã vượt khỏi ranh giới của một món giải khát để trở thành <strong>biểu tượng văn hóa</strong> không thể thiếu khi nói đến thủ đô Việt Nam. Sự kết hợp tưởng chừng kỳ lạ giữa vị đắng chát của cà phê Robusta và vị béo ngậy, thơm lừng của lòng đỏ trứng đánh bông đã tạo nên một "bản giao hưởng" đánh thức mọi giác quan. Nếu có dịp ghé thăm Hà Nội, đây chắc chắn là món ăn bạn phải thử ít nhất một lần.</p>
 
       <h2>Cà phê trứng ra đời như thế nào?</h2>
-      <p>Năm 1946, trong thời kỳ sữa tươi khan hiếm tại Hà Nội, ông <strong>Nguyễn Văn Giảng</strong> — bartender tại khách sạn Sofitel Legend Metropole — đã sáng tạo công thức thay thế sữa bằng <em>lòng đỏ trứng gà đánh bông với đường</em>. Kết quả là một lớp kem trứng béo ngậy, mịn như tiramisu, phủ lên tách cà phê đen đậm đà. Công thức đó vẫn được giữ gần như nguyên bản cho đến ngày nay.</p>
+      <p>Vào năm 1946, trong thời kỳ chiến tranh đầy khó khăn và khan hiếm sữa tươi tại Hà Nội, ông <strong>Nguyễn Văn Giảng</strong> — một bartender tài hoa làm việc tại khách sạn danh tiếng Sofitel Legend Metropole — đã trăn trở tìm cách pha chế một loại cà phê mang phong cách Cappuccino nhưng với nguyên liệu sẵn có. Ông đã sáng tạo ra công thức thay thế sữa bằng <em>lòng đỏ trứng gà tươi đánh bông cùng với đường</em> và một chút bí quyết riêng. Kết quả là một lớp kem trứng béo ngậy, sánh mịn như lụa, mang hương vị như bánh tiramisu, phủ lên trên tách cà phê đen đậm đà. Công thức huyền thoại đó vẫn được gia đình ông lưu truyền và giữ gần như nguyên bản cho đến tận ngày nay.</p>
 
-      <h2>Top 5 quán cà phê trứng "chuẩn Hà Nội"</h2>
-
-      <h3>1. Cà phê Giảng — Quán gốc huyền thoại</h3>
-      <p><strong>Địa chỉ:</strong> 39 Nguyễn Hữu Huân, Hoàn Kiếm</p>
-      <p>Đây là quán cà phê trứng <em>đầu tiên trên thế giới</em>, do chính ông Nguyễn Văn Giảng thành lập. Quán nằm sâu trong một con ngõ nhỏ — bạn phải leo lên tầng 2 qua cầu thang hẹp mới đến được không gian uống. Tách cà phê được đặt trong bát nước nóng để giữ ấm.</p>
+      <h2>Cách thưởng thức cà phê trứng đúng điệu</h2>
+      <p>Uống cà phê trứng không giống như uống cà phê thông thường. Để cảm nhận trọn vẹn hương vị, bạn cần một chút sự tinh tế:</p>
       <ul>
-        <li><strong>Giá:</strong> 35.000 – 45.000 VND</li>
-        <li><strong>Điểm nổi bật:</strong> Công thức gốc từ 1946, không gian hoài cổ.</li>
-        <li><strong>Mẹo:</strong> Đến sớm buổi sáng (trước 9h) để có chỗ ngồi cạnh cửa sổ nhìn xuống phố.</li>
+        <li><strong>Nóng luôn ngon hơn lạnh:</strong> Dù có phiên bản đá, nhưng cà phê trứng nóng mới giữ được mùi thơm đặc trưng và lớp kem bồng bềnh nhất. Cốc thường được đặt trong một bát nước nóng nhỏ để duy trì nhiệt độ.</li>
+        <li><strong>Nghiêng cốc thay vì khuấy:</strong> Đừng vội khuấy tan lớp trứng! Hãy cầm cốc nghiêng một góc 45 độ, để khi bạn uống, dòng cà phê nóng hổi bên dưới sẽ chảy xuyên qua lớp kem trứng béo ngậy bên trên. Sự pha trộn này tạo ra hương vị bùng nổ trong vòm miệng.</li>
+        <li><strong>Dùng thìa múc kem trứng:</strong> Bạn có thể dùng chiếc thìa nhỏ đi kèm để xúc một chút lớp kem trứng ăn trước như một món tráng miệng ngọt ngào.</li>
       </ul>
 
-      <h3>2. Cà phê Đinh — View Hồ Gươm tuyệt đẹp</h3>
-      <p><strong>Địa chỉ:</strong> 13 Đinh Tiên Hoàng, Hoàn Kiếm</p>
-      <p>Nằm ngay cạnh Hồ Hoàn Kiếm, quán Đinh nổi tiếng với tầng 2 có ban công nhìn thẳng ra hồ. Cà phê trứng ở đây có vị đậm hơn một chút, kem trứng ít ngọt hơn Giảng — phù hợp với những người thích vị cà phê rõ nét.</p>
+      <h2>Top 5 quán cà phê trứng "chuẩn vị" Hà Nội không thể bỏ qua</h2>
+
+      <h3>1. Cà phê Giảng — Nơi khai sinh huyền thoại (Khu phố cổ)</h3>
+      <p><strong>Địa chỉ:</strong> 39 Nguyễn Hữu Huân, Hoàn Kiếm, Hà Nội (và cơ sở 106 Yên Phụ)</p>
+      <p>Được thành lập bởi chính cụ Nguyễn Văn Giảng, đây là nơi chứa đựng hương vị nguyên bản nhất. Quán nằm sâu trong một con ngõ nhỏ rất đặc trưng của Hà Nội. Bạn sẽ phải đi qua một lối vào hẹp, leo lên chiếc cầu thang gỗ cũ kỹ để đến không gian tầng hai mang đậm nét hoài cổ.</p>
       <ul>
-        <li><strong>Giá:</strong> 40.000 – 55.000 VND</li>
-        <li><strong>Điểm nổi bật:</strong> View Hồ Gươm, không gian rộng rãi.</li>
+        <li><strong>Đặc điểm hương vị:</strong> Lớp kem trứng ở Giảng cực kỳ đặc, sánh mịn, có độ ngọt vừa vặn và hoàn toàn không có mùi tanh. Tách cà phê luôn được đặt trong chén nước nóng để giữ nhiệt.</li>
+        <li><strong>Mức giá:</strong> 35.000 – 45.000 VND</li>
+        <li><strong>Mẹo nhỏ:</strong> Giảng luôn rất đông khách du lịch. Hãy đến sớm vào buổi sáng (trước 9h) hoặc sau bữa trưa để tận hưởng không gian yên tĩnh và chọn cho mình một góc ban công nhìn xuống phố Nguyễn Hữu Huân.</li>
       </ul>
 
-      <h3>3. Cà phê Loading — Phong cách trẻ trung</h3>
-      <p><strong>Địa chỉ:</strong> 8 Chân Cầm, Hoàn Kiếm</p>
-      <p>Loading mang đến một cách tiếp cận <em>hiện đại</em> với cà phê trứng. Không gian thiết kế theo phong cách industrial chic, thu hút đông đảo bạn trẻ và du khách. Cà phê trứng ở đây được phục vụ trong ly thủy tinh trong suốt, để bạn nhìn thấy rõ hai lớp — đen dưới, vàng trên.</p>
+      <h3>2. Cà phê Đinh — Giao lộ của ký ức (View Hồ Gươm)</h3>
+      <p><strong>Địa chỉ:</strong> 13 Đinh Tiên Hoàng, Hàng Bạc, Hoàn Kiếm, Hà Nội</p>
+      <p>Do con gái của cụ Giảng mở ra, Cà phê Đinh nằm ẩn mình trên tầng 2 của một căn biệt thự Pháp cổ ngay sát Hồ Gươm. Không có biển hiệu phô trương, khách quen tự tìm đến qua một con hẻm tối và cầu thang gạch rêu phong. Nơi đây là điểm hẹn quen thuộc của dân mê rock và những người yêu nét hoài niệm.</p>
       <ul>
-        <li><strong>Giá:</strong> 40.000 – 50.000 VND</li>
-        <li><strong>Điểm nổi bật:</strong> Thiết kế đẹp, WiFi mạnh, menu đa dạng.</li>
+        <li><strong>Đặc điểm hương vị:</strong> Lượng cà phê ở Đinh nhiều và đậm hơn, lớp trứng được đánh ít ngọt hơn so với Giảng. Phù hợp cho những ai thích vị cà phê mạnh mẽ.</li>
+        <li><strong>Mức giá:</strong> 30.000 – 45.000 VND</li>
+        <li><strong>Mẹo nhỏ:</strong> Góc ban công nhỏ bé nhìn thẳng ra Hồ Gươm là vị trí "vàng" của quán. Ngồi đây vào một buổi sáng mùa thu se lạnh, nhâm nhi ly cà phê trứng và ngắm dòng người qua lại là một trải nghiệm đậm chất Hà Nội.</li>
       </ul>
 
-      <h3>4. Cà phê Lâm — Bảo tàng nghệ thuật mini</h3>
-      <p><strong>Địa chỉ:</strong> 60 Nguyễn Hữu Huân, Hoàn Kiếm</p>
-      <p>Quán Lâm nổi tiếng không chỉ vì cà phê, mà còn vì bộ sưu tập tranh của các họa sĩ nổi tiếng Việt Nam treo kín tường. Uống cà phê trứng tại đây như đang ngồi giữa một bảo tàng nghệ thuật thu nhỏ.</p>
+      <h3>3. Loading T café — Nét lãng mạn trong biệt thự Pháp</h3>
+      <p><strong>Địa chỉ:</strong> Tầng 2, số 8 Chân Cầm, Hoàn Kiếm, Hà Nội</p>
+      <p>Không ồn ào và tấp nập như Giảng hay Đinh, Loading T tọa lạc trên tầng hai của một căn biệt thự Pháp cổ kính được xây dựng từ năm 1932. Không gian quán mang đậm phong cách vintage với nền gạch hoa cổ, bàn ghế gỗ mộc mạc và tiếng nhạc Trịnh êm đềm.</p>
       <ul>
-        <li><strong>Giá:</strong> 30.000 – 40.000 VND</li>
-        <li><strong>Điểm nổi bật:</strong> Giá rẻ, không gian nghệ thuật độc đáo.</li>
+        <li><strong>Đặc điểm hương vị:</strong> Cà phê trứng ở Loading T được đánh giá rất cao về sự tinh tế. Cà phê được xay từ hạt Arabica và Robusta chất lượng cao, hòa quyện với kem trứng được thêm một chút hương quế nhẹ nhàng.</li>
+        <li><strong>Mức giá:</strong> 45.000 – 60.000 VND</li>
+        <li><strong>Mẹo nhỏ:</strong> Đây là không gian lý tưởng để bạn ngồi đọc sách, làm việc hoặc có những cuộc trò chuyện sâu lắng. Góc cửa sổ hoa hồng của quán là điểm check-in được rất nhiều bạn trẻ yêu thích.</li>
       </ul>
 
-      <h3>5. Cà phê Phố Cổ — Trải nghiệm tầng thượng</h3>
-      <p><strong>Địa chỉ:</strong> 11 Hàng Gai, Hoàn Kiếm</p>
-      <p>Quán nằm trên tầng thượng một tòa nhà phố cổ, mang đến tầm nhìn 360 độ panoramic ra mái ngói rêu phong của khu 36 phố phường. Cà phê trứng ở đây được pha theo phong cách truyền thống, có thêm lựa chọn cà phê trứng dừa (<em>coconut egg coffee</em>) rất được du khách Nhật yêu thích.</p>
+      <h3>4. Cà phê Lâm — "Bảo tàng" mỹ thuật thu nhỏ</h3>
+      <p><strong>Địa chỉ:</strong> 60 Nguyễn Hữu Huân, Hoàn Kiếm, Hà Nội</p>
+      <p>Cà phê Lâm là một trong những cái tên lâu đời nhất Hà Nội (từ năm 1952). Quán từng là nơi lui tới thường xuyên của giới văn nghệ sĩ, danh họa nổi tiếng của Việt Nam (như Bùi Xuân Phái, Tô Ngọc Vân). Họ thường đến uống cà phê và trả tiền bằng... tranh.</p>
       <ul>
-        <li><strong>Giá:</strong> 45.000 – 65.000 VND</li>
-        <li><strong>Điểm nổi bật:</strong> View phố cổ từ tầng thượng, hoàng hôn tuyệt đẹp.</li>
+        <li><strong>Đặc điểm hương vị:</strong> Cà phê trứng tại Lâm mang một hương vị rang xay mộc mạc, đậm mùi khói đặc trưng của phương pháp rang củi truyền thống, kết hợp với lớp kem trứng ngọt thanh.</li>
+        <li><strong>Mức giá:</strong> 35.000 – 50.000 VND</li>
+        <li><strong>Mẹo nhỏ:</strong> Hãy chiêm ngưỡng bộ sưu tập tranh vô giá được treo kín các bức tường trong quán. Uống cà phê trứng tại đây giống như bạn đang ngồi thưởng thức nghệ thuật trong một bảo tàng thu nhỏ.</li>
       </ul>
 
-      <h2>Cách gọi cà phê trứng bằng tiếng Việt</h2>
-      <p>Khi đến quán, bạn có thể dùng các câu sau:</p>
+      <h3>5. Cà phê Phố Cổ — Điểm ngắm cảnh bí mật trên tầng thượng</h3>
+      <p><strong>Địa chỉ:</strong> 11 Hàng Gai, Hoàn Kiếm, Hà Nội</p>
+      <p>Đây có lẽ là quán khó tìm nhất. Để vào được quán, bạn phải đi xuyên qua một cửa hàng bán lụa, đi sâu vào bên trong một khoảng sân giếng trời rộng lớn mang kiến trúc cung đình xưa, rồi leo lên sân thượng.</p>
       <ul>
-        <li><strong>"Cho em một cà phê trứng nóng ạ"</strong> — Gọi cà phê trứng nóng.</li>
-        <li><strong>"Em uống cà phê trứng đá"</strong> — Gọi phiên bản lạnh.</li>
-        <li><strong>"Tính tiền ạ"</strong> — Yêu cầu thanh toán.</li>
+        <li><strong>Đặc điểm hương vị:</strong> Ngoài cà phê trứng truyền thống ngon chuẩn vị, quán còn nổi tiếng với các biến tấu như <em>cà phê trứng dừa</em> (coconut egg coffee), rất hợp khẩu vị với khách quốc tế và người Nhật.</li>
+        <li><strong>Mức giá:</strong> 45.000 – 65.000 VND</li>
+        <li><strong>Mẹo nhỏ:</strong> Từ sân thượng của quán, bạn có tầm nhìn panorama 360 độ ngắm trọn vẹn Hồ Gươm và mái ngói rêu phong của 36 phố phường. Hãy đến vào buổi chiều tà để ngắm hoàng hôn rực rỡ buông xuống thành phố.</li>
       </ul>
-      <p>Mẹo: Người Hà Nội thường gọi cà phê trứng là <strong>"ca phê chứng"</strong> (phát âm nhanh), đây là cách nói rút gọn tự nhiên mà bạn sẽ nghe thấy rất nhiều.</p>
+
+      <h2>Cách gọi cà phê trứng tự nhiên như người bản địa</h2>
+      <p>Khi đến các quán cà phê tại Hà Nội, hãy thử dùng tiếng Việt để gọi món, nhân viên sẽ rất bất ngờ và thân thiện với bạn:</p>
+      <ul>
+        <li><strong>"Cho anh/chị một cà phê trứng nóng."</strong> — Cách gọi lịch sự phiên bản nóng.</li>
+        <li><strong>"Cho mình một trứng đá."</strong> — Cách gọi ngắn gọn cho phiên bản lạnh.</li>
+        <li><strong>"Bạn ơi, cho mình xin cốc trà đá."</strong> — Người Hà Nội thường uống kèm trà đá miễn phí (hoặc giá rất rẻ) để tráng miệng sau khi uống cà phê trứng.</li>
+        <li><strong>"Tính tiền cho anh/chị nhé."</strong> hoặc ngắn gọn là <strong>"Gửi tiền em ơi!"</strong> — Yêu cầu thanh toán.</li>
+      </ul>
+      <p><em>Mẹo phát âm:</em> Người Hà Nội thường có thói quen nói lướt, từ "cà phê trứng" thường được nghe giống như <strong>"ca-phê-chứng"</strong>. Hãy tự tin nói nhanh một chút, bạn sẽ giống hệt một người dân thủ đô thực thụ!</p>
 
       <blockquote>
-        <p>"Cà phê trứng Hà Nội — không chỉ là thức uống, đó là một tác phẩm nghệ thuật trong tách." — Đội ngũ VietImmerse</p>
+        <p>"Cà phê trứng không chỉ là một thức uống giải khát, nó là hiện thân của sự sáng tạo, sự tinh tế và bề dày lịch sử của Hà Nội. Hãy thử nhâm nhi nó một cách chậm rãi, và bạn sẽ thấy cả tâm hồn của thành phố này ở bên trong." — Đội ngũ VietImmerse</p>
       </blockquote>
     `,
+    bodyHtmlJa: `
+      <p>エッグコーヒー（<em>cà phê trứng</em>）はハノイの最もユニークな料理の発明の一つです。1940年代に誕生したこの飲み物は、単なる飲み物の枠を超え、ベトナムの首都を語る上で欠かせない<strong>文化の象徴</strong>となっています。ロブスタ種コーヒーの苦味と、泡立てた卵黄の濃厚で香り高い味わいという奇妙な組み合わせが、すべての感覚を呼び覚ます「交響曲」を生み出しました。ハノイを訪れる機会があれば、これは間違いなく一度は試してみるべき名物です。</p>
+
+      <h2>エッグコーヒーはどのように生まれたのか？</h2>
+      <p>1946年、ハノイが戦争の困難と新鮮な牛乳の不足に直面していた時代に、名門ソフィテル・レジェンド・メトロポール・ホテルの才能あるバーテンダーであった<strong>グエン・ヴァン・ザン（Nguyễn Văn Giảng）氏</strong>は、カプチーノスタイルのコーヒーを身近な材料でどのように作るか悩んでいました。そこで彼は、牛乳の代わりに<em>新鮮な卵黄を砂糖と一緒に泡立てる</em>という革新的なレシピを、彼独自の秘訣とともに考案しました。その結果、絹のように滑らかで濃厚な卵クリームの層ができ、ティラミスのような風味を帯びながら、濃いブラックコーヒーの上に覆いかぶさりました。この伝説的なレシピは彼の家族によって受け継がれ、今日に至るまでほぼオリジナルの形で保たれています。</p>
+
+      <h2>正しいエッグコーヒーの楽しみ方</h2>
+      <p>エッグコーヒーを飲むのは普通のコーヒーとは違います。その風味を完全に味わうには、少しの工夫が必要です：</p>
+      <ul>
+        <li><strong>冷たいものより温かいもの：</strong> アイスバージョンもありますが、ホットのエッグコーヒーが最も独特の香りとふわふわのクリームを保ちます。カップは温度を維持するために、お湯が入った小さなボウルに入れられて提供されることがよくあります。</li>
+        <li><strong>かき混ぜずにカップを傾ける：</strong> すぐに卵の層をかき混ぜないでください！カップを45度の角度に傾けて、飲む時に下にある熱いコーヒーが上にある濃厚な卵クリームの層を通り抜けるようにします。このブレンドが口の中で爆発的な風味を生み出します。</li>
+        <li><strong>スプーンでクリームをすくう：</strong> 付属の小さなスプーンを使って、甘いデザートのように卵クリームの層を少しすくって先に食べることもできます。</li>
+      </ul>
+
+      <h2>見逃せないハノイの「本格的」なエッグコーヒー店トップ5</h2>
+
+      <h3>1. ザン・カフェ（Cà phê Giảng） — 伝説の発祥の地（旧市街）</h3>
+      <p><strong>住所：</strong> 39 Nguyễn Hữu Huân, Hoàn Kiếm, Hà Nội（および 106 Yên Phụ 支店）</p>
+      <p>グエン・ヴァン・ザン氏自身によって設立された、最もオリジナルの風味を保つ場所です。店はハノイ特有の小さな路地の奥にあります。狭い入り口を通り抜け、古い木製の階段を上って、ノスタルジックな雰囲気に満ちた2階の空間へ行く必要があります。</p>
+      <ul>
+        <li><strong>風味の特徴：</strong> ザンの卵クリームは非常に濃厚で滑らか、適度な甘さがあり、生臭さは全くありません。コーヒーカップは保温のため常に温水の入ったボウルに置かれています。</li>
+        <li><strong>価格帯：</strong> 35,000 – 45,000 VND</li>
+        <li><strong>ヒント：</strong> ザンは常に多くの観光客で賑わっています。朝早く（午前9時前）または昼食後に行き、Nguyễn Hữu Huân通りを見下ろすバルコニーの静かな角の席を確保するのがおすすめです。</li>
+      </ul>
+
+      <h3>2. ディン・カフェ（Cà phê Đinh） — 記憶の交差点（ホアンキエム湖ビュー）</h3>
+      <p><strong>住所：</strong> 13 Đinh Tiên Hoàng, Hàng Bạc, Hoàn Kiếm, Hà Nội</p>
+      <p>ザン氏の娘が開いたディン・カフェは、ホアンキエム湖のすぐ隣にある古いフランス風ヴィラの2階にひっそりと佇んでいます。目立つ看板はなく、常連客は暗い路地と苔むしたレンガの階段を通って自らやって来ます。ここはロックファンやノスタルジーを愛する人々の馴染みの待ち合わせ場所です。</p>
+      <ul>
+        <li><strong>風味の特徴：</strong> ディンのコーヒーは量が多く味が濃く、卵クリームはザンに比べて甘さ控えめです。力強いコーヒーの味を好む人に適しています。</li>
+        <li><strong>価格帯：</strong> 30,000 – 45,000 VND</li>
+        <li><strong>ヒント：</strong> ホアンキエム湖を直接見渡す小さなバルコニーが店の「ゴールデン」スポットです。肌寒い秋の朝にここに座り、エッグコーヒーをすすりながら行き交う人々を眺めるのは、ハノイならではの体験です。</li>
+      </ul>
+
+      <h3>3. ローディング・カフェ（Loading T café） — フランスヴィラのロマンチックさ</h3>
+      <p><strong>住所：</strong> 8 Chân Cầm, Hoàn Kiếm, Hà Nội の2階</p>
+      <p>ザンやディンのように騒がしく混雑していないLoading Tは、1932年に建てられた歴史的なフランス風ヴィラの2階にあります。空間は、古い花のタイル床、素朴な木製のテーブルと椅子、そして穏やかなチン（Trịnh）音楽でヴィンテージスタイルに溢れています。</p>
+      <ul>
+        <li><strong>風味の特徴：</strong> Loading Tのエッグコーヒーはその繊細さで高く評価されています。高品質のアラビカ豆とロブスタ豆から挽かれたコーヒーが、シナモンの香りがほんのり効いた卵クリームとブレンドされています。</li>
+        <li><strong>価格帯：</strong> 45,000 – 60,000 VND</li>
+        <li><strong>ヒント：</strong> 本を読んだり、仕事をしたり、深い会話をするのに理想的な空間です。バラの窓の角は、多くの若者に愛される人気の写真スポットです。</li>
+      </ul>
+
+      <h3>4. ラム・カフェ（Cà phê Lâm） — ミニチュアの「美術館」</h3>
+      <p><strong>住所：</strong> 60 Nguyễn Hữu Huân, Hoàn Kiếm, Hà Nội</p>
+      <p>ラム・カフェはハノイで最も歴史のある店の一つです（1952年創業）。かつてはベトナムの有名な芸術家や画家（Bùi Xuân PháiやTô Ngọc Vânなど）が頻繁に出入りしていました。彼らはよくコーヒーを飲みに来て、絵画で...支払いをしていました。</p>
+      <ul>
+        <li><strong>風味の特徴：</strong> ラムのエッグコーヒーは、伝統的な薪焙煎法の特徴であるスモーキーで素朴な風味があり、甘く爽やかな卵クリームと組み合わされています。</li>
+        <li><strong>価格帯：</strong> 35,000 – 50,000 VND</li>
+        <li><strong>ヒント：</strong> 壁一面に掛けられた貴重な絵画コレクションをぜひ鑑賞してください。ここでエッグコーヒーを飲むのは、ミニチュアの美術館でアートを楽しんでいるかのようです。</li>
+      </ul>
+
+      <h3>5. フォーコー・カフェ（Cà phê Phố Cổ） — ルーフトップの秘密の展望スポット</h3>
+      <p><strong>住所：</strong> 11 Hàng Gai, Hoàn Kiếm, Hà Nội</p>
+      <p>ここはおそらく最も見つけにくい店です。店に入るには、シルク店を通り抜け、昔の宮廷建築を持つ広大な中庭の奥へ進み、そして屋上まで登る必要があります。</p>
+      <ul>
+        <li><strong>風味の特徴：</strong> 伝統的な美味しいエッグコーヒーに加えて、店は<em>ココナッツエッグコーヒー</em>（cà phê trứng dừa）などのアレンジでも有名で、外国人や日本人観光客の好みにとても合っています。</li>
+        <li><strong>価格帯：</strong> 45,000 – 65,000 VND</li>
+        <li><strong>ヒント：</strong> 店の屋上からは、ホアンキエム湖と36通りの苔むした瓦屋根の360度パノラマビューを楽しめます。夕日が街に沈むのを見るために、夕方に訪れてみてください。</li>
+      </ul>
+
+      <h2>地元民のように自然にエッグコーヒーを注文する方法</h2>
+      <p>ハノイのカフェを訪れる際は、ベトナム語で注文してみましょう。スタッフはとても驚き、フレンドリーに対応してくれるはずです：</p>
+      <ul>
+        <li><strong>"Cho anh/chị một cà phê trứng nóng."</strong> — 温かいエッグコーヒーの丁寧な注文方法。</li>
+        <li><strong>"Cho mình một trứng đá."</strong> — 冷たいバージョンの簡潔な注文方法。</li>
+        <li><strong>"Bạn ơi, cho mình xin cốc trà đá."</strong> — ハノイの人々はよくエッグコーヒーを飲んだ後の口直しに、無料（または非常に安い）のアイスティーを頼みます。</li>
+        <li><strong>"Tính tiền cho anh/chị nhé."</strong> または短く <strong>"Gửi tiền em ơi!"</strong> — お会計の頼み方。</li>
+      </ul>
+      <p><em>発音のヒント：</em> ハノイの人々は言葉を滑らせて言う癖があり、「cà phê trứng」はよく<strong>"ca-phê-chứng"</strong>のように聞こえます。自信を持って少し早口で言えば、まさに首都の住人そっくりになりますよ！</p>
+
+      <blockquote>
+        <p>「エッグコーヒーは単なる飲み物ではなく、ハノイの創造性、洗練さ、そして深い歴史の具現化です。ゆっくりと味わってみてください。そうすれば、この街の魂そのものがその中に見えてくるでしょう。」 — VietImmerseチーム</p>
+      </blockquote>
+    `
   },
 
   // ── Post 7 ──────────────────────────────────────────────────
@@ -1166,65 +1482,135 @@ export const MOCK_POSTS: BlogPost[] = [
     id: "lang-gom-bat-trang",
     title:
       "Khám phá Làng gốm Bát Tràng: Hành trình trải nghiệm văn hóa thủ công",
+    titleJa:
+      "バッチャン陶器村の探求：伝統工芸文化を体験する旅",
     excerpt:
       "Cách trung tâm Hà Nội chỉ 30 phút, Làng gốm Bát Tràng 700 năm tuổi là điểm đến hoàn hảo để vừa khám phá văn hóa Việt Nam, vừa luyện tiếng Việt trong bối cảnh thực tế.",
+    excerptJa:
+      "ハノイ中心部からわずか30分、700年の歴史を持つバッチャン陶器村は、ベトナム文化を探求し、実際の状況でベトナム語を練習するのに最適な場所です。",
     date: "2026-04-12",
     category: "Du lịch & Văn hóa",
+    categoryJa: "旅行・文化",
     categoryIcon: "tour",
     categoryColor: "bg-tertiary-container text-on-tertiary-container",
     gradientFrom: "from-[#78350f]",
     gradientTo: "to-[#9a3412]",
     readTime: "9 phút đọc",
+    readTimeJa: "読了時間：9分",
     bodyHtml: `
-      <p>Nằm bên bờ sông Hồng, cách trung tâm Hà Nội khoảng 15 km về phía Đông Nam, <strong>Làng gốm Bát Tràng</strong> là một trong những làng nghề truyền thống lâu đời nhất Việt Nam. Với hơn <strong>700 năm lịch sử</strong>, nơi đây không chỉ nổi tiếng với những sản phẩm gốm sứ tinh xảo, mà còn là một "bảo tàng sống" về văn hóa thủ công Việt Nam.</p>
+      <p>Nằm hiền hòa bên bờ sông Hồng, cách trung tâm thủ đô Hà Nội chỉ khoảng 15 km về phía Đông Nam, <strong>Làng gốm Bát Tràng</strong> (huyện Gia Lâm) là một trong những làng nghề truyền thống lâu đời và nổi tiếng nhất Việt Nam. Với bề dày lịch sử hơn <strong>700 năm</strong>, nơi đây không chỉ là cái nôi sản sinh ra những tuyệt tác gốm sứ tinh xảo, mà còn là một "bảo tàng sống" lưu giữ trọn vẹn nét đẹp văn hóa thủ công và ẩm thực truyền thống của người Tràng An xưa. Nếu bạn đang tìm kiếm một chuyến đi trong ngày (day-trip) vừa để rời xa sự ồn ào của phố thị, vừa để thực hành tiếng Việt thực tế, Bát Tràng chính là điểm đến hoàn hảo nhất.</p>
 
-      <h2>Lịch sử Bát Tràng</h2>
-      <p>Làng gốm Bát Tràng có lịch sử từ thế kỷ 14 — cùng thời kỳ với triều đại Trần. Ban đầu, những nghệ nhân gốm đến từ vùng Bồ Bát (Ninh Bình ngày nay) di cư đến đây vì vùng đất ven sông có <strong>nguồn đất sét trắng chất lượng cao</strong>, nguyên liệu hoàn hảo cho sản xuất gốm.</p>
-      <p>Qua nhiều thế kỷ, gốm Bát Tràng đã được xuất khẩu đến nhiều nước trong khu vực, từ Nhật Bản đến Hà Lan. Đặc biệt, vào thế kỷ 17, gốm Bát Tràng từng được bán tại Nagasaki và được giới quý tộc Nhật Bản đánh giá cao.</p>
+      <h2>1. Dấu ấn lịch sử 700 năm của Bát Tràng</h2>
+      <p>Lịch sử của làng gốm Bát Tràng bắt đầu từ thế kỷ 14, dưới thời nhà Trần. Thuở ấy, những nghệ nhân làm gốm tài hoa từ vùng Bồ Bát (thuộc tỉnh Ninh Bình ngày nay) đã xuôi theo dòng sông Hồng và quyết định dừng chân, lập nghiệp tại vùng đất này. Lý do rất đơn giản: nơi đây sở hữu mỏ <strong>đất sét trắng</strong> cực kỳ chất lượng, loại nguyên liệu tuyệt hảo nhất để nhào nặn nên những sản phẩm gốm sứ cao cấp.</p>
+      <p>Trải qua nhiều thế kỷ thăng trầm, gốm Bát Tràng không chỉ phục vụ hoàng gia, quý tộc Việt Nam mà còn theo các thương thuyền xuất khẩu đi khắp nơi trên thế giới, từ Nhật Bản, Trung Quốc đến tận các nước châu Âu như Hà Lan, Bồ Đào Nha. Đặc biệt vào thế kỷ 17, những món đồ gốm Bát Tràng đã được thương nhân mang đến cảng Nagasaki và được giới quý tộc, trà nhân Nhật Bản vô cùng trân quý, coi như những bảo vật nghệ thuật.</p>
 
-      <h2>Trải nghiệm nặn gốm thủ công</h2>
-      <p>Đây là hoạt động được du khách yêu thích nhất. Bạn sẽ được:</p>
+      <h2>2. Khám phá Bảo tàng Gốm Bát Tràng (Trung tâm Tinh hoa Làng nghề Việt)</h2>
+      <p>Kể từ năm 2021, Bát Tràng có thêm một biểu tượng mới thu hút hàng ngàn du khách mỗi tuần: <strong>Bảo tàng Gốm Bát Tràng</strong>. Đây là một công trình kiến trúc kỳ vĩ, lấy cảm hứng từ những đường cong của chiếc bàn xoay nặn gốm truyền thống, nhìn từ xa như những khối đất sét khổng lồ đang được nhào nặn.</p>
+      <ul>
+        <li><strong>Không gian 6 tầng độc đáo:</strong> Bảo tàng được chia thành nhiều khu vực chuyên biệt. Tầng 1 là nơi trưng bày và mua sắm các sản phẩm tinh hoa. Tầng 2 tái hiện lại toàn bộ quá trình phát triển của làng nghề. Tầng 3 và 4 là không gian nghệ thuật đương đại và khu vực ẩm thực.</li>
+        <li><strong>Tầng thượng (Hương Sa Art House):</strong> Nơi đây là một không gian mở tuyệt đẹp để thưởng trà, ngắm nhìn toàn cảnh dòng sông Bắc Hưng Hải êm đềm và tận hưởng những luồng gió mát rượi.</li>
+        <li><strong>Góc sống ảo cực chất:</strong> Với màu gạch nung đỏ au và những đường lượn sóng khổng lồ, mọi góc tại bảo tàng đều có thể cho ra đời những bức ảnh check-in tuyệt đẹp.</li>
+      </ul>
+
+      <h2>3. Trải nghiệm tự tay vuốt gốm như một nghệ nhân</h2>
+      <p>Đến Bát Tràng mà chưa tự tay lấm lem bùn đất để nặn gốm thì coi như chưa đến! Dọc theo các con hẻm trong làng hoặc ngay tại chợ gốm, có hàng chục xưởng gốm nhỏ mở cửa cho du khách trải nghiệm.</p>
       <ol>
-        <li><strong>Chọn loại sản phẩm:</strong> Bát, đĩa, cốc, bình hoa, hoặc tượng nhỏ.</li>
-        <li><strong>Ngồi vào bàn xoay:</strong> Nghệ nhân sẽ hướng dẫn bạn cách tạo hình trên bàn xoay gốm truyền thống.</li>
-        <li><strong>Vẽ hoa văn:</strong> Dùng bút lông vẽ hoa văn truyền thống Việt Nam lên sản phẩm.</li>
-        <li><strong>Tráng men và nung:</strong> Sản phẩm sẽ được tráng men và nung trong lò ở nhiệt độ 1200°C. Bạn có thể nhận lại sản phẩm sau 3-5 ngày hoặc được gửi đến khách sạn.</li>
+        <li><strong>Ngồi vào bàn xoay:</strong> Bạn sẽ được cấp một cục đất sét ẩm và ngồi vào chiếc bàn xoay truyền thống. Các nghệ nhân sẽ tận tình cầm tay chỉ việc, hướng dẫn bạn cách dùng lực của ngón tay để tạo hình chiếc cốc, cái bát hay bình hoa.</li>
+        <li><strong>Trang trí và vẽ hoa văn:</strong> Sau khi sản phẩm được sấy khô nhẹ, bạn có thể dùng bút lông và màu nước chuyên dụng để thỏa sức sáng tạo, vẽ những họa tiết mang đậm dấu ấn cá nhân lên tác phẩm của mình.</li>
+        <li><strong>Tráng men và nung lửa:</strong> Tác phẩm sẽ được thợ gốm tráng một lớp men bảo vệ và đưa vào lò nung ở nhiệt độ lên tới 1200°C. Thường sẽ mất vài ngày để hoàn thiện, bạn có thể nhờ xưởng gửi tác phẩm về tận khách sạn qua đường bưu điện.</li>
       </ol>
-      <p>Chi phí trải nghiệm khoảng <strong>50.000 – 100.000 VND</strong> (350-700 yên Nhật) — rất hợp lý cho một kỷ niệm handmade độc nhất vô nhị.</p>
+      <p><em>Chi phí trải nghiệm:</em> Chỉ khoảng 20.000 – 60.000 VNĐ (tương đương 150 - 400 Yên Nhật), một mức giá quá rẻ cho một món quà lưu niệm độc nhất vô nhị do chính tay bạn làm ra.</p>
 
-      <h2>Chợ gốm Bát Tràng</h2>
-      <p>Ngoài trải nghiệm nặn gốm, bạn nên dành thời gian khám phá <strong>chợ gốm</strong> — một khu chợ lớn chuyên bán các sản phẩm gốm sứ đủ loại:</p>
-      <ul>
-        <li><strong>Ấm trà và bộ trà:</strong> Phong cách truyền thống Việt Nam, rất phù hợp làm quà tặng.</li>
-        <li><strong>Bát đĩa men lam:</strong> Đặc trưng của gốm Bát Tràng — men lam trên nền trắng ngà.</li>
-        <li><strong>Tượng phong thủy:</strong> Tượng Phật, cá chép, rồng — mang ý nghĩa may mắn.</li>
-        <li><strong>Gốm nghệ thuật hiện đại:</strong> Những tác phẩm sáng tạo kết hợp giữa truyền thống và hiện đại.</li>
-      </ul>
-      <p><strong>Mẹo mua sắm:</strong> Giá tại chợ Bát Tràng thường có thể <em>mặc cả</em> — đây là cơ hội tuyệt vời để luyện tiếng Việt! Hãy bắt đầu bằng câu: "Em ơi, cái này bao nhiêu tiền?" rồi thử hỏi "Bớt cho em được không ạ?"</p>
+      <h2>4. Lạc lối trong Chợ Gốm và Làng cổ</h2>
+      <p>Sau khi làm gốm, hãy dành thời gian dạo bước vào <strong>Chợ gốm Bát Tràng</strong> rộng lớn. Tại đây, bạn có thể tìm thấy mọi thứ: từ những bộ ấm chén uống trà men lam truyền thống, những chiếc bát đĩa vẽ tay tinh xảo, đến tượng phong thủy (tượng Phật, cá chép, rồng) và cả những món đồ trang sức bằng gốm hiện đại nhỏ xinh.</p>
+      <p>Nếu yêu thích sự tĩnh lặng, hãy rẽ vào những con ngõ nhỏ ngoằn ngoèo của <strong>Làng cổ Bát Tràng</strong>. Những bức tường rào phủ đầy rêu phong được xây bằng than xỉ lò gốm, Đình làng Bát Tràng trầm mặc và Nhà cổ Vạn Vân với kiến trúc gỗ truyền thống sẽ đưa bạn xuyên không về một vùng quê Bắc Bộ của hàng trăm năm trước.</p>
 
-      <h2>Từ vựng tiếng Việt hữu ích tại Bát Tràng</h2>
-      <p>Để tận dụng tối đa chuyến đi, hãy ghi nhớ một số từ vựng quan trọng:</p>
+      <h2>5. Thưởng thức Tinh hoa Ẩm thực Bát Tràng</h2>
+      <p>Không chỉ có gốm, Bát Tràng còn gìn giữ những mâm cỗ truyền thống mang đậm nét tinh hoa của người Kinh Kỳ (Hà Nội xưa) mà hiếm nơi nào còn giữ được.</p>
       <ul>
-        <li><strong>Gốm sứ</strong> — đồ gốm, đồ sứ (ceramics/porcelain)</li>
-        <li><strong>Bàn xoay</strong> — bàn xoay nặn gốm (potter's wheel)</li>
-        <li><strong>Men</strong> — lớp men phủ (glaze)</li>
-        <li><strong>Lò nung</strong> — lò đốt gốm (kiln)</li>
-        <li><strong>Hoa văn</strong> — họa tiết trang trí (pattern/motif)</li>
-        <li><strong>Nghệ nhân</strong> — thợ thủ công lành nghề (artisan)</li>
-        <li><strong>Mặc cả</strong> — thương lượng giá (bargaining)</li>
+        <li><strong>Canh măng mực:</strong> Đây là món ăn "linh hồn" của cỗ Bát Tràng. Mực khô được xé sợi nhỏ li ti, xào cùng măng khô tước sợi, nước dùng ninh từ xương gà, tôm nõn cực kỳ thanh ngọt. Quá trình chuẩn bị món này vô cùng cầu kỳ và tỉ mỉ.</li>
+        <li><strong>Su hào xào mực & Nem chim bồ câu:</strong> Những món ăn đòi hỏi kỹ năng thái lát siêu mỏng và tẩm ướp tinh tế của người phụ nữ Bát Tràng.</li>
+        <li><strong>Quà vặt đường phố:</strong> Nếu chỉ muốn ăn nhẹ, dọc đường làng có bán bánh tẻ (bánh lá ngon nức tiếng), chè hạt súng (chè kho) và xôi vò cực kỳ hấp dẫn.</li>
       </ul>
 
-      <h2>Cách đi đến Bát Tràng</h2>
+      <h2>6. Hướng dẫn di chuyển từ trung tâm Hà Nội</h2>
       <ul>
-        <li><strong>Xe bus số 47:</strong> Từ Long Biên, giá 7.000 VND, thời gian khoảng 40 phút.</li>
-        <li><strong>Grab/Taxi:</strong> Từ trung tâm Hà Nội khoảng 150.000 – 200.000 VND, 25-35 phút.</li>
-        <li><strong>Tour từ VietImmerse:</strong> Chúng tôi tổ chức các buổi dã ngoại văn hóa đến Bát Tràng, kết hợp học tiếng Việt thực tế với trải nghiệm văn hóa.</li>
+        <li><strong>Xe bus (Cách rẻ nhất):</strong> Bạn ra trạm trung chuyển Long Biên, bắt xe bus số <strong>47A</strong> hoặc <strong>47B</strong>. Giá vé chỉ khoảng 7.000 VNĐ. Xe sẽ đưa bạn đến tận cổng làng gốm sau khoảng 40-50 phút di chuyển. Đây cũng là một trải nghiệm "rất local".</li>
+        <li><strong>Taxi / Grab:</strong> Nếu đi nhóm hoặc gia đình, hãy gọi Grab/Taxi. Chi phí rơi vào khoảng 150.000 – 200.000 VNĐ, thời gian di chuyển chưa tới 30 phút.</li>
+        <li><strong>Xe máy:</strong> Nếu bạn thích tự do, hãy thuê xe máy, chạy men theo con đường đê sông Hồng mát rượi (qua cầu Chương Dương hoặc Vĩnh Tuy), bạn sẽ được ngắm nhìn khung cảnh làng quê thanh bình dọc hai bên đường.</li>
+      </ul>
+
+      <h2>7. Bỏ túi từ vựng và mẫu câu Tiếng Việt thực chiến</h2>
+      <p>Chợ gốm Bát Tràng là một "thao trường" tuyệt vời để bạn thực hành kỹ năng giao tiếp và <strong>mặc cả (bargaining)</strong> bằng tiếng Việt. Hãy nhớ rằng, việc mặc cả ở đây rất được hoan nghênh (có thể giảm 10-20% so với giá nói thách).</p>
+      <ul>
+        <li><strong>"Cô ơi, cái này bao nhiêu tiền ạ?"</strong> — Hỏi giá lịch sự.</li>
+        <li><strong>"Đắt quá! Bớt cho con/em một chút được không?"</strong> — Câu cửa miệng để bắt đầu mặc cả.</li>
+        <li><strong>"Lấy cho em/con 3 cái này, tính giá rẻ nhé!"</strong> — Mặc cả khi mua số lượng nhiều.</li>
+        <li><strong>"Gói cẩn thận giúp em/con với ạ, để mang lên máy bay."</strong> — Nhờ người bán bọc kỹ bằng giấy xốp chống vỡ.</li>
+        <li><em>Từ vựng cần biết:</em> Bàn xoay (potter's wheel), Đất sét (clay), Lò nung (kiln), Men gốm (glaze), Mặc cả (to bargain).</li>
       </ul>
 
       <blockquote>
-        <p>"Mỗi tác phẩm gốm đều kể một câu chuyện. Và khi bạn tự tay nặn, bạn đang viết câu chuyện của riêng mình tại Hà Nội." — Nghệ nhân làng Bát Tràng</p>
+        <p>"Đến Bát Tràng không chỉ là để mua một món đồ gốm. Đó là hành trình chạm tay vào đất, lắng nghe hơi thở của lửa và cảm nhận trọn vẹn bề dày văn hóa Việt Nam qua từng nhịp xoay của bàn gốm." — Đội ngũ VietImmerse</p>
       </blockquote>
     `,
+    bodyHtmlJa: `
+      <p>ハノイの中心部から南東へ約15km、紅河の穏やかな川岸に位置する<strong>バッチャン陶器村（Làng gốm Bát Tràng）</strong>（ザーラム県）は、ベトナムで最も古く、最も有名な伝統工芸村の一つです。<strong>700年以上</strong>の歴史を持つこの場所は、精巧な陶磁器の傑作を生み出す揺りかごであるだけでなく、昔のチャンアン（ハノイの旧称）の人々の手工芸文化や伝統的な食文化の美しさをそのまま保存している「生きた博物館」でもあります。都会の喧騒から離れ、実際の状況でベトナム語を練習できる日帰り旅行（デイ・トリップ）を探しているなら、バッチャンは最適な目的地です。</p>
+
+      <h2>1. バッチャンの700年の歴史の足跡</h2>
+      <p>バッチャン陶器村の歴史は、チャン（陳）朝の時代の14世紀に始まります。当時、ボバット地域（現在のニンビン省）の才能ある陶工たちが紅河を下り、この地に定住して事業を始めることを決意しました。理由は非常にシンプルでした。この場所には、高級陶磁器を作り出すための最高の原料である、非常に高品質な<strong>白粘土（カオリン）</strong>の鉱脈があったからです。</p>
+      <p>何世紀もの浮き沈みを経て、バッチャンの陶器はベトナムの王室や貴族に仕えただけでなく、商船に乗って日本、中国から、オランダ、ポルトガルなどのヨーロッパ諸国まで、世界中に輸出されました。特に17世紀には、バッチャンの陶器は商人によって長崎港に運ばれ、日本の貴族や茶人たちに芸術的な宝物として非常に珍重されました。</p>
+
+      <h2>2. バッチャン陶器博物館（ベトナム工芸村エッセンスセンター）の探索</h2>
+      <p>2021年以来、バッチャンには毎週何千人もの観光客を惹きつける新しいシンボル、<strong>バッチャン陶器博物館</strong>が誕生しました。これは、伝統的なろくろの曲線からインスピレーションを得た壮大な建築物で、遠くから見ると巨大な粘土の塊が練られているように見えます。</p>
+      <ul>
+        <li><strong>ユニークな6階建ての空間：</strong> 博物館はいくつかの専門エリアに分かれています。1階は最高級の製品を展示・販売するスペースです。2階は工芸村の発展の全過程を再現しています。3階と4階は現代アートスペースとダイニングエリアです。</li>
+        <li><strong>ルーフトップ（Hương Sa Art House）：</strong> ここはお茶を楽しみ、穏やかなバックフンハイ川の全景を眺め、涼しい風を感じることができる美しいオープンスペースです。</li>
+        <li><strong>最高の写真撮影スポット：</strong> 赤茶色のレンガ色と巨大な波状の曲線を持つこの博物館では、どの角度からでも美しいチェックイン写真を撮ることができます。</li>
+      </ul>
+
+      <h2>3. 職人のような手びねり体験</h2>
+      <p>泥まみれになって自分で陶器を作らずして、バッチャンに来たとは言えません！村の路地沿いや陶器市場のすぐそばには、観光客に体験を開放している小さな工房が何十軒もあります。</p>
+      <ol>
+        <li><strong>ろくろに座る：</strong> 湿った粘土の塊を渡され、伝統的なろくろの前に座ります。職人たちが手取り足取り、指の力を使ってカップやボウル、花瓶の形を作る方法を丁寧に指導してくれます。</li>
+        <li><strong>装飾と模様の描画：</strong> 製品を軽く乾燥させた後、専用の筆と水彩絵の具を使って創造力を存分に発揮し、自分の作品に個人的なタッチの模様を描くことができます。</li>
+        <li><strong>釉薬がけと焼成：</strong> 作品は陶工によって保護釉薬でコーティングされ、最大1200℃の窯に入れられます。完成までに数日かかることが多いですが、工房に頼んで郵便でホテルまで直接送ってもらうこともできます。</li>
+      </ol>
+      <p><em>体験費用：</em> わずか20,000〜60,000 VND（約150〜400円）で、自分自身で作った唯一無二のお土産としては破格の値段です。</p>
+
+      <h2>4. 陶器市場と古代の村で迷子になる</h2>
+      <p>陶器を作った後は、広大な<strong>バッチャン陶器市場</strong>を散策する時間を取ってください。ここには、伝統的な青磁のティーセット、精巧な手描きのボウルや皿から、風水像（仏像、鯉、龍）、そして小さくて可愛いモダンな陶器のジュエリーまで、何でも揃っています。</p>
+      <p>静寂を好むなら、<strong>バッチャンの古代の村</strong>の曲がりくねった小さな路地に入ってみてください。陶器窯の石炭殻（スラグ）で建てられた苔むした塀、厳かなバッチャン村の集会所（ Đình làng Bát Tràng）、そして伝統的な木造建築のヴァンヴァン（Vạn Vân）の古い家は、あなたを数百年前の北部ベトナムの田舎へとタイムスリップさせてくれます。</p>
+
+      <h2>5. バッチャンの食の精髄を味わう</h2>
+      <p>陶器だけでなく、バッチャンには他の場所ではめったに見られない、キンキ（昔のハノイ）の人々の精髄が深く刻まれた伝統的な宴席（mâm cỗ）が保存されています。</p>
+      <ul>
+        <li><strong>イカと筍のスープ（Canh măng mực）：</strong> これはバッチャンの宴席の「魂」とも言える料理です。干しイカを極細に裂き、細切りにした干し筍と一緒に炒め、鶏骨と干しエビから取った非常に上品で甘いスープで煮込みます。この料理の準備過程は非常に複雑で緻密です。</li>
+        <li><strong>コールラビとイカの炒め物＆鳩の春巻き（Su hào xào mực & Nem chim bồ câu）：</strong> バッチャンの女性たちの超薄切りのスキルと繊細な味付けが要求される料理です。</li>
+        <li><strong>ストリートスナック：</strong> 軽食が食べたい場合は、村の通り沿いで非常に魅力的なバンテー（bánh tẻ - 葉で包んだ米粉のケーキ）、蓮の実のチェー（chè hạt súng）、おこわ（xôi vò）が売られています。</li>
+      </ul>
+
+      <h2>6. ハノイ中心部からのアクセスガイド</h2>
+      <ul>
+        <li><strong>バス（最も安い方法）：</strong> ロンビエン・バスターミナルへ行き、<strong>47A</strong> または <strong>47B</strong> のバスに乗ります。チケット料金はわずか7,000 VNDです。バスは約40〜50分で陶器村のゲートまで直接連れて行ってくれます。これもまた「非常にローカルな」体験です。</li>
+        <li><strong>タクシー / Grab：</strong> グループや家族で行く場合は、Grabやタクシーを呼びましょう。費用は約150,000〜200,000 VNDで、移動時間は30分未満です。</li>
+        <li><strong>バイク：</strong> 自由を好むなら、バイクをレンタルして、紅河の涼しい堤防道路（チュオンズオン橋またはヴィントゥイ橋経由）に沿って走ってください。両側に広がる平和な田舎の風景を楽しむことができます。</li>
+      </ul>
+
+      <h2>7. 実用的なベトナム語の語彙とフレーズをポケットに</h2>
+      <p>バッチャン陶器市場は、ベトナム語でのコミュニケーションと<strong>値切り交渉（bargaining）</strong>のスキルを練習するための素晴らしい「訓練場」です。ここでは値切り交渉が非常に歓迎されていることを覚えておいてください（言い値から10〜20%安くなることがあります）。</p>
+      <ul>
+        <li><strong>"Cô ơi, cái này bao nhiêu tiền ạ?"</strong> — 丁寧な値段の聞き方。（おばさん、これいくらですか？）</li>
+        <li><strong>"Đắt quá! Bớt cho con/em một chút được không?"</strong> — 値切りを始めるための決まり文句。（高すぎます！少し安くしてもらえませんか？）</li>
+        <li><strong>"Lấy cho em/con 3 cái này, tính giá rẻ nhé!"</strong> — 複数買う時の値切り交渉。（これを3つ買うので、安くしてくださいね！）</li>
+        <li><strong>"Gói cẩn thận giúp em/con với ạ, để mang lên máy bay."</strong> — 割れ防止のためにスポンジ紙で丁寧に包むよう頼む。（飛行機に乗せるので、丁寧に包んでください。）</li>
+        <li><em>知っておくべき語彙：</em> Bàn xoay（ろくろ）、Đất sét（粘土）、Lò nung（窯）、Men gốm（釉薬）、Mặc cả（値切り交渉する）。</li>
+      </ul>
+
+      <blockquote>
+        <p>「バッチャンに来ることは、単に陶器を買うことではありません。それは土に触れ、火の息吹を聞き、ろくろの回転のたびにベトナムの文化の厚みを完全に感じる旅なのです。」 — VietImmerseチーム</p>
+      </blockquote>
+    `
   },
 ];
 

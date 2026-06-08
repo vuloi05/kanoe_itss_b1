@@ -30,7 +30,7 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = request.Email.Trim().ToLowerInvariant(),
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, 10),
             DisplayName = request.DisplayName.Trim(),
             Role = "learner",
             AccountStatus = "active",
@@ -99,7 +99,7 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = request.Email.Trim().ToLowerInvariant(),
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, 10),
             DisplayName = request.DisplayName.Trim(),
             Phone = request.Phone?.Trim(),
             Role = "partner",
@@ -141,28 +141,73 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await _db.Users
-            .Include(u => u.LearnerProfile)
-            .FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
+            .AsNoTracking()
+            .Where(u => u.Email == email && u.DeletedAt == null)
+            .Select(u => new
+            {
+                u.UserId,
+                u.Email,
+                u.PasswordHash,
+                u.DisplayName,
+                u.Role,
+                u.AvatarUrl,
+                u.AccountStatus,
+                Level = u.LearnerProfile != null ? u.LearnerProfile.Goals : null
+            })
+            .FirstOrDefaultAsync();
+
+        sw.Stop();
+        _logger.LogInformation("Login Step 1 (Query DB): {ElapsedMilliseconds} ms", sw.ElapsedMilliseconds);
+        sw.Restart();
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Email hoặc mật khẩu không chính xác.");
 
+        sw.Stop();
+        _logger.LogInformation("Login Step 2 (Verify Password): {ElapsedMilliseconds} ms", sw.ElapsedMilliseconds);
+        sw.Restart();
+
         if (user.AccountStatus == "suspended")
             throw new UnauthorizedAccessException("Tài khoản đã bị tạm khóa.");
 
-        user.LastLoginAt = DateTime.UtcNow;
-        user.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _db.Users
+            .Where(u => u.UserId == user.UserId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.LastLoginAt, DateTime.UtcNow)
+                .SetProperty(u => u.UpdatedAt, DateTime.UtcNow));
 
-        return BuildAuthResponse(user);
+        var tokenUser = new User
+        {
+            UserId = user.UserId,
+            Email = user.Email,
+            Role = user.Role,
+            DisplayName = user.DisplayName
+        };
+
+        var response = new AuthResponse(
+            Token: _jwt.GenerateToken(tokenUser),
+            UserId: user.UserId.ToString(),
+            Email: user.Email,
+            DisplayName: user.DisplayName,
+            Role: user.Role,
+            AvatarUrl: user.AvatarUrl,
+            Level: user.Level
+        );
+
+        sw.Stop();
+        _logger.LogInformation("Login Step 3 (Generate JWT): {ElapsedMilliseconds} ms", sw.ElapsedMilliseconds);
+
+        return response;
     }
 
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
+        var user = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email && u.DeletedAt == null);
 
         if (user is null)
             throw new KeyNotFoundException("Email không tồn tại trên hệ thống.");
@@ -259,7 +304,7 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Mật khẩu mới không được trùng với mật khẩu hiện tại của tài khoản.");
 
         // Hash and update password
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, 10);
         user.PasswordChangedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
 
@@ -299,7 +344,7 @@ public class AuthService : IAuthService
         if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
             throw new InvalidOperationException("Mật khẩu mới không được trùng với mật khẩu hiện tại.");
 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, 10);
         user.PasswordChangedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -329,42 +374,37 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(u => u.UserId == userId && u.DeletedAt == null)
             ?? throw new KeyNotFoundException("Không tìm thấy tài khoản.");
 
-        // Count unique vocabulary words only for learner accounts
-        var vocabCount = user.LearnerProfile != null
-            ? await _db.LearnerVocabularies
-                .CountAsync(v => v.LearnerProfileId == user.LearnerProfile.ProfileId)
-            : 0;
-
-        // Safely compute average tone accuracy from Voice Lab records.
-        // Cast to (double?) so SQL returns NULL for empty set instead of throwing.
+        // ── Optimize: Group multiple aggregates into a single DB query ──
+        var vocabCount = 0;
         var avgToneAccuracy = 0;
-        if (user.Role == "learner")
-        {
-            double? avgResult = await _db.VoiceLabRecords
-                .Where(v => v.UserId == user.UserId && v.AccuracyScore != null)
-                .AverageAsync(v => (double?)v.AccuracyScore);
-
-            avgToneAccuracy = (int)Math.Round(avgResult ?? 0);
-        }
-
-        // ── Weighted Mastery Calculation (40-40-20) ──────────────────────
+        var totalLessons = 0;
+        var completedLessons = 0;
         var currentLevel = user.LearnerProfile?.CurrentLevel ?? "V1";
         var masteryPercentage = 0;
 
-        if (user.Role == "learner")
+        if (user.Role == "learner" && user.LearnerProfile != null)
         {
             var levelId = LevelIdMap.TryGetValue(currentLevel, out var lid) ? lid : 1;
 
-            // Var 1 — LessonProgress (40%): completed / total lessons in current level
-            var totalLessons = await _db.Lessons
-                .CountAsync(l => l.Chapter.LevelId == levelId);
+            var stats = await _db.Users
+                .AsNoTracking()
+                .Where(u => u.UserId == userId)
+                .Select(u => new
+                {
+                    VocabCount = _db.LearnerVocabularies.Count(v => v.LearnerProfileId == user.LearnerProfile.ProfileId),
+                    AvgToneAccuracy = _db.VoiceLabRecords.Where(v => v.UserId == userId && v.AccuracyScore != null).Average(v => (double?)v.AccuracyScore),
+                    TotalLessons = _db.Lessons.Count(l => l.Chapter.LevelId == levelId),
+                    CompletedLessons = _db.LessonProgresses.Count(p => p.UserId == userId && p.IsCompleted && p.Lesson.Chapter.LevelId == levelId)
+                })
+                .FirstOrDefaultAsync();
 
-            var completedLessons = totalLessons > 0
-                ? await _db.LessonProgresses
-                    .CountAsync(p => p.UserId == userId
-                                  && p.IsCompleted
-                                  && p.Lesson.Chapter.LevelId == levelId)
-                : 0;
+            if (stats != null)
+            {
+                vocabCount = stats.VocabCount;
+                avgToneAccuracy = (int)Math.Round(stats.AvgToneAccuracy ?? 0);
+                totalLessons = stats.TotalLessons;
+                completedLessons = stats.CompletedLessons;
+            }
 
             double lessonProgress = totalLessons > 0
                 ? completedLessons * 100.0 / totalLessons

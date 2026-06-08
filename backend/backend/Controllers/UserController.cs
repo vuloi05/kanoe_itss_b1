@@ -192,6 +192,7 @@ public class UserController : ControllerBase
     {
         // Get only the user IDs to minimize payload
         var onlineUserIds = await _db.Users
+            .AsNoTracking()
             .Where(u => u.IsOnline == true)
             .Select(u => u.UserId)
             .ToListAsync();

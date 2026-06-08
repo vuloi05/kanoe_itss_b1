@@ -118,16 +118,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: true,
     });
 
-    // Immediately hydrate full profile so fields like currentLevel are accurate
-    try {
-      const profile = await authApi.getProfile();
-      setState((prev) => ({
-        ...prev,
-        user: profile,
-      }));
-    } catch {
-      // Non-critical: temporary state from AuthResponse is still usable
-    }
+    // Defer hydrating full profile to not block initial page navigation network resources
+    setTimeout(async () => {
+      try {
+        const profile = await authApi.getProfile();
+        setState((prev) => ({
+          ...prev,
+          user: profile,
+        }));
+      } catch {
+        // Non-critical: temporary state from AuthResponse is still usable
+      }
+    }, 500);
   };
 
   const loginAction = async (email: string, password: string) => {
