@@ -19,12 +19,12 @@ public class FallbackAsrService : IAsrService
         _logger = logger;
     }
 
-    public async Task<string?> RecognizeAsync(byte[] audioData, string? prompt = null)
+    public async Task<string?> RecognizeAsync(Stream audioStream, string? prompt = null)
     {
         // Primary: OpenAI Whisper
         try
         {
-            var result = await _whisper.RecognizeAsync(audioData, prompt);
+            var result = await _whisper.RecognizeAsync(audioStream, prompt);
             if (!string.IsNullOrWhiteSpace(result))
                 return result;
 
@@ -38,7 +38,11 @@ public class FallbackAsrService : IAsrService
         // Fallback: FPT.AI ASR
         try
         {
-            var result = await _fpt.RecognizeAsync(audioData, prompt);
+            if (audioStream.CanSeek)
+            {
+                audioStream.Position = 0;
+            }
+            var result = await _fpt.RecognizeAsync(audioStream, prompt);
             if (!string.IsNullOrWhiteSpace(result))
             {
                 _logger.LogInformation("FPT ASR fallback succeeded");

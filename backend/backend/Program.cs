@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using PayOS;
 
 // Load .env from project root (shared config for all services)
@@ -21,9 +23,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<VietImmerseDbContext>(options =>
+builder.Services.AddDbContextPool<VietImmerseDbContext>(options =>
     options.UseNpgsql(connectionString)
-           .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
+           .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)), poolSize: 128);
 
 // JWT Authentication
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
@@ -75,10 +77,11 @@ builder.Services.AddSingleton<ITranslationService, TranslationService>();
 builder.Services.AddScoped<ITtsService, FptTtsService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
-builder.Services.AddScoped<OpenAiWhisperService>();
-builder.Services.AddScoped<FptAsrService>();
+builder.Services.AddSingleton<OpenAiWhisperService>();
+builder.Services.AddSingleton<FptAsrService>();
 builder.Services.AddScoped<IAsrService, FallbackAsrService>();
-builder.Services.AddSingleton<IVoiceScoringService, VoiceScoringService>();
+builder.Services.AddScoped<AzurePronunciationService>();
+builder.Services.AddScoped<IVoiceScoringService, VoiceScoringService>();
 builder.Services.AddHostedService<OtpCleanupBackgroundService>();
 
 // SignalR (Realtime Messaging — replaces Supabase Realtime)
@@ -117,6 +120,40 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsJsonAsync(new { error = "Bạn thao tác quá nhanh, vui lòng thử lại sau vài giây." }, cancellationToken: token);
+    };
+
+    options.AddPolicy("GlobalPolicy", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1)
+            });
+    });
+
+    options.AddPolicy("VoiceLabPolicy", httpContext =>
+    {
+        var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var partitionKey = !string.IsNullOrEmpty(userId) ? userId : (httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+        
+        return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ =>
+            new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1)
+            });
+    });
+});
 
 var app = builder.Build();
 
@@ -157,6 +194,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 // ---- DATABASE HEALTH CHECK & SEED ----
 // Schema is managed by schema.sql (applied by Supabase/Docker), NOT by EF Core Migrations.
@@ -204,7 +242,7 @@ using (var scope = app.Services.CreateScope())
 }
 // ---------------------------------------------
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("GlobalPolicy");
 app.MapHub<ChatHub>("/chathub");
 
 app.Run();

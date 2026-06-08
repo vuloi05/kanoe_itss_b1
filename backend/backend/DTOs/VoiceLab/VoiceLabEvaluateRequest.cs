@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace backend.DTOs.VoiceLab;
 
 public class VoiceLabEvaluateRequest
 {
+    [FromForm(Name = "SentenceId")]
+    public Guid? SentenceId { get; set; }
+
     [Required]
     public IFormFile AudioFile { get; set; } = null!;
 

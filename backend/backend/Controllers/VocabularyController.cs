@@ -38,6 +38,7 @@ public class VocabularyController : ControllerBase
         var userId = GetCurrentUserId();
 
         var profile = await _db.LearnerProfiles
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId);
 
         if (profile == null)
@@ -55,6 +56,7 @@ public class VocabularyController : ControllerBase
 
         // Query existing words to avoid UNIQUE constraint violations
         var existingWords = await _db.LearnerVocabularies
+            .AsNoTracking()
             .Where(v => v.LearnerProfileId == profile.ProfileId && normalizedWords.Contains(v.Word))
             .Select(v => v.Word)
             .ToListAsync();

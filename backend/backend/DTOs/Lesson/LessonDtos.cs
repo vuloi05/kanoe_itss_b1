@@ -47,6 +47,7 @@ public record LessonDetailDto(
 );
 
 public record DialogueDto(
+    Guid DialogueId,
     string Speaker,
     string SpeakerJp,
     string LineVi,
@@ -73,4 +74,8 @@ public record ContinueLessonDto(
     string TitleJp,
     string ChapterTitleVi,
     string ChapterTitleJp
+);
+
+public record UpdateLessonProgressDto(
+    int Progress
 );

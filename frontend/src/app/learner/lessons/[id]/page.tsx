@@ -18,6 +18,65 @@ import { useAuth } from "@/lib/auth";
 import { exportToWav } from "@/lib/audio-utils";
 import { useStudyTimeTracker } from "@/hooks/useStudyTimeTracker";
 
+type WordMark = "none" | "omission" | "mispronunciation";
+type EvaluatedWord = {
+  word: string;
+  mark: WordMark;
+};
+type AssessmentView = {
+  words: EvaluatedWord[];
+  insertionsBeforeWord: number[];
+};
+
+function mapAssessmentFromBackend(
+  assessmentWords: { word: string; errorType: string }[],
+  referenceWords: string[]
+): AssessmentView {
+  const words: EvaluatedWord[] = referenceWords.map((word) => ({ word, mark: "none" }));
+  const insertionsBeforeWord = new Array(referenceWords.length + 1).fill(0);
+
+  let referenceIndex = 0;
+
+  for (const aw of assessmentWords) {
+    const errorType = aw.errorType.toLowerCase();
+
+    if (errorType === "insertion") {
+      insertionsBeforeWord[Math.min(referenceIndex, referenceWords.length)] += 1;
+      continue;
+    }
+
+    if (referenceIndex >= referenceWords.length) continue;
+
+    const spokenWord = aw.word.toLowerCase().replace(/[.,!?;:"'“”‘’]/g, "");
+    let matchedIndex = -1;
+
+    for (let index = referenceIndex; index < referenceWords.length; index += 1) {
+      if (referenceWords[index].toLowerCase().replace(/[.,!?;:"'“”‘’]/g, "") === spokenWord) {
+        matchedIndex = index;
+        break;
+      }
+    }
+
+    if (matchedIndex === -1) {
+      if (errorType === "omission") words[referenceIndex].mark = "omission";
+      else if (errorType === "mispronunciation") words[referenceIndex].mark = "mispronunciation";
+      referenceIndex += 1;
+      continue;
+    }
+
+    for (let index = referenceIndex; index < matchedIndex; index += 1) {
+      words[index].mark = "omission";
+    }
+
+    if (errorType === "omission") words[matchedIndex].mark = "omission";
+    else if (errorType === "mispronunciation") words[matchedIndex].mark = "mispronunciation";
+
+    referenceIndex = matchedIndex + 1;
+  }
+
+  return { words, insertionsBeforeWord };
+}
+
 // Encouraging pass thresholds for Japanese learners studying Vietnamese pronunciation.
 // Completeness is strict (must read all words), but accuracy is lenient to avoid discouragement.
 const PASS_COMPLETENESS = 80;
@@ -291,7 +350,7 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
       setIsLoading(false);
       setIsPlaying(false);
     }
-  }, [text, isLoading, cancelRaf, stopSource, startTrackingLoop]);
+  }, [text, words, isLoading, cancelRaf, stopSource, startTrackingLoop]);
 
   const stop = useCallback(() => {
     cancelRaf();
@@ -347,12 +406,12 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
       <div
         data-dialogue-index={index}
         className={`bg-surface-container-lowest rounded-xl p-6 transition-all ${ringClass} ${isLocked ? "opacity-40 grayscale pointer-events-none" : "cursor-pointer"}`}
-        onClick={isLocked ? undefined : () => { onSelect(); if (isPlaying) { stop(); } else { play(); } }}
+        onClick={isLocked ? undefined : () => { if (!isSelected) { onSelect(); } else { if (isPlaying) { stop(); } else { play(); } } }}
       >
         <div className="flex justify-between items-start mb-2">
           <span className="font-bold text-primary text-xs tracking-tighter flex items-center gap-1.5">
             {isPassed && <span className="material-symbols-outlined text-emerald-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
-            {dlg.speaker} / {dlg.speakerJp} {lang === "ja" ? "（あなた）" : "(Active)"}
+            {lang === "ja" ? dlg.speakerJp : dlg.speaker} {lang === "ja" ? "（あなた）" : "(Active)"}
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
@@ -418,12 +477,12 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
       className={`bg-surface-container-low rounded-xl p-6 transition-all ${ringClass} ${
         isLocked ? "opacity-40 grayscale pointer-events-none" : isLast && !isSelected ? "opacity-60 cursor-pointer" : "cursor-pointer hover:bg-surface-container"
       }`}
-      onClick={isLocked ? undefined : () => { onSelect(); if (isPlaying) { stop(); } else { play(); } }}
+      onClick={isLocked ? undefined : () => { if (!isSelected) { onSelect(); } else { if (isPlaying) { stop(); } else { play(); } } }}
     >
       <div className="flex justify-between items-start mb-2">
         <span className="font-bold text-primary text-xs tracking-tighter flex items-center gap-1.5">
           {isPassed && <span className="material-symbols-outlined text-emerald-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
-          {dlg.speaker} / {dlg.speakerJp}
+          {lang === "ja" ? dlg.speakerJp : dlg.speaker}
         </span>
         <button
           onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
@@ -491,7 +550,7 @@ const STATUS_LABELS: Record<StatusKey, Record<string, string>> = {
   processingFile: { vi: "Đang xử lý file...",      ja: "ファイル処理中..." },
 };
 
-function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { titleJp: string; subtitleJp: string; lang: string; expectedText: string; onPassed?: () => void }) {
+function VoiceLab({ titleJp, subtitleJp, lang, expectedText, sentenceId, isPassed, onPassed, disabled }: { titleJp: string; subtitleJp: string; lang: string; expectedText: string; sentenceId?: string; isPassed?: boolean; onPassed?: () => void; disabled?: boolean }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
   const [statusKey, setStatusKey] = useState<StatusKey>("ready");
@@ -500,7 +559,10 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { title
   const [duration, setDuration] = useState(0);
   const [curTime, setCurTime] = useState(0);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [isLoadingScore, setIsLoadingScore] = useState(false);
   const [scores, setScores] = useState<{ actualText: string | null; completeness: number; accuracy: number; fluency: number; prosody: number } | null>(null);
+  const referenceWords = expectedText.split(/\s+/);
+  const [assessmentView, setAssessmentView] = useState<AssessmentView | null>(null);
   const [evalError, setEvalError] = useState<string | null>(null);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -519,6 +581,27 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { title
     if (timerRef.current) clearInterval(timerRef.current);
     if (recordedAudioUrlRef.current) URL.revokeObjectURL(recordedAudioUrlRef.current);
   }, []);
+
+  useEffect(() => {
+    if (isPassed && sentenceId) {
+      const fetchScore = async () => {
+        setIsLoadingScore(true);
+        try {
+          const res = await voiceLabApi.getRecord(sentenceId);
+          setScores(res);
+          setStatusKey("scored");
+          setAssessmentView(null);
+        } catch {
+          // Do nothing if not found
+          setScores(null);
+          setStatusKey("ready");
+        } finally {
+          setIsLoadingScore(false);
+        }
+      };
+      fetchScore();
+    }
+  }, [isPassed, sentenceId]);
 
   useEffect(() => {
     const a = audioRef.current;
@@ -555,10 +638,19 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { title
       formData.append("AudioFile", blob, "recording.wav");
       formData.append("ExpectedText", expectedText);
       formData.append("DurationSeconds", durationSec.toFixed(3));
+      if (sentenceId) {
+        formData.append("SentenceId", sentenceId);
+      }
 
       const result = await voiceLabApi.evaluate(formData);
       setScores(result);
       setStatusKey("scored");
+      
+      if (result.assessmentWords && result.assessmentWords.length > 0) {
+        setAssessmentView(mapAssessmentFromBackend(result.assessmentWords, referenceWords));
+      } else {
+        setAssessmentView(null);
+      }
 
       // Check pass condition and notify parent
       if (
@@ -649,7 +741,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { title
     if (isPlayingRec) audioRef.current?.pause();
     if (recordedAudioUrl) { URL.revokeObjectURL(recordedAudioUrl); setRecordedAudioUrl(null); }
     setElapsed(0); setIsPlayingRec(false); setDuration(0); setCurTime(0);
-    setScores(null); setEvalError(null);
+    setScores(null); setEvalError(null); setAssessmentView(null);
     audioBlobRef.current = null;
     setStatusKey("ready");
   };
@@ -754,8 +846,27 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { title
             <p className="mt-6 text-center text-sm text-on-primary-container/90 animate-pulse">{L.analyzing}</p>
           ) : scores?.actualText ? (
             <div className="mt-6 text-center">
-              <p className="text-[10px] uppercase tracking-widest text-on-primary-container/60 mb-1">{L.recognized}</p>
-              <p className="text-sm text-on-primary-container/90 font-medium italic">&ldquo;{scores.actualText}&rdquo;</p>
+              <p className="text-[10px] uppercase tracking-widest text-on-primary-container/60 mb-2">{L.recognized}</p>
+              {assessmentView ? (
+                <div className="flex flex-wrap justify-center gap-x-1.5 gap-y-1 px-4">
+                  {assessmentView.words.map(({ word, mark }, index) => (
+                    <span
+                      key={`${word}-${index}`}
+                      className={`text-sm font-medium transition-all ${
+                        mark === "omission"
+                          ? "line-through text-on-primary-container/40"
+                          : mark === "mispronunciation"
+                            ? "text-error border-b-2 border-error border-dotted"
+                            : "text-emerald-400"
+                      }`}
+                    >
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-on-primary-container/90 font-medium italic">&ldquo;{scores.actualText}&rdquo;</p>
+              )}
             </div>
           ) : (
             <p className="mt-6 text-center text-sm text-on-primary-container/90">{L.analyzing}</p>
@@ -764,29 +875,29 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { title
         </div>
         <div className="relative z-10 flex flex-col items-center gap-4 mt-4">
           <div className="flex items-center justify-center gap-6">
-            <button onClick={reset} disabled={(!recordedAudioUrl && !isRecording) || isEvaluating}
+            <button onClick={reset} disabled={(!recordedAudioUrl && !isRecording) || isEvaluating || disabled}
               className="w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Reset">
               <span className="material-symbols-outlined text-on-primary-container">replay</span>
             </button>
-            <button onClick={isRecording ? stopRec : startRec} disabled={isEvaluating}
-              className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${isRecording ? "bg-error text-on-error" : isEvaluating ? "bg-surface-container text-on-surface-variant cursor-wait" : "bg-secondary text-on-secondary hover:scale-105"}`}
+            <button onClick={isRecording ? stopRec : startRec} disabled={isEvaluating || disabled}
+              className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${isRecording ? "bg-error text-on-error" : isEvaluating || disabled ? "bg-surface-container text-on-surface-variant cursor-not-allowed opacity-50" : "bg-secondary text-on-secondary hover:scale-105"}`}
               aria-label={isRecording ? "Stop" : "Record"}>
               <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
                 {isEvaluating ? "hourglass_empty" : isRecording ? "stop" : "mic"}
               </span>
             </button>
-            <button onClick={togglePlay} disabled={!recordedAudioUrl || isEvaluating}
+            <button onClick={togglePlay} disabled={!recordedAudioUrl || isEvaluating || disabled}
               className="w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Play">
               <span className="material-symbols-outlined text-on-primary-container">
                 {isPlayingRec ? "pause" : "play_arrow"}
               </span>
             </button>
-            <label className={`w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors cursor-pointer ${isEvaluating ? "opacity-40 cursor-not-allowed" : ""}`}
+            <label className={`w-12 h-12 rounded-full border border-on-primary-container/30 flex items-center justify-center hover:bg-on-primary-container/10 transition-colors cursor-pointer ${isEvaluating || disabled ? "opacity-40 cursor-not-allowed" : ""}`}
               title="Upload file to test">
               <span className="material-symbols-outlined text-on-primary-container">upload_file</span>
-              <input type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" disabled={isEvaluating} />
+              <input type="file" accept="audio/*" onChange={handleFileUpload} className="hidden" disabled={isEvaluating || disabled} />
             </label>
           </div>
           <div className="flex flex-col items-center gap-2">
@@ -814,8 +925,12 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, onPassed }: { title
 
       <div className="grid grid-cols-2 gap-4">
         {scoreData.map((s) => (
-          <div key={s.label} className={`bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm transition-all duration-300 ${scores ? "ring-2 ring-primary/20" : ""}`}>
-            <span className={`block text-2xl font-headline font-extrabold ${scores ? "text-primary" : "text-on-surface-variant/40"}`}>{s.val}</span>
+          <div key={s.label} className={`bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm transition-all duration-300 ${scores ? "ring-2 ring-primary/20" : ""} ${isLoadingScore ? "opacity-60 animate-pulse" : ""}`}>
+            {isLoadingScore ? (
+              <div className="h-8 w-16 bg-surface-container mx-auto rounded mb-1" />
+            ) : (
+              <span className={`block text-2xl font-headline font-extrabold ${scores ? "text-primary" : "text-on-surface-variant/40"}`}>{s.val}</span>
+            )}
             <span className="block text-[10px] font-bold text-primary uppercase tracking-wider">{s.jp}</span>
           </div>
         ))}
@@ -862,6 +977,20 @@ export default function LessonDetailPage() {
   // Tracks whether user has started the lesson (any interaction = autoplay is safe)
   const hasUserInteractedRef = useRef(false);
 
+  useEffect(() => {
+    const handleInteract = () => {
+      hasUserInteractedRef.current = true;
+      window.removeEventListener("click", handleInteract);
+      window.removeEventListener("touchstart", handleInteract);
+    };
+    window.addEventListener("click", handleInteract);
+    window.addEventListener("touchstart", handleInteract);
+    return () => {
+      window.removeEventListener("click", handleInteract);
+      window.removeEventListener("touchstart", handleInteract);
+    };
+  }, []);
+
   // ── Lesson Complete celebration state ──────────────────────────────────────
   const [isLessonCompleted, setIsLessonCompleted] = useState(false);
   // Window dimensions for confetti canvas to fill the entire viewport
@@ -883,6 +1012,23 @@ export default function LessonDetailPage() {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
   }, []);
+
+  const previousPassedCountRef = useRef(passedCount);
+
+  // Sync partial progress to backend
+  useEffect(() => {
+    if (
+      passedCount > previousPassedCountRef.current &&
+      totalLearnerLines > 0 &&
+      passedCount < totalLearnerLines &&
+      isAuthenticated &&
+      !lesson?.isCompleted
+    ) {
+      previousPassedCountRef.current = passedCount;
+      const newProgress = Math.round((passedCount / totalLearnerLines) * 100);
+      lessonApi.updateLessonProgress(lessonId, newProgress).catch(console.error);
+    }
+  }, [passedCount, totalLearnerLines, isAuthenticated, lessonId, lesson?.isCompleted]);
 
   // Auto-complete lesson when all learner lines are passed → trigger celebration
   useEffect(() => {
@@ -941,10 +1087,11 @@ export default function LessonDetailPage() {
             .slice(0, passedCount);
 
           setPassedDialogues(new Set(passedIndices));
-          // Set furthestIndex to last passed dialogue
+          // Set furthestIndex and activeDialogueIndex to the next dialogue
           if (passedIndices.length > 0) {
-            setFurthestIndex(passedIndices[passedIndices.length - 1]);
-            setActiveDialogueIndex(passedIndices[passedIndices.length - 1] + 1);
+            const nextIdx = Math.min(passedIndices[passedIndices.length - 1] + 1, data.dialogues.length - 1);
+            setFurthestIndex(nextIdx);
+            setActiveDialogueIndex(nextIdx);
           }
         }
       })
@@ -1268,6 +1415,9 @@ export default function LessonDetailPage() {
                   subtitleJp={`${activeDlg.speaker}: ${activeDlg.lineVi}`}
                   lang={lang}
                   expectedText={activeDlg.lineVi}
+                  sentenceId={activeDlg.dialogueId}
+                  isPassed={passedDialogues.has(activeDialogueIndex)}
+                  disabled={!activeDlg.isActive}
                   onPassed={() => {
                     // Mark user has interacted for autoplay policy compliance
                     hasUserInteractedRef.current = true;

@@ -87,4 +87,19 @@ public class LessonController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Update partial progress of a lesson for the authenticated user.
+    /// </summary>
+    [Authorize]
+    [HttpPost("{id:guid}/progress")]
+    public async Task<IActionResult> UpdateProgress(Guid id, [FromBody] UpdateLessonProgressDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "Invalid token." });
+
+        await _lessonService.UpdateProgressAsync(userId, id, request.Progress);
+        return Ok(new { message = "Lesson progress updated." });
+    }
 }

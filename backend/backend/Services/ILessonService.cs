@@ -10,4 +10,5 @@ public interface ILessonService
     Task<string?> CompleteLessonAsync(Guid userId, Guid lessonId);
     Task InitProgressForLevelAsync(Guid userId, string level);
     Task<ContinueLessonDto?> GetContinueLessonAsync(Guid userId);
+    Task UpdateProgressAsync(Guid userId, Guid lessonId, int progress);
 }

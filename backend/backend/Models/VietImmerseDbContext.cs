@@ -358,6 +358,7 @@ public partial class VietImmerseDbContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("users_pkey");
+            entity.HasIndex(e => e.Email).HasDatabaseName("idx_users_email");
 
             entity.Property(e => e.UserId).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.CountryCode).HasDefaultValueSql("'JP'::character varying");
@@ -404,6 +405,7 @@ public partial class VietImmerseDbContext : DbContext
         modelBuilder.Entity<VoiceLabRecord>(entity =>
         {
             entity.HasKey(e => e.RecordId).HasName("voice_lab_records_pkey");
+            entity.HasIndex(e => e.UserId).HasDatabaseName("idx_voice_lab_records_user_id");
 
             entity.Property(e => e.RecordId).HasDefaultValueSql("gen_random_uuid()");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");

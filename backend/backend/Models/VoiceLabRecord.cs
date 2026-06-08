@@ -15,6 +15,9 @@ public partial class VoiceLabRecord
     [Column("user_id")]
     public Guid? UserId { get; set; }
 
+    [Column("sentence_id")]
+    public Guid? SentenceId { get; set; }
+
     [Column("expected_text")]
     public string ExpectedText { get; set; } = null!;
 

@@ -2,21 +2,19 @@
 
 ## Northern Vietnamese Learning Platform for Japanese Speakers
 
-> VietImmerseで北部ベトナム語をマスターしましょう。ハノイの街角で、もっと自由に。
+*VietImmerseで北部ベトナム語をマスターしましょう。ハノイの街角で、もっと自由に。*
+
+A full-stack web application connecting Japanese learners in Hanoi with native Vietnamese conversation partners, featuring structured curriculum, real-time messaging, voice pronunciation lab, and intelligent partner matching.
 
 ---
 
-*A full-stack web application connecting Japanese learners in Hanoi with native Vietnamese conversation partners, featuring structured curriculum, real-time messaging, voice pronunciation lab, and intelligent partner matching.*
+### 💻 Tech Stack
 
----
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white) ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
-**Frontend** : Next.js 16 -- React 19 -- TypeScript -- Tailwind CSS v4
+![.NET Core](https://img.shields.io/badge/.NET_Core-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white) ![Entity Framework](https://img.shields.io/badge/EF_Core-10-512BD4?style=for-the-badge&logo=nuget&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-316192?style=for-the-badge&logo=postgresql&logoColor=white) ![SignalR](https://img.shields.io/badge/SignalR-0078D4?style=for-the-badge&logo=microsoft&logoColor=white)
 
-**Backend** : ASP.NET Core 10 -- Entity Framework Core 10 -- PostgreSQL 16
-
-**Real-time** : SignalR -- WebSocket
-
-**Cloud Services** : Cloudinary -- FPT.AI (TTS + ASR) -- OpenAI Whisper
+![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white) ![OpenAI Whisper](https://img.shields.io/badge/OpenAI_Whisper-412991?style=for-the-badge&logo=openai&logoColor=white) ![Azure Speech](https://img.shields.io/badge/Azure_Speech-0089D6?style=for-the-badge&logo=microsoftazure&logoColor=white)
 
 ---
 
@@ -28,12 +26,14 @@
   - [Backend Setup](#backend-setup)
   - [Docker Deployment](#docker-deployment)
 - [Environment Variables](#environment-variables)
-  - [Database](#database)
+  - [Database (Supabase)](#database-supabase)
   - [JWT Authentication](#jwt-authentication)
   - [SMTP Email (Gmail)](#smtp-email-gmail)
   - [Cloudinary (Image Storage)](#cloudinary-image-storage)
   - [FPT.AI Services](#fptai-services)
   - [OpenAI Whisper](#openai-whisper)
+  - [Azure AI Speech](#azure-ai-speech)
+  - [PayOS Configuration](#payos-configuration)
 - [Architecture Overview](#architecture-overview)
   - [Project Structure](#project-structure)
   - [Backend Architecture](#backend-architecture)
@@ -118,9 +118,9 @@ Create a `.env` file at the project root (same level as `docker-compose.yml`). B
 
 ```env
 # ===================================
-# DATABASE
+# DATABASE (Supabase)
 # ===================================
-ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=VietImmerse_db;Username=postgres;Password=<your_db_password>;Pooling=true;Trust Server Certificate=true
+ConnectionStrings__DefaultConnection=Host=aws-1-ap-southeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.<your-project-ref>;Password=<your-db-password>;Trust Server Certificate=true;Pooling=true
 
 # ===================================
 # JWT AUTHENTICATION
@@ -169,9 +169,27 @@ FPT_TTS_API_KEY=<your_fpt_tts_key>
 FPT_ASR_API_KEY=<your_fpt_asr_key>
 
 # ===================================
-# OpenAI (Whisper Primary ASR)
+# CORS
+# ===================================
+CORS_ORIGINS=http://localhost:3000,https://kanoe-itss-b1.vercel.app
+
+# ===================================
+# OpenAI
 # ===================================
 OPENAI_API_KEY=<your_openai_key>
+
+# ===================================
+# PayOS Configuration
+# ===================================
+PAYOS_CLIENT_ID=<your_payos_client_id>
+PAYOS_API_KEY=<your_payos_api_key>
+PAYOS_CHECKSUM_KEY=<your_payos_checksum_key>
+
+# ===================================
+# AZURE AI SPEECH SERVICES
+# ===================================
+AZURE_SPEECH_KEY=<your_azure_speech_key>
+AZURE_SPEECH_REGION=southeastasia
 ```
 
 > [!WARNING]
@@ -179,13 +197,13 @@ OPENAI_API_KEY=<your_openai_key>
 
 ---
 
-### Database
+### Database (Supabase)
 
-| Variable                               | Description                              |
-| -------------------------------------- | ---------------------------------------- |
-| `ConnectionStrings__DefaultConnection` | EF Core connection string for PostgreSQL |
+| Variable                               | Description                                      |
+| -------------------------------------- | ------------------------------------------------ |
+| `ConnectionStrings__DefaultConnection` | EF Core connection string for Supabase PostgreSQL|
 
-The backend uses `DotNetEnv` to load environment variables from the `.env` file at startup. The connection string format follows the standard Npgsql pattern.
+The backend uses `DotNetEnv` to load environment variables from the `.env` file at startup. The connection string should include `Pooling=true` and `Trust Server Certificate=true` for Supabase connection pooler compatibility.
 
 ---
 
@@ -267,6 +285,29 @@ The system uses a **fallback chain**: OpenAI Whisper is attempted first; if it f
 
 ---
 
+### Azure AI Speech
+
+| Variable              | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| `AZURE_SPEECH_KEY`    | API key for Azure Cognitive Services (Speech)     |
+| `AZURE_SPEECH_REGION` | Region for your Azure Speech resource             |
+
+Used as an alternative or primary engine for Voice Lab pronunciation assessment.
+
+---
+
+### PayOS Configuration
+
+| Variable               | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| `PAYOS_CLIENT_ID`      | Client ID from PayOS dashboard                   |
+| `PAYOS_API_KEY`        | API Key from PayOS dashboard                     |
+| `PAYOS_CHECKSUM_KEY`   | Checksum Key for webhook signature verification  |
+
+Used for generating QR code payment links to purchase tokens.
+
+---
+
 ## Architecture Overview
 
 ### Project Structure
@@ -289,7 +330,11 @@ kanoe_itss_b1/
 |       |   |-- LessonController.cs            # Curriculum chapters and lesson details
 |       |   |-- TtsController.cs               # Text-to-Speech synthesis endpoint
 |       |   |-- VoiceLabController.cs          # Pronunciation evaluation (ASR + scoring)
-|       |   +-- HomeController.cs              # Health check
+|       |   |-- MatchingController.cs          # Partner discovery and matching
+|       |   |-- PartnerController.cs           # Partner profile management
+|       |   |-- PaymentController.cs           # PayOS token purchase and webhooks
+|       |   |-- VocabularyController.cs        # Flashcards and vocabulary management
+|       |   +-- HealthController.cs            # API health monitoring
 |       |-- Services/
 |       |   |-- IAuthService / AuthService             # Auth logic with BCrypt hashing
 |       |   |-- IJwtService / JwtService               # JWT token generation
@@ -300,8 +345,11 @@ kanoe_itss_b1/
 |       |   |-- ILessonService / LessonService         # Curriculum data access
 |       |   |-- ITtsService / FptTtsService             # FPT.AI TTS integration
 |       |   |-- IAsrService / FallbackAsrService       # ASR with OpenAI Whisper + FPT fallback
+|       |   |-- AzurePronunciationService              # Azure Speech SDK integration
 |       |   |-- IVoiceScoringService / VoiceScoringService  # Pronunciation scoring engine
 |       |   |-- ITranslationService / TranslationService    # Vi-Ja translation
+|       |   |-- IMatchingService / MatchingService      # Partner discovery logic
+|       |   +-- OtpCleanupBackgroundService             # Background task to clean up expired OTPs
 |       |   +-- DatabaseSeeder                         # SQL-based data seeding
 |       |-- Hubs/
 |       |   +-- ChatHub.cs                     # SignalR hub: messaging, booking events, presence
@@ -479,6 +527,14 @@ Lib (API client, SignalR, utilities)
 | Partner Discovery  | Browse available Vietnamese conversation partners       |
 | Profile Cards      | View partner details (bio, age range, occupation)       |
 | Initiate Chat      | Start a conversation directly from matching results     |
+
+### Token & Payment System
+
+| Feature            | Description                                             |
+| ------------------ | ------------------------------------------------------- |
+| Token Balance      | Users use tokens to book lessons with partners          |
+| Top-up Wallet      | Purchase tokens via bank transfer with VietQR           |
+| PayOS Integration  | Automated payment verification via PayOS webhooks       |
 
 ---
 

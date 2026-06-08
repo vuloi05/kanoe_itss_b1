@@ -382,6 +382,7 @@ CREATE TABLE IF NOT EXISTS voice_lab_records (
     record_id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     -- Nullable during dev (AllowAnonymous); set NOT NULL before production
     user_id             UUID,
+    sentence_id         UUID,
     expected_text       TEXT NOT NULL,
     actual_text         TEXT,
     completeness_score  NUMERIC(5,2),
@@ -455,6 +456,10 @@ ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS last_study_date TIMESTAMPT
 
 -- learner_profiles.current_level — tracks learner's current proficiency level (V1/V2/V3)
 ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS current_level VARCHAR(10) NOT NULL DEFAULT 'V1';
+
+-- voice_lab_records.sentence_id — maps pronunciation record to a specific lesson dialogue
+ALTER TABLE voice_lab_records ADD COLUMN IF NOT EXISTS sentence_id UUID;
+CREATE INDEX IF NOT EXISTS idx_voice_lab_records_sentence ON voice_lab_records (sentence_id);
 
 -- Remove total_study_seconds column (no longer used, replaced by daily_study_seconds)
 ALTER TABLE learner_profiles DROP COLUMN IF EXISTS total_study_seconds;

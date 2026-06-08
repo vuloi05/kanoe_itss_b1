@@ -1,12 +1,15 @@
 using backend.DTOs.Lesson;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Npgsql;
 
 namespace backend.Services;
 
 public class LessonService : ILessonService
 {
     private readonly VietImmerseDbContext _db;
+    private readonly IMemoryCache _cache;
 
     // Map "v1"/"v2"/"v3" to level_id in content_levels table
     private static readonly Dictionary<string, int> LevelIdMap = new(StringComparer.OrdinalIgnoreCase)
@@ -16,9 +19,10 @@ public class LessonService : ILessonService
         ["v3"] = 3,
     };
 
-    public LessonService(VietImmerseDbContext db)
+    public LessonService(VietImmerseDbContext db, IMemoryCache cache)
     {
         _db = db;
+        _cache = cache;
     }
 
     // Lightweight container for per-lesson progress data loaded from DB
@@ -30,14 +34,26 @@ public class LessonService : ILessonService
     /// </summary>
     public async Task<List<ChapterWithLessonsDto>> GetChaptersByLevelAsync(int levelId)
     {
-        var chapters = await _db.Chapters
-            .Where(c => c.LevelId == levelId)
-            .OrderBy(c => c.SortOrder)
-            .Include(c => c.Lessons.OrderBy(l => l.SortOrder))
-            .AsNoTracking()
-            .ToListAsync();
+        var cacheKey = $"curriculum_level_{levelId}";
+        
+        if (!_cache.TryGetValue(cacheKey, out List<Chapter>? chapters))
+        {
+            chapters = await _db.Chapters
+                .Where(c => c.LevelId == levelId)
+                .OrderBy(c => c.SortOrder)
+                .Include(c => c.Lessons.OrderBy(l => l.SortOrder))
+                .AsNoTracking()
+                .ToListAsync();
 
-        return chapters.Select(c => new ChapterWithLessonsDto(
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromHours(1),
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+            };
+            _cache.Set(cacheKey, chapters, cacheOptions);
+        }
+
+        return (chapters ?? new List<Chapter>()).Select(c => new ChapterWithLessonsDto(
             c.ChapterId,
             c.TitleVi,
             c.TitleJp,
@@ -74,21 +90,34 @@ public class LessonService : ILessonService
         var userLevelStr = profile?.Goals ?? "v1";
         var userLevelId = LevelIdMap.TryGetValue(userLevelStr, out var lid) ? lid : 1;
 
-        var chapters = await _db.Chapters
-            .Where(c => c.LevelId == levelId)
-            .OrderBy(c => c.SortOrder)
-            .Include(c => c.Lessons.OrderBy(l => l.SortOrder))
-            .AsNoTracking()
-            .ToListAsync();
+        var cacheKey = $"curriculum_level_{levelId}";
+        if (!_cache.TryGetValue(cacheKey, out List<Chapter>? chapters))
+        {
+            chapters = await _db.Chapters
+                .Where(c => c.LevelId == levelId)
+                .OrderBy(c => c.SortOrder)
+                .Include(c => c.Lessons.OrderBy(l => l.SortOrder))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                SlidingExpiration = TimeSpan.FromHours(1),
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
+            };
+            _cache.Set(cacheKey, chapters, cacheOptions);
+        }
+
+        var safeChapters = chapters ?? new List<Chapter>();
 
         // Bulk-load user progress for all lessons in this level
-        var lessonIds = chapters.SelectMany(c => c.Lessons.Select(l => l.LessonId)).ToList();
+        var lessonIds = safeChapters.SelectMany(c => c.Lessons.Select(l => l.LessonId)).ToList();
         var progressMap = await _db.LessonProgresses
             .Where(p => p.UserId == userId && lessonIds.Contains(p.LessonId))
             .AsNoTracking()
             .ToDictionaryAsync(p => p.LessonId, p => new LessonProgressInfo(p.IsCompleted, p.Progress));
 
-        return chapters.Select(c => new ChapterWithLessonsDto(
+        return safeChapters.Select(c => new ChapterWithLessonsDto(
             c.ChapterId,
             c.TitleVi,
             c.TitleJp,
@@ -230,6 +259,7 @@ public class LessonService : ILessonService
             isCompleted,
             progressValue,
             lesson.Dialogues.Select(d => new DialogueDto(
+                d.DialogueId,
                 d.Speaker,
                 d.SpeakerJp,
                 d.LineVi,
@@ -252,32 +282,37 @@ public class LessonService : ILessonService
     /// </summary>
     public async Task<string?> CompleteLessonAsync(Guid userId, Guid lessonId)
     {
-        var existing = await _db.LessonProgresses
-            .FirstOrDefaultAsync(p => p.UserId == userId && p.LessonId == lessonId);
-
-        if (existing != null)
+        try
         {
-            if (!existing.IsCompleted)
+            var updatedRows = await _db.LessonProgresses
+                .Where(p => p.UserId == userId && p.LessonId == lessonId && !p.IsCompleted)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.IsCompleted, true)
+                    .SetProperty(p => p.Progress, 100)
+                    .SetProperty(p => p.CompletedAt, DateTime.UtcNow));
+
+            if (updatedRows == 0)
             {
-                existing.IsCompleted = true;
-                existing.Progress = 100;
-                existing.CompletedAt = DateTime.UtcNow;
+                var exists = await _db.LessonProgresses.AnyAsync(p => p.UserId == userId && p.LessonId == lessonId);
+                if (!exists)
+                {
+                    _db.LessonProgresses.Add(new LessonProgress
+                    {
+                        UserId = userId,
+                        LessonId = lessonId,
+                        IsCompleted = true,
+                        Progress = 100,
+                        CompletedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                    });
+                    await _db.SaveChangesAsync();
+                }
             }
         }
-        else
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
         {
-            _db.LessonProgresses.Add(new LessonProgress
-            {
-                UserId = userId,
-                LessonId = lessonId,
-                IsCompleted = true,
-                Progress = 100,
-                CompletedAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
-            });
+            // Unique violation means another thread already inserted it. We can safely ignore it.
         }
-
-        await _db.SaveChangesAsync();
 
         // Check if all lessons of the current level are completed
         var lesson = await _db.Lessons
@@ -455,4 +490,39 @@ public class LessonService : ILessonService
         lesson.Chapter.TitleVi,
         lesson.Chapter.TitleJp
     );
+
+    /// <summary>
+    /// Update partial progress of a lesson for the user.
+    /// </summary>
+    public async Task UpdateProgressAsync(Guid userId, Guid lessonId, int progress)
+    {
+        try
+        {
+            var updatedRows = await _db.LessonProgresses
+                .Where(p => p.UserId == userId && p.LessonId == lessonId && !p.IsCompleted && p.Progress < progress)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.Progress, progress));
+
+            if (updatedRows == 0)
+            {
+                var exists = await _db.LessonProgresses.AnyAsync(p => p.UserId == userId && p.LessonId == lessonId);
+                if (!exists)
+                {
+                    _db.LessonProgresses.Add(new LessonProgress
+                    {
+                        UserId = userId,
+                        LessonId = lessonId,
+                        IsCompleted = false,
+                        Progress = progress,
+                        CreatedAt = DateTime.UtcNow,
+                    });
+                    await _db.SaveChangesAsync();
+                }
+            }
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+        {
+            // Unique violation means another thread already inserted it. We can safely ignore it.
+        }
+    }
 }

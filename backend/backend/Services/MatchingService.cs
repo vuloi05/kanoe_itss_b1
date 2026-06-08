@@ -137,6 +137,7 @@ public class MatchingService : IMatchingService
     {
         // Single query: fetch all transactions where user is either learner or partner
         var transactions = await _context.TokenTransactions
+            .AsNoTracking()
             .Include(t => t.Learner)
             .Include(t => t.Partner)
             .Where(t => t.LearnerId == userId || t.PartnerId == userId)
