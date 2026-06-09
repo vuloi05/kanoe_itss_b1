@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ensureConnected, getSignalRConnection } from "@/lib/signalr";
 import { userApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 interface PresenceContextType {
   onlineUserIds: Set<string>;
@@ -18,8 +19,11 @@ export const usePresence = () => useContext(PresenceContext);
 
 export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    if (!isAuthenticated || isLoading) return;
+
     // Connect to SignalR and join global presence group
     let mounted = true;
 
@@ -69,7 +73,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       conn.off("UserOffline");
       conn.invoke("LeavePresence").catch(() => {});
     };
-  }, []);
+  }, [isAuthenticated, isLoading]);
 
   const isUserOnline = (userId: string) => onlineUserIds.has(userId);
 
