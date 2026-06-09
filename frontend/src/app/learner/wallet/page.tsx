@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { matchingApi, paymentApi, type TransactionHistoryDto, type CreatePaymentLinkResponse } from "@/lib/api";
 import TopUpTokenModal from "@/components/common/TopUpTokenModal";
 import PaymentCheckoutModal from "@/components/common/PaymentCheckoutModal";
+import { useToast } from "@/contexts/ToastContext";
 
 // ─── Date formatter ────────────────────────────────────────────
 function formatTxDate(iso: string, locale: "vi" | "ja"): string {
@@ -38,6 +39,7 @@ function formatTxDate(iso: string, locale: "vi" | "ja"): string {
 
 export default function WalletPage() {
   const { t, lang } = useLanguage();
+  const { addToast } = useToast();
 
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<TransactionHistoryDto[]>([]);
@@ -320,7 +322,7 @@ export default function WalletPage() {
                 // Update balance immediately
                 const newBalance = await matchingApi.getBalance();
                 setBalance(newBalance.tokenBalance);
-                alert(res.message || "Áp dụng mã thành công!");
+                addToast(res.message || "Áp dụng mã thành công!", "success");
               } else if (res.qrCode) {
                 setPaymentData(res);
                 setShowPaymentCheckout(true);
@@ -329,11 +331,11 @@ export default function WalletPage() {
               }
             } catch (err) {
               console.error("Lỗi khi tạo payment link:", err);
-              alert("Có lỗi xảy ra khi tạo link thanh toán.");
+              addToast("Có lỗi xảy ra khi tạo link thanh toán.", "error");
             }
           } else {
             console.log(`Top-up: ${amount} tokens via ${method}`);
-            alert(t(`Đã gửi yêu cầu nạp ${amount} tokens qua ${method}`, `${method}経由で${amount}トークンのチャージをリクエストしました`));
+            addToast(t(`Đã gửi yêu cầu nạp ${amount} tokens qua ${method}`, `${method}経由で${amount}トークンのチャージをリクエストしました`), "success");
           }
           setShowTopUp(false);
         }}
@@ -348,7 +350,7 @@ export default function WalletPage() {
         onSuccess={(newBalance) => {
           setBalance(newBalance);
           setShowPaymentCheckout(false);
-          alert(t("Nạp Token thành công! Số dư của bạn đã được cập nhật.", "トークンのチャージが完了しました！残高が更新されました。"));
+          addToast(t("Nạp Token thành công! Số dư của bạn đã được cập nhật.", "トークンのチャージが完了しました！残高が更新されました。"), "success");
         }}
       />
 

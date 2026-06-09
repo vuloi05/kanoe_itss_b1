@@ -132,6 +132,16 @@ export default function PartnerMessagesPage() {
           if (prev.find(m => m.messageId === newMsg.messageId)) return prev;
           return [newMsg, ...prev];
         });
+        setConversations(prev => {
+          const copy = [...prev];
+          const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
+          if (idx >= 0) {
+            copy[idx].lastMessage = newMsg.content || t("Yêu cầu học thử", "体験レッスンリクエスト");
+            copy[idx].lastMessageType = newMsg.type;
+            copy[idx].lastMessageTime = newMsg.timestamp;
+          }
+          return copy;
+        });
         showToast(t("Có yêu cầu buổi học mới!", "新しいレッスンリクエストがあります！"), "success");
       });
 

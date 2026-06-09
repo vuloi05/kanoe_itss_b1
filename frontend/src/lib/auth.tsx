@@ -109,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         totalStudyHours: 0,
         currentLevel: response.level ?? "V1",
         masteryPercentage: 0,
+        profileCompletionRate: 0,
+        completedSessions: 0,
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
         passwordChangedAt: null,

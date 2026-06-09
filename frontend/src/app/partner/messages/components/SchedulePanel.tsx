@@ -110,7 +110,7 @@ export default function SchedulePanel({
 
       {/* Right Column: Scheduling Panel (Slide-in/out) */}
       <aside
-        className={`fixed top-0 right-0 h-full w-80 bg-[#f9f9f7] p-6 overflow-y-auto border-l border-outline-variant/10 z-50 flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${
+        className={`fixed top-0 right-0 h-full w-[360px] bg-[#f9f9f7] p-6 overflow-y-auto border-l border-outline-variant/10 z-[999] flex flex-col transition-transform duration-300 ease-in-out shadow-2xl ${
           showSchedulePanel ? "translate-x-0" : "translate-x-full"
         }`}
       >

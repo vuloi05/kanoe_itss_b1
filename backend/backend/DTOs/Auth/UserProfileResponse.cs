@@ -16,8 +16,9 @@ public record UserProfileResponse(
     decimal TotalStudyHours,
     string CurrentLevel,
     int MasteryPercentage,
+    int ProfileCompletionRate,
+    int CompletedSessions,
     DateTime CreatedAt,
     DateTime? LastLoginAt,
     DateTime? PasswordChangedAt
 );
-

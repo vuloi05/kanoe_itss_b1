@@ -27,7 +27,7 @@ export interface LocalMessage {
   lessonStartTime?: string;
   lessonEndTime?: string;
   lessonDuration?: number;
-  lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+  lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED" | "CONFIRMED";
   meetingUrl?: string | null;
 
   /** Client-only: track send status for optimistic updates */
@@ -46,16 +46,12 @@ export interface LocalMessage {
 export function normalizeLessonStatus(status: string): LocalMessage["lessonStatus"] {
   const map: Record<string, LocalMessage["lessonStatus"]> = {
     pending: "PENDING",
-    confirmed: "ACCEPTED",
     accepted: "ACCEPTED",
+    confirmed: "CONFIRMED",
     declined: "DECLINED",
     cancelled: "CANCELLED",
-    PENDING: "PENDING",
-    ACCEPTED: "ACCEPTED",
-    DECLINED: "DECLINED",
-    CANCELLED: "CANCELLED",
   };
-  return map[status] || (status.toUpperCase() as LocalMessage["lessonStatus"]);
+  return map[status.toLowerCase()] || (status.toUpperCase() as LocalMessage["lessonStatus"]);
 }
 
 /** An item in the offline send queue */
