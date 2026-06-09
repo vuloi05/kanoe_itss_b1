@@ -11,12 +11,12 @@ interface TimePickerProps {
   minuteOptions?: string[];
 }
 
-const DEFAULT_HOURS = Array.from({ length: 15 }, (_, i) => {
-  const h = String(i + 7).padStart(2, "0");
+const DEFAULT_HOURS = Array.from({ length: 24 }, (_, i) => {
+  const h = String(i).padStart(2, "0");
   return `${h}:00`;
 });
 
-const DEFAULT_MINUTES = ["00", "15", "30", "45"];
+const DEFAULT_MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 
 export default function TimePicker({
   hour,

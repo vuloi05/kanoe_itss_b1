@@ -422,6 +422,12 @@ public class AuthService : IAuthService
             double mastery = (lessonProgress * 0.4) + (toneAccuracy * 0.4) + (vocabCoverage * 0.2);
             masteryPercentage = Math.Clamp((int)Math.Round(mastery), 0, 100);
         }
+        else if (user.Role == "partner")
+        {
+            var now = DateTime.UtcNow;
+            completedLessons = await _db.Bookings
+                .CountAsync(b => b.PartnerId == userId && b.Status == "confirmed" && b.EndTime < now);
+        }
 
         // Calculate daily study hours
         // If daily_study_date != today, reset to 0 and update date
@@ -464,6 +470,21 @@ public class AuthService : IAuthService
 
         var currentStreak = learnerProfile?.CurrentStreak ?? 0;
 
+        int profileCompletionRate = 0;
+        if (user.Role == "partner" && user.PartnerProfile != null)
+        {
+            int totalFields = 6;
+            int filledFields = 0;
+            if (!string.IsNullOrEmpty(user.DisplayName)) filledFields++;
+            if (!string.IsNullOrEmpty(user.AvatarUrl)) filledFields++;
+            if (!string.IsNullOrEmpty(user.Phone)) filledFields++;
+            if (!string.IsNullOrEmpty(user.PartnerProfile.Bio)) filledFields++;
+            if (!string.IsNullOrEmpty(user.PartnerProfile.Job)) filledFields++;
+            if (!string.IsNullOrEmpty(user.PartnerProfile.AgeRange)) filledFields++;
+
+            profileCompletionRate = (int)Math.Round((double)filledFields / totalFields * 100);
+        }
+
         return new UserProfileResponse(
             UserId: user.UserId.ToString(),
             Email: user.Email,
@@ -480,6 +501,8 @@ public class AuthService : IAuthService
             TotalStudyHours: (decimal)dailyStudyHours,
             CurrentLevel: currentLevel,
             MasteryPercentage: masteryPercentage,
+            ProfileCompletionRate: profileCompletionRate,
+            CompletedSessions: completedLessons,
             CreatedAt: user.CreatedAt,
             LastLoginAt: user.LastLoginAt,
             PasswordChangedAt: user.PasswordChangedAt

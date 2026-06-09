@@ -136,6 +136,16 @@ export default function LearnerMessagesPage() {
           if (prev.find(m => m.messageId === newMsg.messageId)) return prev;
           return [newMsg, ...prev];
         });
+        setConversations(prev => {
+          const copy = [...prev];
+          const idx = copy.findIndex(c => c.conversationId === newMsg.conversationId);
+          if (idx >= 0) {
+            copy[idx].lastMessage = newMsg.content || t("Yêu cầu học thử", "体験レッスンリクエスト");
+            copy[idx].lastMessageType = newMsg.type;
+            copy[idx].lastMessageTime = newMsg.timestamp;
+          }
+          return copy;
+        });
         showToast(t("Đề xuất buổi học mới!", "新しいレッスンの提案！"), "success");
       });
 
@@ -421,6 +431,7 @@ export default function LearnerMessagesPage() {
                           const avatarSrc = conv.partnerAvatarUrl
                             || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(conv.partnerName)}&backgroundColor=c0aede`;
                           return (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               alt={conv.partnerName}
                               className="w-full h-full object-cover"
@@ -484,6 +495,7 @@ export default function LearnerMessagesPage() {
                     const avatarSrc = activeConv?.partnerAvatarUrl
                       || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(activeConv?.partnerName || "user")}&backgroundColor=c0aede`;
                     return (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         alt={activeConv?.partnerName}
                         className="w-full h-full object-cover"
@@ -528,7 +540,7 @@ export default function LearnerMessagesPage() {
               // 1. Render LESSON_REQUEST card inline
               if (msg.type === "LESSON_REQUEST") {
                 const isPending = msg.lessonStatus === "PENDING";
-                const isAccepted = msg.lessonStatus === "ACCEPTED";
+                const isAccepted = msg.lessonStatus === "ACCEPTED" || msg.lessonStatus === "CONFIRMED";
                 const statusBadge = isAccepted
                   ? { label: t("Đã xác nhận", "確認済み"), color: "bg-emerald-100 text-emerald-700" }
                   : msg.lessonStatus === "PENDING"
@@ -539,6 +551,8 @@ export default function LearnerMessagesPage() {
                   ? { label: t("Đã từ chối", "辞退した"), color: "bg-red-100 text-red-700" }
                   : null;
                 const isProcessing = acceptingId === msg.lessonRequestId || decliningId === msg.lessonRequestId;
+                const lessonDateTime = msg.lessonDate && msg.lessonStartTime ? new Date(`${msg.lessonDate}T${msg.lessonStartTime}:00+07:00`) : null;
+                const isTimeToAccept = lessonDateTime ? new Date() >= lessonDateTime : true;
 
                 return (
                   <div key={msg.messageId} className="w-full max-w-md my-2 self-center flex flex-col">
@@ -558,6 +572,12 @@ export default function LearnerMessagesPage() {
                             {statusBadge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadge.color}`}>{statusBadge.label}</span>}
                           </div>
                           <div className="space-y-1.5 mb-4">
+                            {msg.content && (
+                              <div className="flex items-center gap-2 text-sm text-on-surface font-semibold mb-2">
+                                <span className="material-symbols-outlined text-sm text-primary">label</span>
+                                <span>{msg.content}</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-2 text-xs text-on-surface-variant">
                               <span className="material-symbols-outlined text-sm">calendar_today</span>
                               <span>{msg.lessonDate ? formatDateDisplay(msg.lessonDate) : ""}</span>
@@ -570,12 +590,18 @@ export default function LearnerMessagesPage() {
                           {isPending && (
                             <div className="grid grid-cols-2 gap-2">
                               <button
-                                disabled={isProcessing}
+                                disabled={isProcessing || !isTimeToAccept}
                                 onClick={() => handleAccept(msg.lessonRequestId!)}
-                                className="py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                                className="py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center justify-center gap-0.5"
+                                title={!isTimeToAccept ? t("Nút Accept sẽ mở khi đến giờ học", "レッスン時間になると承認ボタンが有効になります") : ""}
                               >
-                                {acceptingId === msg.lessonRequestId && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                                {t("Accept", "承認")}
+                                <div className="flex items-center gap-1.5">
+                                  {acceptingId === msg.lessonRequestId && <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                                  {t("Accept", "承認")}
+                                </div>
+                                {!isTimeToAccept && (
+                                  <span className="text-[8px] font-normal opacity-80">{t("Mở khi đến giờ học", "レッスン時間に開く")}</span>
+                                )}
                               </button>
                               <button
                                 disabled={isProcessing}
@@ -602,12 +628,7 @@ export default function LearnerMessagesPage() {
                               </button>
                             </div>
                           )}
-                          {isAccepted && (
-                            <div className="flex items-center gap-2 text-emerald-600 mt-2">
-                              <span className="material-symbols-outlined text-lg">check_circle</span>
-                              <span className="text-xs font-bold">{t("Đã xác nhận", "承認済み")}</span>
-                            </div>
-                          )}
+
                           {msg.lessonStatus === "DECLINED" && (
                             <div className="flex items-center gap-2 text-red-500 mt-2">
                               <span className="material-symbols-outlined text-lg">cancel</span>
@@ -641,7 +662,21 @@ export default function LearnerMessagesPage() {
                 );
               }
 
-              // 2. Normal text / meet link messages
+              // 2. System reminder message
+              if (msg.content?.startsWith("Nhắc nhở: Lịch học")) {
+                return (
+                  <div key={msg.messageId} className="w-full flex justify-center my-4 transition-all">
+                    <div className="flex items-center gap-3 px-5 py-2.5 bg-amber-50 border border-amber-200/60 rounded-full shadow-sm max-w-[85%]">
+                      <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-amber-500 text-sm animate-pulse">notifications_active</span>
+                      </div>
+                      <span className="text-amber-900 text-[11px] sm:text-xs font-semibold leading-relaxed">{msg.content}</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              // 3. Normal text / meet link messages
               return msg.senderId !== user?.userId ? (
                 // ── Received message (left-aligned, white bg) ──
                 <div

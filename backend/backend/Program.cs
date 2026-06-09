@@ -74,7 +74,9 @@ builder.Services.AddSingleton<IPhotoService, CloudinaryPhotoService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddSingleton<ITranslationService, TranslationService>();
-builder.Services.AddScoped<ITtsService, FptTtsService>();
+builder.Services.AddScoped<AzureTtsService>();
+builder.Services.AddScoped<FptTtsService>();
+builder.Services.AddScoped<ITtsService, PrimaryTtsService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 builder.Services.AddSingleton<OpenAiWhisperService>();
@@ -83,6 +85,7 @@ builder.Services.AddScoped<IAsrService, FallbackAsrService>();
 builder.Services.AddScoped<AzurePronunciationService>();
 builder.Services.AddScoped<IVoiceScoringService, VoiceScoringService>();
 builder.Services.AddHostedService<OtpCleanupBackgroundService>();
+builder.Services.AddHostedService<LessonReminderBackgroundService>();
 
 // SignalR (Realtime Messaging — replaces Supabase Realtime)
 builder.Services.AddSignalR();
@@ -223,6 +226,8 @@ using (var scope = app.Services.CreateScope())
 
             // ── Seed data from SQL file (idempotent UPSERT — safe for existing data) ──
             await DatabaseSeeder.SeedAsync(context, logger);
+
+            try { await context.Database.ExecuteSqlRawAsync("ALTER TABLE partner_profiles ADD COLUMN monthly_goal INT DEFAULT 50;"); } catch {}
 
             break;
         }

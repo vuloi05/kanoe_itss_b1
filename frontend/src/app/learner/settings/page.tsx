@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { useState, useEffect } from "react";
 import { authApi, matchingApi, paymentApi, type CreatePaymentLinkResponse } from "@/lib/api";
 import PaymentCheckoutModal from "@/components/common/PaymentCheckoutModal";
+import { useToast } from "@/contexts/ToastContext";
 /**
  * Compute a human-readable relative time string from a UTC ISO date.
  * Returns separate Vietnamese / Japanese strings.
@@ -41,6 +42,7 @@ function getRelativeTime(isoDate: string): { vi: string; ja: string } {
 export default function LearnerSettingsPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { addToast } = useToast();
   const { logout, user, updateUser } = useAuth();
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showTopUp, setShowTopUp] = useState(false);
@@ -332,7 +334,7 @@ export default function LearnerSettingsPage() {
               if (res.isFree) {
                 const newBalance = await matchingApi.getBalance();
                 setTokenBalance(newBalance.tokenBalance);
-                alert(res.message || "Áp dụng mã thành công!");
+                addToast(res.message || "Áp dụng mã thành công!", "success");
               } else if (res.qrCode) {
                 setPaymentData(res);
                 setShowPaymentCheckout(true);
@@ -341,11 +343,11 @@ export default function LearnerSettingsPage() {
               }
             } catch (err) {
               console.error("Lỗi khi tạo payment link:", err);
-              alert("Có lỗi xảy ra khi tạo link thanh toán.");
+              addToast("Có lỗi xảy ra khi tạo link thanh toán.", "error");
             }
           } else {
             console.log(`Top-up: ${amount} tokens via ${method}`);
-            alert(t(`Đã gửi yêu cầu nạp ${amount} tokens qua ${method}`, `${method}経由で${amount}トークンのチャージをリクエストしました`));
+            addToast(t(`Đã gửi yêu cầu nạp ${amount} tokens qua ${method}`, `${method}経由で${amount}トークンのチャージをリクエストしました`), "success");
           }
           setShowTopUp(false);
         }}
@@ -360,7 +362,7 @@ export default function LearnerSettingsPage() {
         onSuccess={(newBalance) => {
           setTokenBalance(newBalance);
           setShowPaymentCheckout(false);
-          alert(t("Nạp Token thành công! Số dư của bạn đã được cập nhật.", "トークンのチャージが完了しました！残高が更新されました。"));
+          addToast(t("Nạp Token thành công! Số dư của bạn đã được cập nhật.", "トークンのチャージが完了しました！残高が更新されました。"), "success");
         }}
       />
     </div>

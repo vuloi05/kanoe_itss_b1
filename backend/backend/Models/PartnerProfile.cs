@@ -55,6 +55,9 @@ public partial class PartnerProfile
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
 
+    [Column("monthly_goal")]
+    public int? MonthlyGoal { get; set; }
+
     [ForeignKey("UserId")]
     [InverseProperty("PartnerProfile")]
     public virtual User User { get; set; } = null!;

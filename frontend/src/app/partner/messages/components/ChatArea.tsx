@@ -64,6 +64,7 @@ export default function ChatArea({
                 const avatarSrc = activeConv?.partnerAvatarUrl
                   || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(activeConv?.learnerName || "user")}&backgroundColor=c0aede`;
                 return (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     alt={activeConv?.learnerName}
                     className="w-full h-full object-cover"
@@ -100,7 +101,8 @@ export default function ChatArea({
           // 1. Nếu là LESSON_REQUEST
           if (msg.type === "LESSON_REQUEST") {
             const isPartner = msg.senderId === user?.userId;
-            const statusBadge = msg.lessonStatus === "ACCEPTED"
+            const isAccepted = msg.lessonStatus === "ACCEPTED" || msg.lessonStatus === "CONFIRMED";
+            const statusBadge = isAccepted
               ? { label: t("Đã xác nhận", "確認済み"), color: "bg-emerald-100 text-emerald-700" }
               : msg.lessonStatus === "PENDING"
               ? { label: t("Chờ xác nhận", "確認待ち"), color: "bg-amber-100 text-amber-700" }
@@ -116,61 +118,70 @@ export default function ChatArea({
                   <div className="p-1 bg-secondary text-white text-[10px] text-center font-bold tracking-widest uppercase">
                     {t("Đề xuất buổi học mới", "新しいレッスンの提案")}
                   </div>
-                  <div className="p-4 sm:p-6 flex items-start gap-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0">
-                      <span className="material-symbols-outlined">auto_stories</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-bold text-primary text-base font-headline">
-                          {t("Lesson Request", "レッスンリクエスト")}
-                        </h4>
-                        {statusBadge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadge.color}`}>{statusBadge.label}</span>}
+                  <div className="p-4 sm:p-6 flex flex-col gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0">
+                        <span className="material-symbols-outlined">auto_stories</span>
                       </div>
-                      <p className="text-xs text-secondary mb-3">
-                        {msg.lessonStatus === "ACCEPTED" ? t("Học viên đã xác nhận", "学習者が承認しました")
-                          : msg.lessonStatus === "DECLINED" ? t("Học viên đã từ chối", "学習者が辞退しました")
-                          : msg.lessonStatus === "CANCELLED" ? t("Đã hủy", "キャンセル済み")
-                          : t("Chờ học viên xác nhận", "学習者の承認待ち")}
-                      </p>
-                      <div className="space-y-1.5 mb-4">
-                        <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                          <span className="material-symbols-outlined text-sm">calendar_today</span>
-                          <span>{msg.lessonDate ? formatDateDisplay(msg.lessonDate) : ""}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-primary text-base font-headline">
+                            {t("Lesson Request", "レッスンリクエスト")}
+                          </h4>
+                          {statusBadge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusBadge.color}`}>{statusBadge.label}</span>}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                          <span className="material-symbols-outlined text-sm">schedule</span>
-                          <span>{msg.lessonStartTime} - {msg.lessonEndTime} ({msg.lessonDuration}m) (GMT+7)</span>
-                        </div>
-                        {msg.meetingUrl && (
+                        <p className="text-xs text-secondary mb-3">
+                          {isAccepted ? t("Học viên đã xác nhận", "学習者が承認しました")
+                            : msg.lessonStatus === "DECLINED" ? t("Học viên đã từ chối", "学習者が辞退しました")
+                            : msg.lessonStatus === "CANCELLED" ? t("Đã hủy", "キャンセル済み")
+                            : t("Chờ học viên xác nhận", "学習者の承認待ち")}
+                        </p>
+                        <div className="space-y-1.5 mb-4">
+                          {msg.content && (
+                            <div className="flex items-center gap-2 text-sm text-on-surface font-semibold mb-2">
+                              <span className="material-symbols-outlined text-sm text-primary">label</span>
+                              <span>{msg.content}</span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                            <span className="material-symbols-outlined text-sm">videocam</span>
-                            <a
-                              href={msg.meetingUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary font-semibold hover:underline truncate"
-                            >
-                              {msg.meetingUrl}
-                            </a>
+                            <span className="material-symbols-outlined text-sm">calendar_today</span>
+                            <span>{msg.lessonDate ? formatDateDisplay(msg.lessonDate) : ""}</span>
                           </div>
-                        )}
+                          <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                            <span className="material-symbols-outlined text-sm">schedule</span>
+                            <span>{msg.lessonStartTime} - {msg.lessonEndTime} ({msg.lessonDuration}m) (GMT+7)</span>
+                          </div>
+                          {msg.meetingUrl && (
+                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
+                              <span className="material-symbols-outlined text-sm">videocam</span>
+                              <a
+                                href={msg.meetingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary font-semibold hover:underline truncate"
+                              >
+                                {msg.meetingUrl}
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        {msg.lessonStatus === "PENDING" && (
-                          <button disabled={cancellingId === msg.lessonRequestId} onClick={() => setCancelModalId(msg.lessonRequestId!)} className="flex-1 py-2 text-xs font-bold text-error border border-error/20 rounded-lg hover:bg-error/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                            {cancellingId === msg.lessonRequestId ? t("Đang hủy...", "処理中...") : t("Hủy", "キャンセル")}
-                          </button>
-                        )}
-                        <button onClick={() => setDetailModalId(msg.lessonRequestId!)} className="flex-1 py-2 text-xs font-bold text-primary bg-surface-container-highest rounded-lg hover:bg-white transition-colors cursor-pointer">
-                          {t("Chi tiết", "詳細")}
+                    </div>
+                    {/* Buttons span full width */}
+                    <div className="flex gap-2 w-full mt-1">
+                      {msg.lessonStatus === "PENDING" && (
+                        <button disabled={cancellingId === msg.lessonRequestId} onClick={() => setCancelModalId(msg.lessonRequestId!)} className="flex-1 py-2 text-xs font-bold text-error border border-error/20 rounded-lg hover:bg-error/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                          {cancellingId === msg.lessonRequestId ? t("Đang hủy...", "処理中...") : t("Hủy", "キャンセル")}
                         </button>
-                      </div>
+                      )}
+                      <button onClick={() => setDetailModalId(msg.lessonRequestId!)} className="flex-1 py-2 text-xs font-bold text-primary bg-surface-container-highest rounded-lg hover:bg-white transition-colors cursor-pointer">
+                        {t("Chi tiết", "詳細")}
+                      </button>
                     </div>
                   </div>
                 </div>
                 {/* Join Classroom - separate element below card */}
-                {msg.lessonStatus === "ACCEPTED" && msg.meetingUrl && (
+                {isAccepted && msg.meetingUrl && (
                   <a
                     href={msg.meetingUrl}
                     target="_blank"
@@ -193,7 +204,21 @@ export default function ChatArea({
             );
           }
 
-          // 2. Normal text message
+          // 2. System reminder message
+          if (msg.content?.startsWith("Nhắc nhở: Lịch học")) {
+            return (
+              <div key={msg.messageId} className="w-full flex justify-center my-4 transition-all">
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-amber-50 border border-amber-200/60 rounded-full shadow-sm max-w-[85%]">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-amber-500 text-sm animate-[wiggle_2s_ease-in-out_infinite]">notifications_active</span>
+                  </div>
+                  <span className="text-amber-900 text-[11px] sm:text-xs font-semibold leading-relaxed">{msg.content}</span>
+                </div>
+              </div>
+            );
+          }
+
+          // 3. Normal text message
           const isMe = msg.senderId === user?.userId;
           return isMe ? (
             // Sent message (right-aligned)

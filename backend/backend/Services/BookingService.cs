@@ -87,7 +87,7 @@ public class BookingService : IBookingService
                 SenderId = partnerId,
                 MessageType = "LESSON_REQUEST",
                 Booking = booking,
-                Content = "",
+                Content = booking.Notes ?? "",
                 SentAt = DateTime.UtcNow,
                 IsRead = false
             };
@@ -105,7 +105,7 @@ public class BookingService : IBookingService
                 ConversationId = message.ConversationId,
                 SenderId = message.SenderId,
                 Type = "LESSON_REQUEST",
-                Content = "",
+                Content = booking.Notes ?? "",
                 IsRead = false,
                 Timestamp = message.SentAt,
                 LessonRequestId = booking.BookingId,
@@ -144,6 +144,11 @@ public class BookingService : IBookingService
         if (booking.Status != "pending")
             throw new InvalidOperationException($"Cannot accept a booking with status '{booking.Status}'.");
 
+        if (DateTime.UtcNow < booking.StartTime)
+            throw new InvalidOperationException("Cannot accept the lesson before its scheduled start time.");
+
+
+
         booking.Status = "confirmed";
         booking.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -152,7 +157,7 @@ public class BookingService : IBookingService
 
         if (booking.ConversationId.HasValue)
         {
-            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LessonAccepted", new { lesson_request_id = booking.BookingId, new_status = "ACCEPTED" });
+            await BroadcastLessonEventAsync(booking.ConversationId.Value, "LessonAccepted", new { lesson_request_id = booking.BookingId, new_status = "CONFIRMED" });
         }
 
         return result;

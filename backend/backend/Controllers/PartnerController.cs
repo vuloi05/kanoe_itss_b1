@@ -110,10 +110,57 @@ public class PartnerController : ControllerBase
         return StatusCode(201, new { conversationId = conversation.ConversationId, isNew = true });
     }
 
+    [Authorize]
+    [HttpGet("me/stats")]
+    public async Task<IActionResult> GetMyStats()
+    {
+        var partnerId = GetCurrentUserId();
+        var now = DateTime.UtcNow;
+        var firstDayOfThisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var firstDayOfLastMonth = firstDayOfThisMonth.AddMonths(-1);
+
+        var lastMonthBookings = await _db.Bookings
+            .Where(b => b.PartnerId == partnerId && b.StartTime >= firstDayOfLastMonth && b.StartTime < firstDayOfThisMonth)
+            .ToListAsync();
+
+        var totalSessions = lastMonthBookings.Count;
+        var completedSessions = lastMonthBookings.Count(b => b.Status == "confirmed" && b.EndTime < now);
+        var cancelledSessions = lastMonthBookings.Count(b => b.Status == "cancelled");
+
+        var profile = await _db.PartnerProfiles.FirstOrDefaultAsync(p => p.UserId == partnerId);
+        var monthlyGoal = profile?.MonthlyGoal ?? 50;
+
+        return Ok(new {
+            lastMonthTotalSessions = totalSessions,
+            lastMonthCompletedSessions = completedSessions,
+            lastMonthCancelledSessions = cancelledSessions,
+            monthlyGoal = monthlyGoal
+        });
+    }
+
+    [Authorize]
+    [HttpPut("me/goal")]
+    public async Task<IActionResult> UpdateGoal([FromBody] UpdateGoalRequest request)
+    {
+        var partnerId = GetCurrentUserId();
+        var profile = await _db.PartnerProfiles.FirstOrDefaultAsync(p => p.UserId == partnerId);
+        if (profile == null) return NotFound(new { message = "Partner profile not found." });
+
+        profile.MonthlyGoal = request.MonthlyGoal;
+        await _db.SaveChangesAsync();
+        
+        return Ok(new { message = "Mục tiêu đã được cập nhật.", monthlyGoal = request.MonthlyGoal });
+    }
+
     private Guid GetCurrentUserId()
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)
             ?? throw new UnauthorizedAccessException("Invalid token.");
         return Guid.Parse(claim.Value);
     }
+}
+
+public class UpdateGoalRequest
+{
+    public int MonthlyGoal { get; set; }
 }

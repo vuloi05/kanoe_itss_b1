@@ -122,6 +122,8 @@ export interface UserProfile {
   totalStudyHours: number;
   currentLevel: string;
   masteryPercentage: number;
+  profileCompletionRate: number;
+  completedSessions: number;
   createdAt: string;
   lastLoginAt: string | null;
   passwordChangedAt: string | null;
@@ -199,7 +201,7 @@ export interface MessageDto {
   lessonStartTime?: string;
   lessonEndTime?: string;
   lessonDuration?: number;
-  lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+  lessonStatus?: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED" | "CONFIRMED";
   meetingUrl?: string | null;
 }
 
@@ -255,9 +257,21 @@ export const bookingApi = {
 };
 
 // ─── TTS (Text-to-Speech via FPT.AI) ─────────────────────────
+export interface WordTimestamp {
+  word: string;
+  start: number;
+  end: number;
+}
+
+export interface TtsResponse {
+  audioUrl?: string;
+  audioBase64?: string;
+  wordTimestamps?: WordTimestamp[];
+}
+
 export const ttsApi = {
-  synthesize: (text: string) =>
-    api.post<{ audioUrl: string }>("/api/tts/synthesize", { text }),
+  synthesize: (text: string, voice?: string) =>
+    api.post<TtsResponse>("/api/tts/synthesize", { text, voice }),
 };
 
 // ─── Lesson / Curriculum ──────────────────────────────────────
@@ -398,12 +412,25 @@ export interface StartConversationResponse {
   isNew: boolean;
 }
 
+export interface PartnerStatsDto {
+  lastMonthTotalSessions: number;
+  lastMonthCompletedSessions: number;
+  lastMonthCancelledSessions: number;
+  monthlyGoal: number;
+}
+
 export const partnerApi = {
   getPartners: () =>
     api.get<PartnerDto[]>("/api/partners"),
 
   startConversation: (partnerId: string) =>
     api.post<StartConversationResponse>(`/api/partners/${partnerId}/start-conversation`, {}),
+    
+  getMyStats: () =>
+    api.get<PartnerStatsDto>("/api/partners/me/stats"),
+    
+  updateMonthlyGoal: (monthlyGoal: number) =>
+    api.put<{ message: string; monthlyGoal: number }>("/api/partners/me/goal", { monthlyGoal }),
 };
 
 // ─── Matching Token Economy ───────────────────────────────────

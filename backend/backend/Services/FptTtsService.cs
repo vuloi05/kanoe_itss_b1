@@ -1,4 +1,5 @@
 using System.Text.Json;
+using backend.DTOs.Tts;
 
 namespace backend.Services;
 
@@ -24,7 +25,7 @@ public class FptTtsService : ITtsService
         _logger = logger;
     }
 
-    public async Task<string?> SynthesizeAsync(string text)
+    public async Task<TtsSynthesizeResponseDto?> SynthesizeAsync(string text, string voice = "banmai")
     {
         if (string.IsNullOrWhiteSpace(text))
             return null;
@@ -45,7 +46,7 @@ public class FptTtsService : ITtsService
 
             client.DefaultRequestHeaders.Add("api-key", apiKey);
             client.DefaultRequestHeaders.Add("speed", "");
-            client.DefaultRequestHeaders.Add("voice", "banmai");
+            client.DefaultRequestHeaders.Add("voice", string.IsNullOrEmpty(voice) ? "banmai" : voice);
 
             // FPT v5 expects raw text as the request body
             var content = new StringContent(text);
@@ -93,7 +94,7 @@ public class FptTtsService : ITtsService
             // Poll with HEAD requests until the file is available on CDN.
             await WaitForAudioReady(client, audioUrl);
 
-            return audioUrl;
+            return new TtsSynthesizeResponseDto { AudioUrl = audioUrl };
         }
         catch (Exception ex)
         {

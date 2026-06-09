@@ -191,7 +191,7 @@ export default function DatePicker({
 
       {/* Dropdown Calendar */}
       {open && (
-        <div className="absolute top-full -right-4 mt-2 w-[310px] bg-surface-container-lowest rounded-2xl border border-outline-variant/15 engawa-shadow z-50 overflow-hidden animate-[fadeSlideDown_0.15s_ease-out]">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[310px] bg-surface-container-lowest rounded-2xl border border-outline-variant/15 engawa-shadow z-[1000] overflow-hidden animate-[fadeSlideDown_0.15s_ease-out]">
           {/* Month/Year Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-primary/[0.04]">
             <span className="text-sm font-bold text-primary font-headline">

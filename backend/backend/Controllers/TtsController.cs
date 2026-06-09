@@ -27,12 +27,12 @@ public class TtsController : ControllerBase
     [HttpPost("synthesize")]
     public async Task<IActionResult> Synthesize([FromBody] TtsSynthesizeRequest request)
     {
-        var audioUrl = await _ttsService.SynthesizeAsync(request.Text);
+        var result = await _ttsService.SynthesizeAsync(request.Text, request.Voice ?? "banmai");
 
-        if (string.IsNullOrEmpty(audioUrl))
+        if (result == null)
             return StatusCode(502, new { message = "TTS synthesis failed. Please try again." });
 
-        return Ok(new { audioUrl });
+        return Ok(result);
     }
 
     /// <summary>

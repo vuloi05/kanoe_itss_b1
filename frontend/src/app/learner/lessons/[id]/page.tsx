@@ -82,8 +82,10 @@ function mapAssessmentFromBackend(
 const PASS_COMPLETENESS = 80;
 const PASS_ACCURACY = 60;
 
+import { type TtsResponse } from "@/lib/api";
+
 // In-memory cache to avoid redundant API calls for the same text
-const ttsCache = new Map<string, string>();
+const ttsCache = new Map<string, TtsResponse>();
 
 // Parsed highlight data from JSON string
 interface HighlightWord {
@@ -106,24 +108,37 @@ interface WordTimestamp {
 function estimateWordTimestamps(words: string[], totalDuration: number): WordTimestamp[] {
   if (words.length === 0) return [];
 
-  // Count syllables per word (Vietnamese: each word is typically 1-3 syllables)
-  // Heuristic: count vowel clusters as syllable boundaries
   const countSyllables = (word: string): number => {
-    const cleaned = word.toLowerCase().replace(/[.,!?]/g, '');
+    const cleaned = word.toLowerCase().replace(/[.,!?;:]/g, "");
     const vowels = cleaned.match(/[aăâeêioôơuưy]+/g);
     return vowels ? vowels.length : 1;
+  };
+
+  const getPauseAfterWord = (word: string): number => {
+    if (word.endsWith(".") || word.endsWith("?") || word.endsWith("!")) return 0.8;
+    if (word.endsWith(",") || word.endsWith(";") || word.endsWith(":")) return 0.4;
+    return 0;
   };
 
   const syllableCounts = words.map(countSyllables);
   const totalSyllables = syllableCounts.reduce((sum, c) => sum + c, 0);
 
-  // Allocate duration proportionally to syllable count
+  const pauses = words.map(getPauseAfterWord);
+  const totalIdealPauseTime = pauses.reduce((sum, p) => sum + p, 0);
+
+  // Ensure pauses don't consume all duration (max 40% of duration can be pauses)
+  const maxPauseTime = totalDuration * 0.4;
+  const pauseScale = totalIdealPauseTime > maxPauseTime ? maxPauseTime / totalIdealPauseTime : 1;
+
+  const actualTotalPauseTime = totalIdealPauseTime * pauseScale;
+  const totalSpeakingTime = totalDuration - actualTotalPauseTime;
+
   const timestamps: WordTimestamp[] = [];
   let currentTime = 0;
 
   for (let i = 0; i < words.length; i++) {
     const syllableRatio = syllableCounts[i] / totalSyllables;
-    const wordDuration = totalDuration * syllableRatio;
+    const wordDuration = totalSpeakingTime * syllableRatio;
 
     timestamps.push({
       word: words[i],
@@ -131,7 +146,7 @@ function estimateWordTimestamps(words: string[], totalDuration: number): WordTim
       end: currentTime + wordDuration,
     });
 
-    currentTime += wordDuration;
+    currentTime += wordDuration + (pauses[i] * pauseScale);
   }
 
   return timestamps;
@@ -150,7 +165,7 @@ function parseHighlightWords(json: string | null): HighlightWord[] {
 // Uses Web Audio API for sample-accurate timing + requestAnimationFrame for smooth UI updates.
 // Eliminates decode latency and provides microsecond-precision playback tracking.
 
-function useTTSShadowing(text: string, onEnded?: () => void) {
+function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string = "banmai", onEnded?: () => void) {
   const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -166,8 +181,15 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
   const rafRef = useRef<number | null>(null);
   const lastWordIdxRef = useRef<number>(-1);
   const onEndedRef = useRef(onEnded);
+  const playbackRateRef = useRef(playbackRate);
 
   useEffect(() => { onEndedRef.current = onEnded; }, [onEnded]);
+  useEffect(() => {
+    playbackRateRef.current = playbackRate;
+    if (sourceNodeRef.current) {
+      sourceNodeRef.current.playbackRate.value = playbackRate;
+    }
+  }, [playbackRate]);
 
   const words = text.split(/\s+/);
   const wordCountRef = useRef(words.length);
@@ -196,7 +218,7 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
       const ctx = audioContextRef.current;
       if (!ctx || !sourceNodeRef.current) return;
 
-      const elapsed = ctx.currentTime - startTimeRef.current;
+      const elapsed = (ctx.currentTime - startTimeRef.current) * playbackRateRef.current;
       const duration = durationRef.current;
 
       if (elapsed >= duration) return;
@@ -207,7 +229,7 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
       if (timestamps.length > 0) {
         // Binary search for current word by elapsed time
         let lo = 0, hi = timestamps.length - 1;
-        newIdx = hi;
+        newIdx = -1;
         while (lo <= hi) {
           const mid = (lo + hi) >> 1;
           if (elapsed < timestamps[mid].start) {
@@ -219,6 +241,14 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
             break;
           }
         }
+
+        // If elapsed falls in a gap between words, 'break' is not called.
+        // 'hi' will point to the index of the word that just finished.
+        // We hold the highlight on that word during the pause.
+        if (newIdx === -1) {
+          newIdx = hi >= 0 ? hi : -1;
+        }
+
         if (elapsed >= timestamps[timestamps.length - 1].end) {
           newIdx = timestamps.length - 1;
         }
@@ -249,11 +279,12 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
     let cancelled = false;
 
     const preload = async () => {
-      if (ttsCache.get(text)) return; // URL already cached, skip
+      const cacheKey = `${voice}_${text}`;
+      if (ttsCache.get(cacheKey)) return; // URL already cached, skip
 
       try {
-        const result = await ttsApi.synthesize(text);
-        if (!cancelled) ttsCache.set(text, result.audioUrl);
+        const result = await ttsApi.synthesize(text, voice);
+        if (!cancelled) ttsCache.set(cacheKey, result);
       } catch {
         // Preload failure is silent — play() will retry on demand
       }
@@ -261,7 +292,7 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
 
     preload();
     return () => { cancelled = true; };
-  }, [text]);
+  }, [text, voice]);
 
   // Cleanup on unmount: stop source, cancel rAF, close AudioContext
   useEffect(() => {
@@ -281,14 +312,15 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
     cancelRaf();
     stopSource();
 
-    let audioUrl = ttsCache.get(text);
+    const cacheKey = `${voice}_${text}`;
+    let ttsResult = ttsCache.get(cacheKey);
 
-    if (!audioUrl) {
+    if (!ttsResult) {
       setIsLoading(true);
       try {
-        const result = await ttsApi.synthesize(text);
-        audioUrl = result.audioUrl;
-        ttsCache.set(text, audioUrl);
+        const result = await ttsApi.synthesize(text, voice);
+        ttsResult = result;
+        ttsCache.set(cacheKey, ttsResult);
       } catch (err) {
         console.error("TTS synthesis failed:", err);
         setIsLoading(false);
@@ -298,13 +330,22 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
     }
 
     try {
-      // Proxy through backend to avoid CORS block on FPT CDN.
-      // FPT CDN does not set Access-Control-Allow-Origin, so direct fetch() fails.
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-      const proxyUrl = `${backendUrl}/api/tts/audio?url=${encodeURIComponent(audioUrl)}`;
-      const response = await fetch(proxyUrl);
-      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-      const arrayBuffer = await response.arrayBuffer();
+      let arrayBuffer: ArrayBuffer;
+      if (ttsResult.audioBase64) {
+        const response = await fetch(ttsResult.audioBase64);
+        if (!response.ok) throw new Error(`Fetch base64 failed: ${response.status}`);
+        arrayBuffer = await response.arrayBuffer();
+      } else if (ttsResult.audioUrl) {
+        // Proxy through backend to avoid CORS block on FPT CDN.
+        // FPT CDN does not set Access-Control-Allow-Origin, so direct fetch() fails.
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const proxyUrl = `${backendUrl}/api/tts/audio?url=${encodeURIComponent(ttsResult.audioUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+        arrayBuffer = await response.arrayBuffer();
+      } else {
+        throw new Error("No audio provided");
+      }
 
       // Reuse or create AudioContext (browsers limit total contexts per page)
       if (!audioContextRef.current || audioContextRef.current.state === "closed") {
@@ -319,11 +360,69 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
       const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
       durationRef.current = audioBuffer.duration;
 
-      // Tier 3: Calculate syllable-weighted word timestamps for precise sync
-      wordTimestampsRef.current = estimateWordTimestamps(words, audioBuffer.duration);
+      // Use backend timestamps if available, otherwise fallback to estimation
+      if (ttsResult.wordTimestamps && ttsResult.wordTimestamps.length > 0) {
+        // Azure returns word boundaries in seconds. Convert to match the duration scale if needed.
+        // Align timestamps by character position to handle punctuation and compound word differences robustly.
+        const azureTimestamps = ttsResult.wordTimestamps;
+        const mappedTimestamps: WordTimestamp[] = [];
+        
+        const wordSpans: { word: string; startC: number; endC: number; cleanLength: number }[] = [];
+        let charIdx = 0;
+        for (const w of words) {
+          // Remove punctuation and spaces to get the raw pronunciation characters
+          const clean = w.toLowerCase().replace(/[.,!?;:"'“”‘’()\[\]{}-]/g, "").replace(/\s+/g, "");
+          wordSpans.push({ word: w, startC: charIdx, endC: charIdx + clean.length, cleanLength: clean.length });
+          charIdx += clean.length;
+        }
+
+        const azSpans: { start: number; end: number; startC: number; endC: number; cleanLength: number }[] = [];
+        charIdx = 0;
+        for (const az of azureTimestamps) {
+          const clean = az.word.toLowerCase().replace(/[.,!?;:"'“”‘’()\[\]{}-]/g, "").replace(/\s+/g, "");
+          azSpans.push({ start: az.start, end: az.end, startC: charIdx, endC: charIdx + clean.length, cleanLength: clean.length });
+          charIdx += clean.length;
+        }
+
+        for (let i = 0; i < wordSpans.length; i++) {
+          const wSpan = wordSpans[i];
+          if (wSpan.cleanLength === 0) {
+            mappedTimestamps.push({
+              word: wSpan.word,
+              start: mappedTimestamps[i - 1]?.end || 0,
+              end: (mappedTimestamps[i - 1]?.end || 0) + 0.1
+            });
+            continue;
+          }
+
+          // Find all azure spans that overlap with this word's characters
+          const overlapping = azSpans.filter(az => az.cleanLength > 0 && az.startC < wSpan.endC && az.endC > wSpan.startC);
+
+          if (overlapping.length > 0) {
+            mappedTimestamps.push({
+              word: wSpan.word,
+              start: overlapping[0].start / 1000,
+              end: overlapping[overlapping.length - 1].end / 1000
+            });
+          } else {
+            // Fallback for missing words
+            mappedTimestamps.push({
+              word: wSpan.word,
+              start: mappedTimestamps[i - 1]?.end || 0,
+              end: (mappedTimestamps[i - 1]?.end || 0) + 0.3
+            });
+          }
+        }
+
+        wordTimestampsRef.current = mappedTimestamps;
+      } else {
+        // Tier 3: Calculate syllable-weighted word timestamps for precise sync
+        wordTimestampsRef.current = estimateWordTimestamps(words, audioBuffer.duration);
+      }
 
       const source = ctx.createBufferSource();
       source.buffer = audioBuffer;
+      source.playbackRate.value = playbackRateRef.current;
       source.connect(ctx.destination);
       sourceNodeRef.current = source;
 
@@ -346,11 +445,11 @@ function useTTSShadowing(text: string, onEnded?: () => void) {
     } catch (err) {
       console.error("Audio playback failed:", err);
       // Evict stale cache entry so next click re-fetches
-      ttsCache.delete(text);
+      ttsCache.delete(`${voice}_${text}`);
       setIsLoading(false);
       setIsPlaying(false);
     }
-  }, [text, words, isLoading, cancelRaf, stopSource, startTrackingLoop]);
+  }, [text, voice, words, isLoading, cancelRaf, stopSource, startTrackingLoop]);
 
   const stop = useCallback(() => {
     cancelRaf();
@@ -381,13 +480,15 @@ interface DialogueLineProps {
   isLocked: boolean;
   onSelect: () => void;
   onAudioEnded?: () => void;
+  playbackRate: number;
+  voice: string;
 }
 
 const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function DialogueLine(
-  { dlg, index, isLast, lang, showSubtitle, isSelected, isPassed, isLocked, onSelect, onAudioEnded },
+  { dlg, index, isLast, lang, showSubtitle, isSelected, isPassed, isLocked, onSelect, onAudioEnded, playbackRate, voice },
   ref
 ) {
-  const { words, activeWordIdx, isPlaying, isLoading, play, stop } = useTTSShadowing(dlg.lineVi, onAudioEnded);
+  const { words, activeWordIdx, isPlaying, isLoading, play, stop } = useTTSShadowing(dlg.lineVi, playbackRate, voice, onAudioEnded);
   const highlightWords = parseHighlightWords(dlg.highlightWordsJson);
 
   useImperativeHandle(ref, () => ({
@@ -950,6 +1051,20 @@ export default function LessonDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated, updateUser } = useAuth();
   const [showSubtitle, setShowSubtitle] = useState(true);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [showSpeedDropdown, setShowSpeedDropdown] = useState(false);
+  const speedDropdownRef = useRef<HTMLDivElement>(null);
+  const [speakerVoices, setSpeakerVoices] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (speedDropdownRef.current && !speedDropdownRef.current.contains(event.target as Node)) {
+        setShowSpeedDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Heartbeat: record 60s of study time every minute the learner stays on this page
   useStudyTimeTracker();
@@ -1067,6 +1182,21 @@ export default function LessonDetailPage() {
       .then((data) => {
         setLesson(data);
 
+        // Assign random voices for each speaker
+        const fptVoices = ["banmai", "lannhi", "thuminh", "giahan", "leminh", "thientri"];
+        const voiceMapping: Record<string, string> = {};
+        const availableVoices = [...fptVoices];
+        
+        data.dialogues.forEach((dlg) => {
+          if (!voiceMapping[dlg.speaker]) {
+            const randomIdx = Math.floor(Math.random() * availableVoices.length);
+            voiceMapping[dlg.speaker] = availableVoices[randomIdx];
+            availableVoices.splice(randomIdx, 1);
+            if (availableVoices.length === 0) availableVoices.push(...fptVoices);
+          }
+        });
+        setSpeakerVoices(voiceMapping);
+
         // Initialize passedDialogues from saved progress
         const activeLines = data.dialogues.filter((d) => d.isActive);
         if (data.isCompleted) {
@@ -1163,7 +1293,7 @@ export default function LessonDetailPage() {
       autoAdvanceTimerRef.current = setTimeout(() => {
         advanceToDialogue(nextIdx);
         autoAdvanceTimerRef.current = null;
-      }, 1500);
+      }, 4000);
     }
   }, [activeDialogueIndex, lesson, advanceToDialogue]);
 
@@ -1184,6 +1314,7 @@ export default function LessonDetailPage() {
 
   const L = {
     toggleSubtitle: t("Bật/Tắt phụ đề", "字幕 ON/OFF"),
+    speed: t("Tốc độ", "速度"),
     back: t("Quay lại danh sách bài học", "レッスン一覧に戻る"),
     shadowingTip: t(
       "Bấm nút 'Nghe' để nghe từng câu, sau đó nhấn mic để luyện shadowing.",
@@ -1358,8 +1489,39 @@ export default function LessonDetailPage() {
             </div>
           )}
 
-          {/* Subtitle toggle */}
-          <div className="flex justify-end">
+          {/* Controls: Speed and Subtitle */}
+          <div className="flex justify-end gap-3">
+            <div className="relative" ref={speedDropdownRef}>
+              <button
+                onClick={() => setShowSpeedDropdown((v) => !v)}
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container-low text-primary rounded-full hover:bg-surface-container transition-all shadow-sm active:scale-95 border border-primary/10"
+                title={L.speed}
+              >
+                <span className="material-symbols-outlined text-sm">speed</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">{L.speed}: {playbackRate}X</span>
+                <span className="material-symbols-outlined text-sm transition-transform duration-200" style={{ transform: showSpeedDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }}>expand_more</span>
+              </button>
+              
+              {showSpeedDropdown && (
+                <div className="absolute top-full mt-2 right-0 bg-surface-container-lowest border border-surface-container-low rounded-xl shadow-lg z-50 overflow-hidden min-w-[120px] py-1 animate-[fadeInUp_0.1s_ease-out]">
+                  {[0.5, 0.75, 1, 1.25, 1.5].map((rate) => (
+                    <button
+                      key={rate}
+                      onClick={() => {
+                        setPlaybackRate(rate);
+                        setShowSpeedDropdown(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors hover:bg-surface-container flex items-center justify-between ${
+                        playbackRate === rate ? "text-primary bg-primary/10" : "text-on-surface"
+                      }`}
+                    >
+                      <span>{rate}X {rate === 1 && <span className="text-xs opacity-60 ml-1">(Chuẩn)</span>}</span>
+                      {playbackRate === rate && <span className="material-symbols-outlined text-sm">check</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               onClick={() => setShowSubtitle((v) => !v)}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-full hover:opacity-90 transition-all shadow-sm active:scale-95"
@@ -1387,6 +1549,8 @@ export default function LessonDetailPage() {
                   isSelected={idx === activeDialogueIndex}
                   isPassed={passedDialogues.has(idx)}
                   isLocked={isLocked}
+                  playbackRate={playbackRate}
+                  voice={speakerVoices[dlg.speaker] || "banmai"}
                   onSelect={() => {
                     if (isLocked) return;
                     hasUserInteractedRef.current = true;

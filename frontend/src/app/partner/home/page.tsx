@@ -4,7 +4,7 @@ import PartnerNavbar from "@/components/layout/PartnerNavbar";
 import PartnerBottomNav from "@/components/layout/PartnerBottomNav";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth";
-import { bookingApi, type BookingDto } from "@/lib/api";
+import { bookingApi, partnerApi, type BookingDto, type PartnerStatsDto } from "@/lib/api";
 
 // Convert UTC datetime string to Hanoi time (GMT+7) display string
 function formatHanoiTime(utcDateStr: string): string {
@@ -22,6 +22,9 @@ export default function PartnerHomePage() {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [nextLesson, setNextLesson] = useState<BookingDto | null>(null);
   const [isLoadingLesson, setIsLoadingLesson] = useState(true);
+  const [stats, setStats] = useState<PartnerStatsDto | null>(null);
+  const [goalInput, setGoalInput] = useState<number>(50);
+  const [isUpdatingGoal, setIsUpdatingGoal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,8 +42,31 @@ export default function PartnerHomePage() {
         if (!cancelled) setIsLoadingLesson(false);
       });
 
+    partnerApi.getMyStats()
+      .then((data) => {
+        if (!cancelled) {
+          setStats(data);
+          setGoalInput(data.monthlyGoal);
+        }
+      })
+      .catch(() => {});
+
     return () => { cancelled = true; };
   }, []);
+
+  const handleSaveGoal = async () => {
+    if (goalInput <= 0) return;
+    setIsUpdatingGoal(true);
+    try {
+      const res = await partnerApi.updateMonthlyGoal(goalInput);
+      setStats(prev => prev ? { ...prev, monthlyGoal: res.monthlyGoal } : null);
+      setIsGoalModalOpen(false);
+    } catch (error) {
+      console.error("Failed to update goal", error);
+    } finally {
+      setIsUpdatingGoal(false);
+    }
+  };
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen pb-20 md:pb-0">
@@ -138,11 +164,11 @@ export default function PartnerHomePage() {
               <div className="p-3 bg-primary-container/20 rounded-xl text-primary">
                 <span className="material-symbols-outlined">person_check</span>
               </div>
-              <span className="text-primary font-bold text-2xl">85%</span>
+              <span className="text-primary font-bold text-2xl">{user?.profileCompletionRate ?? 0}%</span>
             </div>
             <h3 className="text-sm font-label font-bold text-outline mb-1 uppercase tracking-wider">{t("Hoàn thiện hồ sơ", "プロフィール完成度")}</h3>
             <div className="w-full bg-surface-container rounded-full h-1.5 mt-4">
-              <div className="bg-primary h-1.5 rounded-full" style={{ width: "85%" }}></div>
+              <div className="bg-primary h-1.5 rounded-full" style={{ width: `${user?.profileCompletionRate ?? 0}%` }}></div>
             </div>
           </div>
           <div className="bg-surface-container-lowest p-6 rounded-2xl border-b-4 border-secondary/10 hover:border-secondary transition-all shadow-sm">
@@ -162,7 +188,7 @@ export default function PartnerHomePage() {
               <div className="p-3 bg-tertiary-container/20 rounded-xl text-tertiary">
                 <span className="material-symbols-outlined">history_edu</span>
               </div>
-              <span className="text-primary font-bold text-2xl">156</span>
+              <span className="text-primary font-bold text-2xl">{user?.completedSessions ?? 0}</span>
             </div>
             <h3 className="text-sm font-label font-bold text-outline mb-1 uppercase tracking-wider">{t("Số buổi hoàn thành", "完了セッション数")}</h3>
           </div>
@@ -181,7 +207,7 @@ export default function PartnerHomePage() {
                   <circle className="text-primary" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" strokeDasharray="552.92" strokeDashoffset="110.58" strokeWidth="12"></circle>
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-headline font-extrabold text-primary">45/50</span>
+                  <span className="text-3xl font-headline font-extrabold text-primary">{user?.completedSessions ?? 0}/{stats?.monthlyGoal ?? 50}</span>
                   <span className="text-[10px] font-label font-bold text-outline uppercase tracking-widest">Sessions</span>
                 </div>
               </div>
@@ -226,15 +252,15 @@ export default function PartnerHomePage() {
               <h3 className="text-sm font-label font-bold text-primary mb-4 uppercase tracking-wider">{t("Lịch sử giảng dạy tháng trước", "過去1ヶ月の指導履歴")}</h3>
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-surface-container-low p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                  <span className="text-3xl font-headline font-bold text-primary mb-1">42</span>
+                  <span className="text-3xl font-headline font-bold text-primary mb-1">{stats?.lastMonthTotalSessions ?? 0}</span>
                   <span className="text-[10px] font-label font-bold text-outline uppercase tracking-wider">{t("Tổng số buổi", "総セッション")}</span>
                 </div>
                 <div className="bg-primary/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                  <span className="text-3xl font-headline font-bold text-primary mb-1">38</span>
+                  <span className="text-3xl font-headline font-bold text-primary mb-1">{stats?.lastMonthCompletedSessions ?? 0}</span>
                   <span className="text-[10px] font-label font-bold text-outline uppercase tracking-wider">{t("Hoàn thành", "完了")}</span>
                 </div>
                 <div className="bg-error-container/40 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                  <span className="text-3xl font-headline font-bold text-error mb-1">4</span>
+                  <span className="text-3xl font-headline font-bold text-error mb-1">{stats?.lastMonthCancelledSessions ?? 0}</span>
                   <span className="text-[10px] font-label font-bold text-outline uppercase tracking-wider">{t("Đã hủy", "キャンセル")}</span>
                 </div>
               </div>
@@ -242,15 +268,21 @@ export default function PartnerHomePage() {
             
             <div className="mb-8">
               <label className="block text-sm font-label font-bold text-primary mb-2 uppercase tracking-wider">{t("Mục tiêu mới", "新しい目標")}</label>
-              <input className="w-full bg-surface-container-low border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl px-4 py-3 text-primary font-bold text-lg transition-colors placeholder:text-outline/50 placeholder:font-normal" placeholder="e.g., 50" type="number" defaultValue="50" />
+              <input 
+                className="w-full bg-surface-container-low border-2 border-outline-variant focus:border-primary focus:ring-0 rounded-xl px-4 py-3 text-primary font-bold text-lg transition-colors placeholder:text-outline/50 placeholder:font-normal" 
+                placeholder="e.g., 50" 
+                type="number" 
+                value={goalInput}
+                onChange={(e) => setGoalInput(parseInt(e.target.value) || 0)}
+              />
             </div>
             
             <div className="flex gap-4 justify-end">
               <button onClick={() => setIsGoalModalOpen(false)} className="px-6 py-3 border-2 border-outline-variant text-primary font-bold rounded-xl hover:bg-surface-container-low transition-all text-sm uppercase tracking-wider flex-1 md:flex-none">
                 {t("Hủy", "キャンセル")}
               </button>
-              <button onClick={() => setIsGoalModalOpen(false)} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition-all text-sm uppercase tracking-wider shadow-md hover:shadow-lg flex-1 md:flex-none">
-                {t("Lưu thay đổi", "変更を保存")}
+              <button disabled={isUpdatingGoal} onClick={handleSaveGoal} className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-container transition-all text-sm uppercase tracking-wider shadow-md hover:shadow-lg flex-1 md:flex-none disabled:opacity-50">
+                {isUpdatingGoal ? t("Đang lưu...", "保存中...") : t("Lưu thay đổi", "変更を保存")}
               </button>
             </div>
           </div>

@@ -85,7 +85,7 @@ public class MessageService : IMessageService
         // Materialize first so timezone conversion runs in-memory, not in SQL
         var rawMessages = await _context.Messages
             .Include(m => m.Booking)
-            .Where(m => m.ConversationId == conversationId)
+            .Where(m => m.ConversationId == conversationId && m.MessageType != "SYSTEM")
             .OrderByDescending(m => m.SentAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
