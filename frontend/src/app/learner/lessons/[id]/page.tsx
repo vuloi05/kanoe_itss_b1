@@ -1581,7 +1581,7 @@ export default function LessonDetailPage() {
 
         {/* ── Right Column (Sticky Voice Lab) ── */}
         <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24 space-y-6">
+          <div className="lg:sticky lg:top-24 space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
             {/* Single Voice Lab — driven by activeDialogueIndex */}
             {(() => {
               const activeDlg = lesson.dialogues[activeDialogueIndex];
