@@ -515,7 +515,14 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
             {lang === "ja" ? dlg.speakerJp : dlg.speaker} {lang === "ja" ? "（あなた）" : "(Active)"}
           </span>
           <button
-            onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isSelected) {
+                onSelect();
+              } else {
+                if (isPlaying) { stop(); } else { play(); }
+              }
+            }}
             disabled={isLoading}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
               isLoading
@@ -586,7 +593,14 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
           {lang === "ja" ? dlg.speakerJp : dlg.speaker}
         </span>
         <button
-          onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isSelected) {
+              onSelect();
+            } else {
+              if (isPlaying) { stop(); } else { play(); }
+            }
+          }}
           disabled={isLoading}
           className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
             isLoading
