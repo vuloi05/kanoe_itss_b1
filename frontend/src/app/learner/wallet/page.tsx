@@ -10,6 +10,7 @@ import { matchingApi, paymentApi, type TransactionHistoryDto, type CreatePayment
 import TopUpTokenModal from "@/components/common/TopUpTokenModal";
 import PaymentCheckoutModal from "@/components/common/PaymentCheckoutModal";
 import { useToast } from "@/contexts/ToastContext";
+import { subscribeToTokenBalance, dispatchTokenBalanceUpdate } from "@/lib/events";
 
 // ─── Date formatter ────────────────────────────────────────────
 function formatTxDate(iso: string, locale: "vi" | "ja"): string {
@@ -69,6 +70,13 @@ export default function WalletPage() {
     return () => {
       mounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTokenBalance((newBalance) => {
+      setBalance(newBalance);
+    });
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -322,6 +330,7 @@ export default function WalletPage() {
                 // Update balance immediately
                 const newBalance = await matchingApi.getBalance();
                 setBalance(newBalance.tokenBalance);
+                dispatchTokenBalanceUpdate(newBalance.tokenBalance);
                 addToast(res.message || "Áp dụng mã thành công!", "success");
               } else if (res.qrCode) {
                 setPaymentData(res);

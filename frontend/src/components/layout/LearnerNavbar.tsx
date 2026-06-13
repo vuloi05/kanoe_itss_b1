@@ -8,6 +8,7 @@ import ProfileDropdown from "@/components/common/ProfileDropdown";
 
 import { useState, useEffect } from "react";
 import { matchingApi } from "@/lib/api";
+import { subscribeToTokenBalance } from "@/lib/events";
 
 export default function LearnerNavbar() {
   const pathname = usePathname();
@@ -20,6 +21,13 @@ export default function LearnerNavbar() {
     matchingApi.getBalance()
       .then((data) => setTokenBalance(data.tokenBalance))
       .catch(() => setTokenBalance(0));
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTokenBalance((newBalance) => {
+      setTokenBalance(newBalance);
+    });
+    return () => unsubscribe();
   }, []);
 
   const navLinks = [

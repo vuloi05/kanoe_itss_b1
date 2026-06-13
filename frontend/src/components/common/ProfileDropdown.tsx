@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { matchingApi } from "@/lib/api";
+import { subscribeToTokenBalance } from "@/lib/events";
 
 interface ProfileDropdownProps {
   settingsPath: string;
@@ -49,6 +50,14 @@ export default function ProfileDropdown({ settingsPath }: ProfileDropdownProps) 
         .catch(err => console.error("Failed to fetch balance", err));
     }
   }, [open, user]);
+
+  // Subscribe to token balance updates
+  useEffect(() => {
+    const unsubscribe = subscribeToTokenBalance((newBalance) => {
+      setBalance(newBalance);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSettings = () => {
     setOpen(false);

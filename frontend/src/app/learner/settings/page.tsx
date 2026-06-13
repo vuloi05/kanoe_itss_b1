@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { authApi, matchingApi, paymentApi, type CreatePaymentLinkResponse } from "@/lib/api";
 import PaymentCheckoutModal from "@/components/common/PaymentCheckoutModal";
 import { useToast } from "@/contexts/ToastContext";
+import { subscribeToTokenBalance, dispatchTokenBalanceUpdate } from "@/lib/events";
 /**
  * Compute a human-readable relative time string from a UTC ISO date.
  * Returns separate Vietnamese / Japanese strings.
@@ -82,6 +83,13 @@ export default function LearnerSettingsPage() {
 
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToTokenBalance((newBalance) => {
+      setTokenBalance(newBalance);
+    });
+    return () => unsubscribe();
   }, []);
 
   const passwordSubtext = passwordChangedLabel
@@ -334,6 +342,7 @@ export default function LearnerSettingsPage() {
               if (res.isFree) {
                 const newBalance = await matchingApi.getBalance();
                 setTokenBalance(newBalance.tokenBalance);
+                dispatchTokenBalanceUpdate(newBalance.tokenBalance);
                 addToast(res.message || "Áp dụng mã thành công!", "success");
               } else if (res.qrCode) {
                 setPaymentData(res);
