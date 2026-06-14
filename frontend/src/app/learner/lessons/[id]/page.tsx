@@ -170,24 +170,21 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Web Audio API refs for sample-accurate playback
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
-  const startTimeRef = useRef<number>(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const durationRef = useRef<number>(0);
-  // Word timestamps for syllable-weighted highlight sync (Tier 3)
   const wordTimestampsRef = useRef<WordTimestamp[]>([]);
-
   const rafRef = useRef<number | null>(null);
   const lastWordIdxRef = useRef<number>(-1);
+
   const onEndedRef = useRef(onEnded);
   const playbackRateRef = useRef(playbackRate);
 
   useEffect(() => { onEndedRef.current = onEnded; }, [onEnded]);
+
   useEffect(() => {
     playbackRateRef.current = playbackRate;
-    if (sourceNodeRef.current) {
-      sourceNodeRef.current.playbackRate.value = playbackRate;
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
     }
   }, [playbackRate]);
 
@@ -202,24 +199,21 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
     }
   }, []);
 
-  const stopSource = useCallback(() => {
-    if (sourceNodeRef.current) {
-      sourceNodeRef.current.onended = null;
-      try { sourceNodeRef.current.stop(); } catch { /* already stopped */ }
-      sourceNodeRef.current.disconnect();
-      sourceNodeRef.current = null;
+  const stopAudio = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.onended = null;
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
     }
   }, []);
 
-  // rAF loop: reads AudioContext.currentTime (sample-accurate, no decode lag)
-  // instead of HTMLAudioElement.currentTime which has ~50-100ms decode latency.
-  // Uses syllable-weighted timestamps (Tier 3) for precise per-word sync.
   const startTrackingLoop = useCallback(() => {
     const tick = () => {
-      const ctx = audioContextRef.current;
-      if (!ctx || !sourceNodeRef.current) return;
+      const audio = audioRef.current;
+      if (!audio) return;
 
-      const elapsed = (ctx.currentTime - startTimeRef.current) * playbackRateRef.current;
+      const elapsed = audio.currentTime;
       const duration = durationRef.current;
 
       if (elapsed >= duration) return;
@@ -228,7 +222,6 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
       let newIdx: number;
 
       if (timestamps.length > 0) {
-        // Binary search for current word by elapsed time
         let lo = 0, hi = timestamps.length - 1;
         newIdx = -1;
         while (lo <= hi) {
@@ -243,9 +236,6 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
           }
         }
 
-        // If elapsed falls in a gap between words, 'break' is not called.
-        // 'hi' will point to the index of the word that just finished.
-        // We hold the highlight on that word during the pause.
         if (newIdx === -1) {
           newIdx = hi >= 0 ? hi : -1;
         }
@@ -254,7 +244,6 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
           newIdx = timestamps.length - 1;
         }
       } else {
-        // Fallback: uniform distribution
         const wordCount = wordCountRef.current;
         const segmentDuration = duration / wordCount;
         newIdx = Math.floor(elapsed / segmentDuration);
@@ -273,21 +262,19 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
-  // Preload: fetch + decode audio into AudioBuffer as soon as component mounts.
-  // This eliminates the fetch + decode latency on first click entirely.
   useEffect(() => {
     if (typeof window === "undefined") return;
     let cancelled = false;
 
     const preload = async () => {
       const cacheKey = `${voice}_${text}`;
-      if (ttsCache.get(cacheKey)) return; // URL already cached, skip
+      if (ttsCache.get(cacheKey)) return;
 
       try {
         const result = await ttsApi.synthesize(text, voice);
         if (!cancelled) ttsCache.set(cacheKey, result);
       } catch {
-        // Preload failure is silent — play() will retry on demand
+        // silent preload failure
       }
     };
 
@@ -295,23 +282,18 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
     return () => { cancelled = true; };
   }, [text, voice]);
 
-  // Cleanup on unmount: stop source, cancel rAF, close AudioContext
   useEffect(() => {
     return () => {
       cancelRaf();
-      stopSource();
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
+      stopAudio();
     };
-  }, [cancelRaf, stopSource]);
+  }, [cancelRaf, stopAudio]);
 
   const play = useCallback(async () => {
     if (typeof window === "undefined" || isLoading) return;
 
     cancelRaf();
-    stopSource();
+    stopAudio();
 
     const cacheKey = `${voice}_${text}`;
     let ttsResult = ttsCache.get(cacheKey);
@@ -331,47 +313,42 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
     }
 
     try {
-      let arrayBuffer: ArrayBuffer;
+      let audioSrc = "";
       if (ttsResult.audioBase64) {
-        const response = await fetch(ttsResult.audioBase64);
-        if (!response.ok) throw new Error(`Fetch base64 failed: ${response.status}`);
-        arrayBuffer = await response.arrayBuffer();
+        audioSrc = ttsResult.audioBase64;
       } else if (ttsResult.audioUrl) {
-        // Proxy through backend to avoid CORS block on FPT CDN.
-        // FPT CDN does not set Access-Control-Allow-Origin, so direct fetch() fails.
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-        const proxyUrl = `${backendUrl}/api/tts/audio?url=${encodeURIComponent(ttsResult.audioUrl)}`;
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-        arrayBuffer = await response.arrayBuffer();
+        audioSrc = ttsResult.audioUrl;
       } else {
-        throw new Error("No audio provided");
+        throw new Error("No audio source found");
       }
 
-      // Reuse or create AudioContext (browsers limit total contexts per page)
-      if (!audioContextRef.current || audioContextRef.current.state === "closed") {
-        audioContextRef.current = new AudioContext();
-      }
-      const ctx = audioContextRef.current;
+      const audio = new Audio(audioSrc);
+      audio.playbackRate = playbackRateRef.current;
+      audio.preservesPitch = true;
 
-      // Resume context if suspended (browser autoplay policy)
-      if (ctx.state === "suspended") await ctx.resume();
+      audioRef.current = audio;
 
-      // decodeAudioData gives us a fully decoded AudioBuffer — zero decode latency at playback
-      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-      durationRef.current = audioBuffer.duration;
+      setIsLoading(true);
+      await new Promise<void>((resolve, reject) => {
+        const handleLoadedMetadata = () => {
+          durationRef.current = audio.duration;
+          resolve();
+        };
+        const handleError = (e: Event) => {
+          reject(e);
+        };
+        audio.addEventListener("loadedmetadata", handleLoadedMetadata, { once: true });
+        audio.addEventListener("error", handleError, { once: true });
+      });
+      setIsLoading(false);
 
-      // Use backend timestamps if available, otherwise fallback to estimation
       if (ttsResult.wordTimestamps && ttsResult.wordTimestamps.length > 0) {
-        // Azure returns word boundaries in seconds. Convert to match the duration scale if needed.
-        // Align timestamps by character position to handle punctuation and compound word differences robustly.
         const azureTimestamps = ttsResult.wordTimestamps;
         const mappedTimestamps: WordTimestamp[] = [];
         
         const wordSpans: { word: string; startC: number; endC: number; cleanLength: number }[] = [];
         let charIdx = 0;
         for (const w of words) {
-          // Remove punctuation and spaces to get the raw pronunciation characters
           const clean = w.toLowerCase().replace(/[.,!?;:"'“”‘’()\[\]{}-]/g, "").replace(/\s+/g, "");
           wordSpans.push({ word: w, startC: charIdx, endC: charIdx + clean.length, cleanLength: clean.length });
           charIdx += clean.length;
@@ -396,7 +373,6 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
             continue;
           }
 
-          // Find all azure spans that overlap with this word's characters
           const overlapping = azSpans.filter(az => az.cleanLength > 0 && az.startC < wSpan.endC && az.endC > wSpan.startC);
 
           if (overlapping.length > 0) {
@@ -406,7 +382,6 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
               end: overlapping[overlapping.length - 1].end / 1000
             });
           } else {
-            // Fallback for missing words
             mappedTimestamps.push({
               word: wSpan.word,
               start: mappedTimestamps[i - 1]?.end || 0,
@@ -417,23 +392,14 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
 
         wordTimestampsRef.current = mappedTimestamps;
       } else {
-        // Tier 3: Calculate syllable-weighted word timestamps for precise sync
-        wordTimestampsRef.current = estimateWordTimestamps(words, audioBuffer.duration);
+        wordTimestampsRef.current = estimateWordTimestamps(words, durationRef.current);
       }
 
-      const source = ctx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.playbackRate.value = playbackRateRef.current;
-      source.connect(ctx.destination);
-      sourceNodeRef.current = source;
-
-      // Record the exact AudioContext timestamp at start — used for sample-accurate elapsed calc
-      startTimeRef.current = ctx.currentTime;
       lastWordIdxRef.current = 0;
       setActiveWordIdx(0);
       setIsPlaying(true);
 
-      source.onended = () => {
+      audio.onended = () => {
         cancelRaf();
         setIsPlaying(false);
         setActiveWordIdx(-1);
@@ -441,24 +407,23 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
         onEndedRef.current?.();
       };
 
-      source.start(0);
+      await audio.play();
       startTrackingLoop();
     } catch (err) {
       console.error("Audio playback failed:", err);
-      // Evict stale cache entry so next click re-fetches
       ttsCache.delete(`${voice}_${text}`);
       setIsLoading(false);
       setIsPlaying(false);
     }
-  }, [text, voice, words, isLoading, cancelRaf, stopSource, startTrackingLoop]);
+  }, [text, voice, words, isLoading, cancelRaf, stopAudio, startTrackingLoop]);
 
   const stop = useCallback(() => {
     cancelRaf();
-    stopSource();
+    stopAudio();
     setIsPlaying(false);
     setActiveWordIdx(-1);
     lastWordIdxRef.current = -1;
-  }, [cancelRaf, stopSource]);
+  }, [cancelRaf, stopAudio]);
 
   return { words, activeWordIdx, isPlaying, isLoading, play, stop };
 }
