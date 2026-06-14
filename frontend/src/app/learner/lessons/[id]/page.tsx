@@ -204,6 +204,7 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
 
   const stopSource = useCallback(() => {
     if (sourceNodeRef.current) {
+      sourceNodeRef.current.onended = null;
       try { sourceNodeRef.current.stop(); } catch { /* already stopped */ }
       sourceNodeRef.current.disconnect();
       sourceNodeRef.current = null;
@@ -467,6 +468,8 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
 // (used by auto-play flow for partner/AI dialogue lines)
 interface DialogueLineHandle {
   playTTS: () => void;
+  stopTTS: () => void;
+  isPlaying: () => boolean;
 }
 
 interface DialogueLineProps {
@@ -493,7 +496,9 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
 
   useImperativeHandle(ref, () => ({
     playTTS: play,
-  }), [play]);
+    stopTTS: stop,
+    isPlaying: () => isPlaying,
+  }), [play, stop, isPlaying]);
 
   // Visual ring style: selected (actively recording for) vs passed vs default
   const ringClass = isSelected
@@ -1253,13 +1258,19 @@ export default function LessonDetailPage() {
       .finally(() => setLoading(false));
   }, [lessonId]);
 
-  // ── Auto-play & Auto-scroll on step change ────────────────────────────────
   // When activeDialogueIndex changes:
   // 1. Scroll the active dialogue card into view (smooth, centered)
   // 2. If current line is a partner/AI line (!isActive), auto-play TTS
   //    and auto-advance to the next step when audio ends
   useEffect(() => {
     if (!lesson) return;
+
+    // Stop all other cards' audio playback
+    dialogueRefs.current.forEach((cardRef, idx) => {
+      if (idx !== activeDialogueIndex && cardRef) {
+        cardRef.stopTTS();
+      }
+    });
 
     // Auto-scroll: find the DOM element for the current dialogue and scroll it into view
     // Uses requestAnimationFrame to ensure DOM has rendered after state change
