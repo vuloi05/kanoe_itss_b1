@@ -204,6 +204,7 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
 
   const stopSource = useCallback(() => {
     if (sourceNodeRef.current) {
+      sourceNodeRef.current.onended = null;
       try { sourceNodeRef.current.stop(); } catch { /* already stopped */ }
       sourceNodeRef.current.disconnect();
       sourceNodeRef.current = null;
@@ -467,6 +468,8 @@ function useTTSShadowing(text: string, playbackRate: number = 1.0, voice: string
 // (used by auto-play flow for partner/AI dialogue lines)
 interface DialogueLineHandle {
   playTTS: () => void;
+  stopTTS: () => void;
+  isPlaying: () => boolean;
 }
 
 interface DialogueLineProps {
@@ -493,7 +496,9 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
 
   useImperativeHandle(ref, () => ({
     playTTS: play,
-  }), [play]);
+    stopTTS: stop,
+    isPlaying: () => isPlaying,
+  }), [play, stop, isPlaying]);
 
   // Visual ring style: selected (actively recording for) vs passed vs default
   const ringClass = isSelected
@@ -515,7 +520,14 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
             {lang === "ja" ? dlg.speakerJp : dlg.speaker} {lang === "ja" ? "（あなた）" : "(Active)"}
           </span>
           <button
-            onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isSelected) {
+                onSelect();
+              } else {
+                if (isPlaying) { stop(); } else { play(); }
+              }
+            }}
             disabled={isLoading}
             className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
               isLoading
@@ -586,7 +598,14 @@ const DialogueLine = forwardRef<DialogueLineHandle, DialogueLineProps>(function 
           {lang === "ja" ? dlg.speakerJp : dlg.speaker}
         </span>
         <button
-          onClick={(e) => { e.stopPropagation(); if (isPlaying) { stop(); } else { play(); } }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isSelected) {
+              onSelect();
+            } else {
+              if (isPlaying) { stop(); } else { play(); }
+            }
+          }}
           disabled={isLoading}
           className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all ${
             isLoading
@@ -672,7 +691,17 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, sentenceId, isPasse
   const startTimeRef = useRef<number>(0);
   const audioBlobRef = useRef<Blob | null>(null);
   const recordedAudioUrlRef = useRef(recordedAudioUrl);
+  const scoresContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => { recordedAudioUrlRef.current = recordedAudioUrl; }, [recordedAudioUrl]);
+
+  useEffect(() => {
+    if (scores) {
+      const timer = setTimeout(() => {
+        scoresContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [scores]);
 
   // Derive display label from key + lang each render — no effect needed
   const statusLabel = STATUS_LABELS[statusKey]?.[lang] ?? STATUS_LABELS[statusKey]?.vi ?? "";
@@ -1024,7 +1053,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, sentenceId, isPasse
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div ref={scoresContainerRef} className="grid grid-cols-2 gap-4">
         {scoreData.map((s) => (
           <div key={s.label} className={`bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm transition-all duration-300 ${scores ? "ring-2 ring-primary/20" : ""} ${isLoadingScore ? "opacity-60 animate-pulse" : ""}`}>
             {isLoadingScore ? (
@@ -1229,13 +1258,19 @@ export default function LessonDetailPage() {
       .finally(() => setLoading(false));
   }, [lessonId]);
 
-  // ── Auto-play & Auto-scroll on step change ────────────────────────────────
   // When activeDialogueIndex changes:
   // 1. Scroll the active dialogue card into view (smooth, centered)
   // 2. If current line is a partner/AI line (!isActive), auto-play TTS
   //    and auto-advance to the next step when audio ends
   useEffect(() => {
     if (!lesson) return;
+
+    // Stop all other cards' audio playback
+    dialogueRefs.current.forEach((cardRef, idx) => {
+      if (idx !== activeDialogueIndex && cardRef) {
+        cardRef.stopTTS();
+      }
+    });
 
     // Auto-scroll: find the DOM element for the current dialogue and scroll it into view
     // Uses requestAnimationFrame to ensure DOM has rendered after state change
@@ -1567,7 +1602,7 @@ export default function LessonDetailPage() {
 
         {/* ── Right Column (Sticky Voice Lab) ── */}
         <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24 space-y-6">
+          <div className="lg:sticky lg:top-24 space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto no-scrollbar">
             {/* Single Voice Lab — driven by activeDialogueIndex */}
             {(() => {
               const activeDlg = lesson.dialogues[activeDialogueIndex];

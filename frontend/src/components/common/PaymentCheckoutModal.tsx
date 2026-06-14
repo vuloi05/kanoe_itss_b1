@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { CreatePaymentLinkResponse, matchingApi } from "@/lib/api";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { dispatchTokenBalanceUpdate } from "@/lib/events";
 
 const BANK_BINS: Record<string, { shortName: string; name: string }> = {
   "970422": { shortName: "MBBank", name: "Ngân hàng TMCP Quân đội" },
@@ -72,6 +73,7 @@ export default function PaymentCheckoutModal({
             // Payment successful!
             clearInterval(timer);
             if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+            dispatchTokenBalanceUpdate(res.tokenBalance);
             onSuccess(res.tokenBalance);
           }
         } catch {
