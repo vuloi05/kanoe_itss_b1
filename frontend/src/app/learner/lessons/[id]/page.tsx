@@ -686,7 +686,17 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, sentenceId, isPasse
   const startTimeRef = useRef<number>(0);
   const audioBlobRef = useRef<Blob | null>(null);
   const recordedAudioUrlRef = useRef(recordedAudioUrl);
+  const scoresContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => { recordedAudioUrlRef.current = recordedAudioUrl; }, [recordedAudioUrl]);
+
+  useEffect(() => {
+    if (scores) {
+      const timer = setTimeout(() => {
+        scoresContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [scores]);
 
   // Derive display label from key + lang each render — no effect needed
   const statusLabel = STATUS_LABELS[statusKey]?.[lang] ?? STATUS_LABELS[statusKey]?.vi ?? "";
@@ -1038,7 +1048,7 @@ function VoiceLab({ titleJp, subtitleJp, lang, expectedText, sentenceId, isPasse
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div ref={scoresContainerRef} className="grid grid-cols-2 gap-4">
         {scoreData.map((s) => (
           <div key={s.label} className={`bg-surface-container-lowest p-5 rounded-3xl text-center shadow-sm transition-all duration-300 ${scores ? "ring-2 ring-primary/20" : ""} ${isLoadingScore ? "opacity-60 animate-pulse" : ""}`}>
             {isLoadingScore ? (
@@ -1581,7 +1591,7 @@ export default function LessonDetailPage() {
 
         {/* ── Right Column (Sticky Voice Lab) ── */}
         <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24 space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
+          <div className="lg:sticky lg:top-24 space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto no-scrollbar">
             {/* Single Voice Lab — driven by activeDialogueIndex */}
             {(() => {
               const activeDlg = lesson.dialogues[activeDialogueIndex];
