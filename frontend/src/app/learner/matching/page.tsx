@@ -453,15 +453,17 @@ export default function MatchingPage() {
                         {t("Nhắn tin", "メッセージ")}
                       </>
                     ) : (
-                      <>
-                        <span className="material-symbols-outlined text-lg">
+                      <div className="flex items-center w-full justify-between px-2">
+                        <span className="material-symbols-outlined text-lg w-6 text-left">
                           group_add
                         </span>
-                        {t("Kết nối", "接続する")}
-                        <span className="opacity-70 text-xs flex items-center gap-0.5 ml-0.5">
-                          • {CONNECTION_COST} Token
+                        <span className="flex-1 text-center font-bold">
+                          {t("Kết nối", "接続する")}
                         </span>
-                      </>
+                        <span className="opacity-70 text-[11px] font-medium w-auto whitespace-nowrap text-right bg-white/20 px-2 py-0.5 rounded-md">
+                          {CONNECTION_COST} Token
+                        </span>
+                      </div>
                     )}
                   </button>
                 </div>
