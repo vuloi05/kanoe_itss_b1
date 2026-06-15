@@ -49,6 +49,10 @@ public partial class PartnerProfile
     [StringLength(30)]
     public string? Job { get; set; }
 
+    [Column("gender")]
+    [StringLength(10)]
+    public string? Gender { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
 

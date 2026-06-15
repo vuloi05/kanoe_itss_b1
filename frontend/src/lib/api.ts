@@ -402,6 +402,7 @@ export interface PartnerDto {
   lastSeen: string | null;
   ageRange: string | null;
   job: string | null;
+  gender: string | null;
   specialties: string[] | null;
   hasConversation: boolean;
   conversationId: string | null;

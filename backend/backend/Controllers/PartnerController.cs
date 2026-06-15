@@ -60,6 +60,7 @@ public class PartnerController : ControllerBase
             lastSeen = p.User.LastSeen,
             ageRange = p.Profile.AgeRange,
             job = p.Profile.Job,
+            gender = p.Profile.Gender,
             specialties = p.Profile.Specialties,
             hasConversation = conversations.ContainsKey(p.User.UserId),
             conversationId = conversations.ContainsKey(p.User.UserId)

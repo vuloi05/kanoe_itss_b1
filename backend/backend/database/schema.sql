@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS partner_profiles (
     intro_video_url   TEXT,
     age_range         VARCHAR(10),
     job               VARCHAR(30),
+    gender            VARCHAR(10),
     created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT partner_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -450,6 +451,9 @@ ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS daily_study_seconds INT NO
 
 -- learner_profiles.daily_study_date — date of the daily counter (for reset logic)
 ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS daily_study_date DATE;
+
+-- partner_profiles.gender — gender of the partner (male/female)
+ALTER TABLE partner_profiles ADD COLUMN IF NOT EXISTS gender VARCHAR(10);
 
 -- learner_profiles.last_study_date — last date user studied (for streak tracking)
 ALTER TABLE learner_profiles ADD COLUMN IF NOT EXISTS last_study_date TIMESTAMPTZ;
