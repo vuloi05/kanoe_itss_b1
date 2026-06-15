@@ -85,6 +85,11 @@ export default function PartnerProfileModal({
                 {t("Offline", "オフライン")}
               </span>
             )}
+            {partner.gender && (
+              <span className="bg-surface-container-low text-primary text-xs px-2.5 py-1 rounded-full font-medium">
+                {partner.gender === "male" ? t("Nam", "男性") : partner.gender === "female" ? t("Nữ", "女性") : partner.gender}
+              </span>
+            )}
             {partner.ageRange && (
               <span className="bg-surface-container-low text-primary text-xs px-2.5 py-1 rounded-full font-medium">
                 {partner.ageRange}

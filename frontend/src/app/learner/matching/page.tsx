@@ -412,6 +412,11 @@ export default function MatchingPage() {
                         {t("Offline", "オフライン")}
                       </span>
                     )}
+                    {p.gender && (
+                      <span className="bg-surface-container text-on-surface-variant text-[10px] px-2 py-0.5 rounded-full font-medium">
+                        {p.gender === "male" ? t("Nam", "男性") : p.gender === "female" ? t("Nữ", "女性") : p.gender}
+                      </span>
+                    )}
                     {p.ageRange && (
                       <span className="bg-surface-container-low text-primary text-[10px] px-2 py-0.5 rounded-full font-medium">
                         {p.ageRange}
