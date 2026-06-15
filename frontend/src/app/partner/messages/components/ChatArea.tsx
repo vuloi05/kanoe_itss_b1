@@ -180,7 +180,6 @@ export default function ChatArea({
                     </div>
                   </div>
                 </div>
-                </div>
               </div>
             );
           }
