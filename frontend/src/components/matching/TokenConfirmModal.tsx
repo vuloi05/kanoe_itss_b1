@@ -75,7 +75,7 @@ export default function TokenConfirmModal({
           {/* Icon + Title */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-100 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/20 flex items-center justify-center shrink-0">
-              <span className="text-2xl">🪙</span>
+              <span className="material-symbols-outlined text-amber-500 text-2xl">toll</span>
             </div>
             <div>
               <h2
@@ -115,12 +115,12 @@ export default function TokenConfirmModal({
               <div className="flex items-center justify-between text-xs text-on-surface-variant dark:text-stone-400">
                 <span>{t("Đối tác nhận", "パートナー受取")}</span>
                 <span className="font-medium text-green-600 dark:text-green-400">
-                  +{REVENUE_SPLIT.partner} 🪙
+                  +{REVENUE_SPLIT.partner} Token
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs text-on-surface-variant dark:text-stone-400 mt-1">
                 <span>{t("Phí nền tảng", "プラットフォーム手数料")}</span>
-                <span className="font-medium">{REVENUE_SPLIT.platform} 🪙</span>
+                <span className="font-medium">{REVENUE_SPLIT.platform} Token</span>
               </div>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function TokenConfirmModal({
               {t("Số dư hiện tại", "現在の残高")}
             </span>
             <span className="text-sm font-bold text-amber-700 dark:text-amber-300 tabular-nums">
-              {tokenBalance.toLocaleString()} 🪙
+              {tokenBalance.toLocaleString()} Token
             </span>
           </div>
           {hasEnoughTokens && (
@@ -140,7 +140,7 @@ export default function TokenConfirmModal({
                 {t("Số dư sau giao dịch", "取引後の残高")}
               </span>
               <span className="text-sm font-bold text-on-surface-variant dark:text-stone-300 tabular-nums">
-                {remainingAfter.toLocaleString()} 🪙
+                {remainingAfter.toLocaleString()} Token
               </span>
             </div>
           )}
@@ -184,7 +184,7 @@ export default function TokenConfirmModal({
               </>
             ) : (
               <>
-                <span className="text-base">🪙</span>
+                <span className="material-symbols-outlined text-base">toll</span>
                 {t("Xác nhận kết nối", "接続を確認")}
               </>
             )}

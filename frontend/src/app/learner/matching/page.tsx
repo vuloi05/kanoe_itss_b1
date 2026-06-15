@@ -459,7 +459,7 @@ export default function MatchingPage() {
                         </span>
                         {t("Kết nối", "接続する")}
                         <span className="opacity-70 text-xs flex items-center gap-0.5 ml-0.5">
-                          • {CONNECTION_COST} 🪙
+                          • {CONNECTION_COST} Token
                         </span>
                       </>
                     )}
