@@ -364,7 +364,7 @@ export default function MatchingPage() {
             {filteredPartners.map((p) => (
               <div
                 key={p.userId}
-                className="bg-white rounded-3xl p-4 profile-card-shadow border border-outline-variant/20 hover:border-primary/20 transition-all group"
+                className="bg-white rounded-3xl p-4 profile-card-shadow border border-outline-variant/20 hover:border-primary/20 transition-all group flex flex-col h-full"
               >
                 <div onClick={() => setViewingPartner(p)} className="cursor-pointer group/profile">
                   {/* Avatar */}
@@ -401,7 +401,7 @@ export default function MatchingPage() {
                   </div>
                 </div>
 
-                <div className="px-2 mt-4">
+                <div className="px-2 mt-auto pt-4">
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1.5">
                     {p.isOnline ? (
