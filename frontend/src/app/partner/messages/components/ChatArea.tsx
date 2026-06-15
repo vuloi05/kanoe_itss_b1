@@ -180,26 +180,6 @@ export default function ChatArea({
                     </div>
                   </div>
                 </div>
-                {/* Join Classroom - separate element below card */}
-                {isAccepted && msg.meetingUrl && (
-                  <a
-                    href={msg.meetingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 flex items-center justify-between w-full p-3 bg-surface-container-lowest border border-outline-variant/20 rounded-xl hover:shadow-md transition-shadow no-underline"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600 shrink-0">
-                        <span className="material-symbols-outlined">video_chat</span>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-bold text-on-surface">Join Classroom (Google Meet)</p>
-                        <p className="text-[10px] text-secondary">{t("クラスに入る", "クラスに入る")}</p>
-                      </div>
-                    </div>
-                    <span className="material-symbols-outlined text-outline text-sm">open_in_new</span>
-                  </a>
-                )}
               </div>
             );
           }
