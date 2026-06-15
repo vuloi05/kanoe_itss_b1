@@ -3,6 +3,7 @@ import LearnerNavbar from "@/components/layout/LearnerNavbar";
 import LearnerBottomNav from "@/components/layout/LearnerBottomNav";
 import SelectPicker from "@/components/common/SelectPicker";
 import TokenConfirmModal, { CONNECTION_COST } from "@/components/matching/TokenConfirmModal";
+import PartnerProfileModal from "@/components/matching/PartnerProfileModal";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -51,6 +52,9 @@ export default function MatchingPage() {
   const [tokenBalance, setTokenBalance] = useState(0);
   const [modalPartner, setModalPartner] = useState<PartnerDto | null>(null);
   const [isModalProcessing, setIsModalProcessing] = useState(false);
+  
+  // ── Profile Modal state ──
+  const [viewingPartner, setViewingPartner] = useState<PartnerDto | null>(null);
 
   // ── Toast ──
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -362,37 +366,40 @@ export default function MatchingPage() {
                 key={p.userId}
                 className="bg-white rounded-3xl p-4 profile-card-shadow border border-outline-variant/20 hover:border-primary/20 transition-all group"
               >
-                {/* Avatar */}
-                <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-surface-container">
-                  {(() => {
-                    const url = p.avatarUrl;
-                    const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(p.displayName)}&backgroundColor=c0aede`;
-                    return url && !brokenAvatars.has(url) ? (
-                      <img
-                        alt={p.displayName}
-                        className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
-                        src={url}
-                        onError={() => setBrokenAvatars((prev) => new Set(prev).add(url))}
-                      />
-                    ) : (
-                      <img
-                        alt={p.displayName}
-                        className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500"
-                        src={dicebearUrl}
-                        onError={() => {}}
-                      />
-                    );
-                  })()}
-                </div>
+                <div onClick={() => setViewingPartner(p)} className="cursor-pointer group/profile">
+                  {/* Avatar */}
+                  <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-surface-container group-hover/profile:shadow-md transition-all">
+                    {(() => {
+                      const url = p.avatarUrl;
+                      const dicebearUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(p.displayName)}&backgroundColor=c0aede`;
+                      return url && !brokenAvatars.has(url) ? (
+                        <img
+                          alt={p.displayName}
+                          className="w-full h-full object-cover grayscale-[0.2] group-hover/profile:grayscale-0 transition-all duration-500 group-hover/profile:scale-105"
+                          src={url}
+                          onError={() => setBrokenAvatars((prev) => new Set(prev).add(url))}
+                        />
+                      ) : (
+                        <img
+                          alt={p.displayName}
+                          className="w-full h-full object-cover grayscale-[0.2] group-hover/profile:grayscale-0 transition-all duration-500 group-hover/profile:scale-105"
+                          src={dicebearUrl}
+                          onError={() => {}}
+                        />
+                      );
+                    })()}
+                  </div>
 
-                {/* Info */}
-                <div className="px-2">
-                  <h3 className="text-lg font-headline font-bold text-primary mb-1">
-                    {p.displayName}
-                  </h3>
-                  <p className="text-on-surface-variant text-xs line-clamp-2 mb-4 leading-relaxed">
-                    {p.bio || t("Chưa cập nhật", "未設定")}
-                  </p>
+                  {/* Info */}
+                  <div className="px-2">
+                    <h3 className="text-lg font-headline font-bold text-primary mb-1 group-hover/profile:text-secondary transition-colors">
+                      {p.displayName}
+                    </h3>
+                    <p className="text-on-surface-variant text-xs line-clamp-2 mb-4 leading-relaxed">
+                      {p.bio || t("Chưa cập nhật", "未設定")}
+                    </p>
+                  </div>
+                </div>
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1.5">
@@ -442,9 +449,9 @@ export default function MatchingPage() {
                     ) : (
                       <>
                         <span className="material-symbols-outlined text-lg">
-                          send
+                          group_add
                         </span>
-                        {t("Nhắn tin", "メッセージ")}
+                        {t("Kết nối", "接続する")}
                         <span className="opacity-70 text-xs flex items-center gap-0.5 ml-0.5">
                           • {CONNECTION_COST} 🪙
                         </span>
@@ -466,6 +473,12 @@ export default function MatchingPage() {
         isProcessing={isModalProcessing}
         onConfirm={handleConfirmConnection}
         onCancel={handleCancelModal}
+      />
+
+      <PartnerProfileModal
+        partner={viewingPartner}
+        onClose={() => setViewingPartner(null)}
+        onConnect={handleMessageClick}
       />
 
       {/* Toast */}
