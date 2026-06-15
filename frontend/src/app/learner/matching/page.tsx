@@ -401,6 +401,7 @@ export default function MatchingPage() {
                   </div>
                 </div>
 
+                <div className="px-2 mt-4">
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1.5">
                     {p.isOnline ? (
