@@ -151,20 +151,26 @@ export default function ChatArea({
                             <span className="material-symbols-outlined text-sm">schedule</span>
                             <span>{msg.lessonStartTime} - {msg.lessonEndTime} ({msg.lessonDuration}m) (GMT+7)</span>
                           </div>
-                          {msg.meetingUrl && (
-                            <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                              <span className="material-symbols-outlined text-sm">videocam</span>
-                              <a
-                                href={msg.meetingUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary font-semibold hover:underline truncate"
-                              >
-                                {msg.meetingUrl}
-                              </a>
-                            </div>
-                          )}
                         </div>
+
+                        {isAccepted && msg.meetingUrl && (
+                          <div className="mb-2">
+                            <a href={msg.meetingUrl} target="_blank" rel="noopener noreferrer" className="block w-full bg-surface border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow no-underline text-on-surface">
+                              <div className="bg-primary/10 px-4 py-2 border-b border-outline-variant/10 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary text-lg">videocam</span>
+                                <span className="text-xs font-bold text-primary">Google Meet</span>
+                              </div>
+                              <div className="p-3 flex flex-col items-center justify-center space-y-2">
+                                <div className="text-sm font-semibold">{t("Join Classroom", "クラスに入る")}</div>
+                                <div className="text-[10px] text-outline text-center break-all">{msg.meetingUrl}</div>
+                                <div className="mt-1 w-full py-1.5 bg-primary text-on-primary rounded text-xs font-bold flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors">
+                                  {t("Tham gia", "参加する")}
+                                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                                </div>
+                              </div>
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {/* Buttons span full width */}
