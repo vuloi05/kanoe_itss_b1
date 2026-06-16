@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { partnerApi, matchingApi, type PartnerDto } from "@/lib/api";
+import { partnerApi, matchingApi, type PartnerDto, messageApi } from "@/lib/api";
 
 // ─── Hardcoded job filter options (spec §4.2) ─────────────────
 const JOB_OPTIONS = [
@@ -36,14 +36,19 @@ export default function MatchingPage() {
   const [draftAge, setDraftAge] = useState("all");
   const [draftJob, setDraftJob] = useState("all");
   const [draftStatus, setDraftStatus] = useState("all");
+  const [draftConnection, setDraftConnection] = useState("all");
 
   // ── Applied filter state ──
   const [ageFilter, setAgeFilter] = useState("all");
   const [jobFilter, setJobFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [connectionFilter, setConnectionFilter] = useState("all");
 
   // Track broken avatar URLs to show fallback
   const [brokenAvatars, setBrokenAvatars] = useState<Set<string>>(new Set());
+
+  // ── Unread counts mapping (conversationId -> unreadCount) ──
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   // ── Per-button loading state for "Nhắn tin" ──
   const [sendingTo, setSendingTo] = useState<string | null>(null);
@@ -70,11 +75,17 @@ export default function MatchingPage() {
     Promise.all([
       partnerApi.getPartners(),
       matchingApi.getBalance(),
+      messageApi.getConversations(),
     ])
-      .then(([partnerData, balanceData]) => {
+      .then(([partnerData, balanceData, conversations]) => {
         if (mounted) {
           setPartners(partnerData);
           setTokenBalance(balanceData.tokenBalance);
+          const unreadMap: Record<string, number> = {};
+          conversations.forEach((c) => {
+            unreadMap[c.conversationId] = c.unreadCount;
+          });
+          setUnreadCounts(unreadMap);
         }
       })
       .catch((err) => {
@@ -93,6 +104,7 @@ export default function MatchingPage() {
     setAgeFilter(draftAge);
     setJobFilter(draftJob);
     setStatusFilter(draftStatus);
+    setConnectionFilter(draftConnection);
   };
 
   // ── Filter logic (client-side) ──
@@ -100,6 +112,8 @@ export default function MatchingPage() {
     if (ageFilter !== "all" && p.ageRange !== ageFilter) return false;
     if (statusFilter === "online" && !p.isOnline) return false;
     if (statusFilter === "offline" && p.isOnline) return false;
+    if (connectionFilter === "connected" && !p.hasConversation) return false;
+    if (connectionFilter === "not_connected" && p.hasConversation) return false;
     if (jobFilter !== "all") {
       if (jobFilter === "Khác") {
         if (p.job && KNOWN_JOBS.includes(p.job)) return false;
@@ -279,6 +293,22 @@ export default function MatchingPage() {
               />
             </div>
 
+            {/* Connection Filter */}
+            <div className="flex-1 min-w-[180px]">
+              <label className="block text-[10px] uppercase tracking-wider font-bold text-secondary mb-1.5 ml-1">
+                {t("Kết nối", "接続")}
+              </label>
+              <SelectPicker
+                value={draftConnection}
+                onChange={setDraftConnection}
+                options={[
+                  { value: "all", label: t("Tất cả", "すべて") },
+                  { value: "connected", label: t("Đã kết nối", "接続済み") },
+                  { value: "not_connected", label: t("Chưa kết nối", "未接続") },
+                ]}
+              />
+            </div>
+
             {/* Search Button — applies filter (spec §4.2) */}
             <button
               onClick={applyFilters}
@@ -340,15 +370,17 @@ export default function MatchingPage() {
             <p className="text-on-surface-variant text-lg">
               {t("Chưa có đối tác nào.", "パートナーがいません。")}
             </p>
-            {(ageFilter !== "all" || jobFilter !== "all" || statusFilter !== "all") && (
+            {(ageFilter !== "all" || jobFilter !== "all" || statusFilter !== "all" || connectionFilter !== "all") && (
               <button
                 onClick={() => {
                   setDraftAge("all");
                   setDraftJob("all");
                   setDraftStatus("all");
+                  setDraftConnection("all");
                   setAgeFilter("all");
                   setJobFilter("all");
                   setStatusFilter("all");
+                  setConnectionFilter("all");
                 }}
                 className="mt-4 px-6 py-2 text-primary border border-primary/30 rounded-xl text-sm font-bold hover:bg-primary/5 transition-all"
               >
@@ -432,7 +464,7 @@ export default function MatchingPage() {
                   <button
                     onClick={() => handleMessageClick(p)}
                     disabled={sendingTo === p.userId}
-                    className={`w-full mt-4 py-2.5 rounded-xl font-headline font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`relative w-full mt-4 py-2.5 rounded-xl font-headline font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                       p.hasConversation
                         ? "bg-primary text-on-primary hover:opacity-90"
                         : "bg-gradient-to-r from-primary to-primary/85 text-on-primary hover:opacity-90 shadow-sm"
@@ -450,7 +482,12 @@ export default function MatchingPage() {
                         <span className="material-symbols-outlined text-lg">
                           send
                         </span>
-                        {t("Nhắn tin", "メッセージ")}
+                        <div className="relative">
+                          {t("Nhắn tin", "メッセージ")}
+                          {p.conversationId && unreadCounts[p.conversationId] > 0 && (
+                            <span className="absolute -top-1 -right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-primary"></span>
+                          )}
+                        </div>
                       </>
                     ) : (
                       <div className="flex items-center w-full justify-between px-2">
